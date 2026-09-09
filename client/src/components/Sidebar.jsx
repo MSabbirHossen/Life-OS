@@ -1,0 +1,158 @@
+import React from 'react';
+import { NavLink } from 'react-router-dom';
+import {
+  LayoutDashboard,
+  BookOpen,
+  Clock,
+  GraduationCap,
+  Dumbbell,
+  Utensils,
+  Wallet,
+  Compass,
+  CheckSquare,
+  Target,
+  FileText,
+  Settings,
+  Sparkles,
+  ChevronLeft,
+  ChevronRight,
+  X,
+} from 'lucide-react';
+
+const navigationGroups = [
+  {
+    title: 'Overview',
+    items: [
+      { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
+    ],
+  },
+  {
+    title: 'Track',
+    items: [
+      { name: 'Journal', path: '/journal', icon: BookOpen },
+      { name: 'Time Tracker', path: '/time-tracker', icon: Clock },
+      { name: 'Study Tracker', path: '/study', icon: GraduationCap },
+      { name: 'Fitness', path: '/fitness', icon: Dumbbell },
+      { name: 'Calories', path: '/calories', icon: Utensils },
+    ],
+  },
+  {
+    title: 'Life',
+    items: [
+      { name: 'Finance', path: '/finance', icon: Wallet },
+      { name: 'Islamic', path: '/islamic', icon: Compass },
+      { name: 'Habits', path: '/habits', icon: CheckSquare },
+      { name: 'Goals', path: '/goals', icon: Target },
+    ],
+  },
+  {
+    title: 'System',
+    items: [
+      { name: 'Reports', path: '/reports', icon: FileText },
+      { name: 'Settings', path: '/settings', icon: Settings },
+    ],
+  },
+];
+
+export const Sidebar = ({ isCollapsed, setIsCollapsed, isMobileOpen, setIsMobileOpen }) => {
+  return (
+    <>
+      {/* Mobile Backdrop */}
+      {isMobileOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-xs lg:hidden transition-opacity"
+          onClick={() => setIsMobileOpen(false)}
+        />
+      )}
+
+      <aside
+        className={`fixed top-0 bottom-0 left-0 z-40 bg-surface border-r border-theme transition-all duration-300 flex flex-col ${
+          isCollapsed ? 'w-20' : 'w-64'
+        } ${
+          isMobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+        }`}
+      >
+        {/* Brand Logo Header */}
+        <div className="h-16 flex items-center justify-between px-4 border-b border-theme shrink-0">
+          <div className="flex items-center gap-3 overflow-hidden">
+            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-indigo-600 to-purple-600 flex items-center justify-center text-white shrink-0 shadow-sm shadow-indigo-500/25">
+              <Sparkles className="w-5 h-5" />
+            </div>
+            {!isCollapsed && (
+              <div className="flex flex-col">
+                <span className="font-extrabold text-base text-primary tracking-tight">Life OS</span>
+                <span className="text-[10px] text-secondary font-semibold uppercase tracking-wider">
+                  Personal Dashboard
+                </span>
+              </div>
+            )}
+          </div>
+
+          {/* Desktop Toggle Button */}
+          <button
+            onClick={() => setIsCollapsed(!isCollapsed)}
+            className="hidden lg:flex p-1.5 rounded-xl text-secondary hover:text-primary hover:bg-subtle transition-colors cursor-pointer border border-transparent hover:border-theme"
+            aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          >
+            {isCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+          </button>
+
+          {/* Mobile Close Button */}
+          <button
+            onClick={() => setIsMobileOpen(false)}
+            className="lg:hidden p-1.5 rounded-xl text-secondary hover:text-primary hover:bg-subtle cursor-pointer"
+            aria-label="Close navigation"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Navigation List */}
+        <div className="flex-1 overflow-y-auto px-3 py-4 space-y-6">
+          {navigationGroups.map((group, idx) => (
+            <div key={idx}>
+              {!isCollapsed && (
+                <h4 className="px-3 text-[10px] font-bold text-secondary uppercase tracking-widest mb-2">
+                  {group.title}
+                </h4>
+              )}
+              <div className="space-y-1">
+                {group.items.map((item) => {
+                  const Icon = item.icon;
+                  return (
+                    <NavLink
+                      key={item.path}
+                      to={item.path}
+                      onClick={() => setIsMobileOpen(false)}
+                      className={({ isActive }) =>
+                        `flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold transition-all duration-150 ${
+                          isActive
+                            ? 'bg-accent text-white shadow-sm shadow-indigo-500/20'
+                            : 'text-secondary hover:text-primary hover:bg-subtle'
+                        } ${isCollapsed ? 'justify-center px-0' : ''}`
+                      }
+                      title={isCollapsed ? item.name : undefined}
+                    >
+                      <Icon className="w-4 h-4 shrink-0" />
+                      {!isCollapsed && <span className="truncate">{item.name}</span>}
+                    </NavLink>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Footer info */}
+        {!isCollapsed && (
+          <div className="p-4 border-t border-theme flex items-center justify-between text-[11px] font-medium text-secondary shrink-0">
+            <span>Life OS v1.0</span>
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" title="System Live" />
+          </div>
+        )}
+      </aside>
+    </>
+  );
+};
+
+export default Sidebar;

@@ -1,0 +1,15 @@
+{
+  "name": "lifeos",
+  "version": "1.0.0",
+  "description": "Life OS - Full-Stack Personal Management System",
+  "private": true,
+  "scripts": {
+    "dev:server": "npm --prefix server run dev",
+    "start:server": "npm --prefix server start",
+    "dev:client": "npm --prefix client run dev",
+    "build:client": "npm --prefix client run build",
+    "dev": "npm --prefix client run dev",
+    "start": "npm --prefix server start",
+    "test:features": "node server/testAllFeatures.js"
+  }
+}
