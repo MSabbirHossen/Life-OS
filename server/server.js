@@ -86,7 +86,11 @@ app.use((err, req, res, next) => {
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
-  console.log(`[Life OS Backend] Server listening on port ${PORT}`);
-  connectDB();
-});
+if (!process.env.VERCEL) {
+  app.listen(PORT, () => {
+    console.log(`[Life OS Backend] Server listening on port ${PORT}`);
+    connectDB();
+  });
+}
+
+export default app;

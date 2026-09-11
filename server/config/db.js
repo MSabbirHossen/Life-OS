@@ -1,6 +1,8 @@
 import mongoose from 'mongoose';
 import dns from 'dns';
 
+let cachedConn = null;
+
 /**
  * Check if the Atlas host is reachable via DNS TXT lookup without hanging the driver.
  */
@@ -25,9 +27,13 @@ const checkAtlasReachable = async (uri) => {
 };
 
 /**
- * Connect to MongoDB with instant fallback if Atlas is unreachable or IP is unwhitelisted.
+ * Connect to MongoDB with connection caching and fallback.
  */
 export const connectDB = async () => {
+  if (cachedConn && mongoose.connection.readyState === 1) {
+    return cachedConn;
+  }
+
   const uri = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/lifeos';
 
   const isReachable = await checkAtlasReachable(uri);
@@ -36,33 +42,42 @@ export const connectDB = async () => {
     try {
       console.log(`[MongoDB] Connecting to primary database...`);
       const conn = await mongoose.connect(uri, {
-        serverSelectionTimeoutMS: 3000,
-        connectTimeoutMS: 3000,
-        socketTimeoutMS: 15000,
+        serverSelectionTimeoutMS: 5000,
+        connectTimeoutMS: 5000,
+        socketTimeoutMS: 20000,
         family: 4,
-        maxPoolSize: 20,
+        maxPoolSize: 10,
       });
       console.log(`[MongoDB Connected] Host: ${conn.connection.host} | DB: ${conn.connection.name}`);
 
       try {
         await mongoose.connection.collection('users').dropIndex('username_1');
       } catch (e) {}
+
+      cachedConn = conn;
       return conn;
     } catch (primaryError) {
       console.warn(`[MongoDB Primary Connection Failed]: ${primaryError.message}. Switching to fallback...`);
     }
   }
 
-  // Fallback to in-memory database
-  try {
-    console.log(`[MongoDB] Initializing in-memory database fallback...`);
-    const { MongoMemoryServer } = await import('mongodb-memory-server');
-    const mongod = await MongoMemoryServer.create();
-    const memoryUri = mongod.getUri();
-    const conn = await mongoose.connect(memoryUri);
-    console.log(`[MongoDB Connected In-Memory Fallback] Host: ${conn.connection.host} | DB: ${conn.connection.name}`);
-    return conn;
-  } catch (fallbackError) {
-    console.error(`[MongoDB Fallback Error]: ${fallbackError.message}`);
+  // Fallback to in-memory database if not on Vercel
+  if (!process.env.VERCEL) {
+    try {
+      console.log(`[MongoDB] Initializing in-memory database fallback...`);
+      const { MongoMemoryServer } = await import('mongodb-memory-server');
+      const mongod = await MongoMemoryServer.create();
+      const memoryUri = mongod.getUri();
+      const conn = await mongoose.connect(memoryUri);
+      console.log(`[MongoDB Connected In-Memory Fallback] Host: ${conn.connection.host} | DB: ${conn.connection.name}`);
+      cachedConn = conn;
+      return conn;
+    } catch (fallbackError) {
+      console.error(`[MongoDB Fallback Error]: ${fallbackError.message}`);
+    }
+  } else {
+    throw new Error('Please set MONGODB_URI in your Vercel Environment Variables to connect to MongoDB Atlas.');
   }
 };
+
+export default connectDB;
