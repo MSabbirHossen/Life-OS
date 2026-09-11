@@ -2,39 +2,43 @@ export const DEFAULT_FINANCE_CATEGORIES = {
   expense: [
     {
       name: 'Food & Dining',
-      subCategories: ['Groceries', 'Restaurants', 'Coffee & Snacks', 'Delivery'],
+      subCategories: ['Breakfast', 'Lunch', 'Dinner', 'Sahri', 'Iftar', 'Groceries', 'Restaurants', 'Coffee & Snacks', 'Delivery'],
     },
     {
-      name: 'Shopping',
-      subCategories: ['Clothing', 'Electronics', 'Home & Garden', 'Personal Care'],
+      name: 'Religion & Deen',
+      subCategories: ['Umrah & Hajj', 'Fitra', 'Zakat', 'Sadaqah', 'Islamic Books', 'Donations'],
+    },
+    {
+      name: 'Technology & Cloud',
+      subCategories: ['Cloud & Hosting', 'AI Tools', 'Software Subscriptions', 'Hardware & Gadgets', 'Domains'],
     },
     {
       name: 'Housing & Rent',
-      subCategories: ['Rent', 'Maintenance', 'Furniture'],
+      subCategories: ['Rent', 'Maintenance', 'Furniture', 'Home Improvement'],
     },
     {
       name: 'Bills & Utilities',
-      subCategories: ['Electricity', 'Water', 'Internet', 'Mobile', 'Gas', 'Subscriptions'],
+      subCategories: ['Electricity', 'Water', 'Internet', 'Mobile Recharge', 'Gas'],
     },
     {
       name: 'Transportation',
-      subCategories: ['Fuel', 'Public Transit', 'Taxi/Rideshare', 'Vehicle Maintenance'],
+      subCategories: ['Fuel', 'Public Transit', 'Taxi/Rideshare (Uber)', 'Vehicle Maintenance'],
     },
     {
-      name: 'Entertainment',
-      subCategories: ['Movies & Shows', 'Gaming', 'Events', 'Hobbies'],
+      name: 'Shopping & Apparel',
+      subCategories: ['Clothing', 'Electronics', 'Personal Care', 'Accessories'],
     },
     {
       name: 'Health & Fitness',
-      subCategories: ['Medical', 'Pharmacy', 'Gym Membership', 'Supplements'],
+      subCategories: ['Gym & Training', 'Medical', 'Pharmacy', 'Supplements'],
     },
     {
-      name: 'Education',
-      subCategories: ['Books', 'Courses', 'Software', 'Tuition'],
+      name: 'Education & Courses',
+      subCategories: ['Books', 'Courses & Certifications', 'Tuition', 'Software Tools'],
     },
     {
-      name: 'Gifts & Donations',
-      subCategories: ['Charity/Zakat', 'Gifts', 'Family Support'],
+      name: 'Gifts & Family',
+      subCategories: ['Family Support', 'Gifts', 'Celebrations'],
     },
     {
       name: 'Other Expense',

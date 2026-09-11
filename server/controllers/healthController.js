@@ -169,6 +169,7 @@ export const createWorkout = async (req, res) => {
     const {
       date,
       name,
+      title,
       trackingType,
       sets,
       reps,
@@ -181,11 +182,10 @@ export const createWorkout = async (req, res) => {
       notes,
     } = req.body;
 
-    if (!date || !name) {
+    const exerciseName = (name || title || '').trim();
+    if (!date || !exerciseName) {
       return res.status(400).json({ message: 'Date and workout name are required' });
     }
-
-    const exerciseName = name.trim();
     const type = trackingType || (sets > 0 ? 'sets_reps' : 'duration');
     const numSets = Number(sets) || 0;
     const numReps = Number(reps) || 0;

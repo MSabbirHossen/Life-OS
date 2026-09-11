@@ -5,7 +5,7 @@ import { AdhkarLog } from '../models/AdhkarLog.js';
 import { HadithLog } from '../models/HadithLog.js';
 import { QadaLog } from '../models/QadaLog.js';
 
-const PRAYERS = ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
+const PRAYERS = ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha', 'Witr'];
 
 // --- Daily 5 Salah ---
 

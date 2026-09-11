@@ -8,6 +8,8 @@ import { EmptyState } from '../components/EmptyState';
 import { Badge } from '../components/Badge';
 import api from '../utils/api';
 import { getFormattedDate, formatDisplayDate } from '../utils/dateHelpers';
+import { AdhkarCounter } from '../components/AdhkarCounter';
+import { useNavigate } from 'react-router-dom';
 import {
   Compass,
   CheckCircle2,
@@ -23,6 +25,7 @@ import {
   ShieldCheck,
   RotateCcw,
   Quote,
+  ArrowRight,
 } from 'lucide-react';
 
 const SALAH_NAMES = ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
@@ -36,6 +39,7 @@ const SALAH_STATUSES = [
 ];
 
 export const IslamicTracker = ({ selectedDate }) => {
+  const navigate = useNavigate();
   const activeDate = selectedDate || getFormattedDate();
 
   const [salahLogs, setSalahLogs] = useState([]);
@@ -297,6 +301,14 @@ export const IslamicTracker = ({ selectedDate }) => {
             <Button
               variant="secondary"
               size="md"
+              icon={Compass}
+              onClick={() => navigate('/qada-matrix')}
+            >
+              Full Qada Matrix
+            </Button>
+            <Button
+              variant="secondary"
+              size="md"
               icon={Quote}
               onClick={() => setIsHadithModalOpen(true)}
             >
@@ -542,6 +554,9 @@ export const IslamicTracker = ({ selectedDate }) => {
           )}
         </Card>
       </div>
+
+      {/* Digital Tasbih & Adhkar Interactive Counter */}
+      <AdhkarCounter />
 
       {/* Hadith Logger & Reflection Archive */}
       <Card

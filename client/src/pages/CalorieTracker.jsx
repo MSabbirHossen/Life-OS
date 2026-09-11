@@ -18,6 +18,7 @@ import {
   PieChart as PieChartIcon,
   Sparkles,
 } from 'lucide-react';
+import { FastingTimer } from '../components/FastingTimer';
 import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip, Legend } from 'recharts';
 
 const MEAL_TYPES = ['Breakfast', 'Lunch', 'Dinner', 'Snack'];
@@ -340,6 +341,9 @@ export const CalorieTracker = ({ selectedDate }) => {
           </div>
         </Card>
       </div>
+
+      {/* 16:8 Fasting Timer */}
+      <FastingTimer />
 
       {/* Macronutrient Chart & Meal Log Sections */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-7">

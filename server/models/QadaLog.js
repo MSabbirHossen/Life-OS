@@ -10,7 +10,7 @@ const qadaLogSchema = new mongoose.Schema(
     },
     prayerName: {
       type: String,
-      enum: ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'],
+      enum: ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha', 'Witr'],
       required: true,
     },
     totalOwed: {

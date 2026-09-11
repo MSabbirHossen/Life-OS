@@ -7,6 +7,7 @@ import { EmptyState } from '../components/EmptyState';
 import { Badge } from '../components/Badge';
 import api from '../utils/api';
 import { getFormattedDate, formatDisplayDate } from '../utils/dateHelpers';
+import { GuidedReflectionModal } from '../components/GuidedReflectionModal';
 import {
   BookOpen,
   Plus,
@@ -40,6 +41,7 @@ export const Journal = ({ selectedDate }) => {
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isGuidedModalOpen, setIsGuidedModalOpen] = useState(false);
   const [editingEntry, setEditingEntry] = useState(null);
   const [deleteId, setDeleteId] = useState(null);
 
@@ -181,9 +183,19 @@ export const Journal = ({ selectedDate }) => {
         title="Journal & Reflection"
         description="Capture your thoughts, mood, daily gratitude, and track recurring tags."
         action={
-          <Button variant="gradient" size="md" icon={Plus} onClick={openCreateModal}>
-            New Journal Entry
-          </Button>
+          <div className="flex items-center gap-2.5 flex-wrap">
+            <Button
+              variant="secondary"
+              size="md"
+              icon={Sparkles}
+              onClick={() => setIsGuidedModalOpen(true)}
+            >
+              Guided Growth Popup
+            </Button>
+            <Button variant="gradient" size="md" icon={Plus} onClick={openCreateModal}>
+              New Journal Entry
+            </Button>
+          </div>
         }
       />
 
@@ -516,6 +528,17 @@ export const Journal = ({ selectedDate }) => {
           </div>
         </div>
       </Modal>
+
+      {/* Guided Reflection Modal */}
+      <GuidedReflectionModal
+        isOpen={isGuidedModalOpen}
+        onClose={() => setIsGuidedModalOpen(false)}
+        selectedDate={formDate}
+        onSaveSuccess={() => {
+          fetchEntries();
+          fetchPrompt();
+        }}
+      />
     </div>
   );
 };

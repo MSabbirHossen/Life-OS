@@ -20,21 +20,23 @@ import {
   Layers,
 } from 'lucide-react';
 
-const EXPENSE_CATEGORIES = [
-  'Food',
-  'Transport',
-  'Rent/Housing',
-  'Utilities',
-  'Health',
-  'Education',
-  'Entertainment',
-  'Islamic/Sadaqah',
-  'Shopping',
-  'Other',
-];
+const NESTED_EXPENSE_CATEGORIES = {
+  'Food & Dining': ['Breakfast', 'Lunch', 'Dinner', 'Sahri', 'Iftar', 'Groceries', 'Restaurants', 'Coffee & Snacks', 'Delivery'],
+  'Religion & Deen': ['Umrah & Hajj', 'Fitra', 'Zakat', 'Sadaqah', 'Islamic Books', 'Donations'],
+  'Technology & Cloud': ['Cloud & Hosting', 'AI Tools', 'Software Subscriptions', 'Hardware & Gadgets', 'Domains'],
+  'Housing & Rent': ['Rent', 'Maintenance', 'Furniture', 'Home Improvement'],
+  'Bills & Utilities': ['Electricity', 'Water', 'Internet', 'Mobile Recharge', 'Gas'],
+  'Transportation': ['Fuel', 'Public Transit', 'Taxi/Rideshare (Uber)', 'Vehicle Maintenance'],
+  'Shopping & Apparel': ['Clothing', 'Electronics', 'Personal Care', 'Accessories'],
+  'Health & Fitness': ['Gym & Training', 'Medical', 'Pharmacy', 'Supplements'],
+  'Education & Courses': ['Books', 'Courses & Certifications', 'Tuition', 'Software Tools'],
+  'Gifts & Family': ['Family Support', 'Gifts', 'Celebrations'],
+  'Other Expense': ['Miscellaneous', 'Uncategorized'],
+};
 
-const INCOME_CATEGORIES = ['Salary', 'Freelance', 'Investments', 'Gift', 'Other'];
-const PAYMENT_METHODS = ['Cash', 'Bank Transfer', 'Debit Card', 'Credit Card', 'Mobile Wallet', 'Other'];
+const EXPENSE_CATEGORIES = Object.keys(NESTED_EXPENSE_CATEGORIES);
+const INCOME_CATEGORIES = ['Salary', 'Freelance & Business', 'Investments', 'Gift & Support', 'Other Income'];
+const PAYMENT_METHODS = ['Cash', 'Bank Transfer', 'Debit Card', 'Credit Card', 'Mobile Wallet (bKash/Nagad)', 'Other'];
 const CURRENCIES = ['SAR', 'BDT', 'USD'];
 
 export const FinanceTracker = ({ selectedDate }) => {
@@ -64,7 +66,8 @@ export const FinanceTracker = ({ selectedDate }) => {
   const [title, setTitle] = useState('');
   const [amount, setAmount] = useState('');
   const [currency, setCurrency] = useState('SAR');
-  const [category, setCategory] = useState('Food');
+  const [category, setCategory] = useState('Food & Dining');
+  const [subCategory, setSubCategory] = useState('Breakfast');
   const [paymentMethod, setPaymentMethod] = useState('Debit Card');
   const [notes, setNotes] = useState('');
   const [savingTx, setSavingTx] = useState(false);
@@ -116,7 +119,8 @@ export const FinanceTracker = ({ selectedDate }) => {
     setTitle('');
     setAmount('');
     setCurrency('SAR');
-    setCategory(type === 'income' ? 'Salary' : 'Food');
+    setCategory(type === 'income' ? 'Salary' : 'Food & Dining');
+    setSubCategory('Breakfast');
     setPaymentMethod('Debit Card');
     setNotes('');
     setIsTransactionModalOpen(true);
@@ -144,10 +148,11 @@ export const FinanceTracker = ({ selectedDate }) => {
       const res = await api.post('/finance/transactions', {
         date: formDate,
         type: formType,
-        title: title.trim() || category,
+        title: title.trim() || (subCategory ? `${category} (${subCategory})` : category),
         amount: Number(amount),
         currency,
         category,
+        subCategory: subCategory || undefined,
         paymentMethod,
         notes: notes.trim(),
       });
@@ -489,7 +494,12 @@ export const FinanceTracker = ({ selectedDate }) => {
               </label>
               <select
                 value={category}
-                onChange={(e) => setCategory(e.target.value)}
+                onChange={(e) => {
+                  setCategory(e.target.value);
+                  const subList = NESTED_EXPENSE_CATEGORIES[e.target.value];
+                  if (subList && subList.length > 0) setSubCategory(subList[0]);
+                  else setSubCategory('');
+                }}
                 className="select-base"
               >
                 {(formType === 'income' ? INCOME_CATEGORIES : EXPENSE_CATEGORIES).map((cat) => (
@@ -499,6 +509,25 @@ export const FinanceTracker = ({ selectedDate }) => {
                 ))}
               </select>
             </div>
+
+            {formType === 'expense' && NESTED_EXPENSE_CATEGORIES[category] && (
+              <div>
+                <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5">
+                  Subcategory
+                </label>
+                <select
+                  value={subCategory}
+                  onChange={(e) => setSubCategory(e.target.value)}
+                  className="select-base"
+                >
+                  {NESTED_EXPENSE_CATEGORIES[category].map((sub) => (
+                    <option key={sub} value={sub}>
+                      {sub}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
 
             <div>
               <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5">

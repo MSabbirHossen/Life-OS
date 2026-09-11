@@ -40,7 +40,8 @@ const navigationGroups = [
     title: 'Life',
     items: [
       { name: 'Finance', path: '/finance', icon: Wallet },
-      { name: 'Islamic', path: '/islamic', icon: Compass },
+      { name: 'Islamic & Deen', path: '/islamic', icon: Compass },
+      { name: 'Qada Matrix', path: '/qada-matrix', icon: Sparkles },
       { name: 'Habits', path: '/habits', icon: CheckSquare },
       { name: 'Goals', path: '/goals', icon: Target },
     ],

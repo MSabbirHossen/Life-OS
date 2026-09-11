@@ -51,15 +51,22 @@ export const getDashboardSummary = async (req, res) => {
       timeByCategory[item.category] = (timeByCategory[item.category] || 0) + item.durationMinutes;
     });
 
-    // Calories calculation
+    // Calories & Net Balance Calculation
     const totalCaloriesIn = meals.reduce((sum, item) => sum + (item.totalCalories || 0), 0);
     const totalProtein = meals.reduce((sum, item) => sum + (item.totalProtein || 0), 0);
-
-    // Workout calculation
     const totalCaloriesBurned = workouts.reduce((sum, item) => sum + (item.caloriesBurned || 0), 0);
+    const calorieGoal = req.user.dailyCalorieGoal || 2000;
+    const netCalories = totalCaloriesIn - totalCaloriesBurned;
+    const remainingCalories = Math.max(0, calorieGoal - netCalories);
 
-    // Salah calculation
-    const salahCompletedCount = salahLogs.filter((s) => s.status !== 'missed').length;
+    // Salah calculation & pill status map
+    const prayerNames = ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
+    const salahMap = {};
+    prayerNames.forEach((name) => {
+      const found = salahLogs.find((s) => (s.salah || s.prayerName) === name);
+      salahMap[name] = found ? found.status : 'pending';
+    });
+    const salahCompletedCount = salahLogs.filter((s) => s.status && s.status !== 'missed' && s.status !== 'pending').length;
 
     // Finance calculation
     const expensesToday = transactionsToday
@@ -70,19 +77,29 @@ export const getDashboardSummary = async (req, res) => {
       .filter((t) => t.type === 'expense')
       .reduce((sum, t) => sum + t.amount, 0);
 
+    const incomeToday = transactionsToday
+      .filter((t) => t.type === 'income')
+      .reduce((sum, t) => sum + t.amount, 0);
+
     // Habit completion count
     const habitsCompletedToday = habitLogs.filter((h) => h.completed).length;
+
+    // Fallback prompt if database is empty
+    const fallbackPrompt = {
+      category: 'Self-Growth',
+      question: 'What is one intentional choice you made today that your future self will thank you for?',
+    };
 
     res.json({
       date,
       userGoals: {
-        dailyCalorieGoal: req.user.dailyCalorieGoal || 2000,
+        dailyCalorieGoal: calorieGoal,
         weightGoal: req.user.weightGoal || 70,
         screenTimeGoalMinutes: req.user.screenTimeGoalMinutes || 120,
       },
       summary: {
         journal: journal || null,
-        prompt: prompts[0] || null,
+        prompt: prompts[0] || fallbackPrompt,
         time: {
           totalMinutes: timeMinutesTotal,
           byCategory: timeByCategory,
@@ -94,8 +111,12 @@ export const getDashboardSummary = async (req, res) => {
         },
         calories: {
           consumed: totalCaloriesIn,
+          intake: totalCaloriesIn,
+          burned: totalCaloriesBurned,
+          net: netCalories,
+          remaining: remainingCalories,
           protein: totalProtein,
-          goal: req.user.dailyCalorieGoal || 2000,
+          goal: calorieGoal,
         },
         fitness: {
           caloriesBurned: totalCaloriesBurned,
@@ -105,10 +126,12 @@ export const getDashboardSummary = async (req, res) => {
           completedCount: salahCompletedCount,
           total: 5,
           logs: salahLogs,
+          prayerMap: salahMap,
         },
         finance: {
           expensesToday,
           expensesMonth,
+          incomeToday,
         },
         habits: {
           activeCount: habits.length,

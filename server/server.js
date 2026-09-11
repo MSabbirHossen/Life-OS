@@ -86,7 +86,7 @@ app.use((err, req, res, next) => {
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, async () => {
+app.listen(PORT, () => {
   console.log(`[Life OS Backend] Server listening on port ${PORT}`);
-  await connectDB();
+  connectDB();
 });
