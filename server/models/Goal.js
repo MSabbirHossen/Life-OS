@@ -37,6 +37,11 @@ const goalSchema = new mongoose.Schema(
       type: String,
       default: '',
     },
+    targetCompletions: {
+      type: Number,
+      default: 30,
+      min: 1,
+    },
     manualProgressPercent: {
       type: Number,
       min: 0,

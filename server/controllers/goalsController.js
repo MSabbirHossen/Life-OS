@@ -5,6 +5,7 @@ import { StudySession } from '../models/StudySession.js';
 export const getGoals = async (req, res) => {
   try {
     const goals = await Goal.find({ userId: req.user._id }).populate('linkedHabitIds').sort({ createdAt: -1 });
+    const todayStr = new Date().toISOString().split('T')[0];
 
     // Compute dynamic completion progress from linked habits and study sessions
     const processedGoals = await Promise.all(
@@ -12,19 +13,28 @@ export const getGoals = async (req, res) => {
         const goalObj = goal.toObject();
 
         let habitPercent = null;
+        let todayLinkedHabitsTotal = 0;
+        let todayLinkedHabitsCompleted = 0;
+        let todayCompletedHabitIds = [];
+        let totalCompletedCount = 0;
+
         if (goal.linkedHabitIds && goal.linkedHabitIds.length > 0) {
           const habitIds = goal.linkedHabitIds.map((h) => h._id || h);
-          const totalLogs = await HabitLog.countDocuments({
-            userId: req.user._id,
-            habitId: { $in: habitIds },
-          });
-          const completedLogs = await HabitLog.countDocuments({
+          todayLinkedHabitsTotal = habitIds.length;
+
+          const completedLogs = await HabitLog.find({
             userId: req.user._id,
             habitId: { $in: habitIds },
             completed: true,
           });
 
-          habitPercent = totalLogs > 0 ? Math.round((completedLogs / totalLogs) * 100) : 0;
+          totalCompletedCount = completedLogs.length;
+          const targetCompletions = goal.targetCompletions || 30;
+          habitPercent = Math.min(100, Math.round((totalCompletedCount / targetCompletions) * 100));
+
+          const todayLogs = completedLogs.filter((l) => l.date === todayStr);
+          todayLinkedHabitsCompleted = todayLogs.length;
+          todayCompletedHabitIds = todayLogs.map((l) => l.habitId.toString());
         }
 
         // Check linked study sessions
@@ -42,8 +52,12 @@ export const getGoals = async (req, res) => {
           finalPercent = Math.min(100, studySessionsCount * 10);
         }
 
-        goalObj.computedProgressPercent = habitPercent || (studySessionsCount * 10);
+        goalObj.computedProgressPercent = habitPercent !== null ? habitPercent : (studySessionsCount * 10);
         goalObj.progressPercent = finalPercent;
+        goalObj.todayLinkedHabitsTotal = todayLinkedHabitsTotal;
+        goalObj.todayLinkedHabitsCompleted = todayLinkedHabitsCompleted;
+        goalObj.todayCompletedHabitIds = todayCompletedHabitIds;
+        goalObj.totalCompletedCount = totalCompletedCount;
 
         return goalObj;
       })
@@ -57,7 +71,19 @@ export const getGoals = async (req, res) => {
 
 export const createGoal = async (req, res) => {
   try {
-    const { title, type, category, description, linkedHabits, linkedHabitIds, targetDate, manualProgressPercent, status } = req.body;
+    const {
+      title,
+      type,
+      category,
+      description,
+      linkedHabits,
+      linkedHabitIds,
+      targetDate,
+      targetCompletions,
+      manualProgressPercent,
+      status,
+    } = req.body;
+
     if (!title?.trim()) return res.status(400).json({ message: 'Goal title is required' });
 
     const habitIds = linkedHabitIds || linkedHabits || [];
@@ -70,7 +96,8 @@ export const createGoal = async (req, res) => {
       description: description?.trim() || '',
       linkedHabitIds: habitIds,
       targetDate: targetDate || '',
-      manualProgressPercent: manualProgressPercent !== undefined ? manualProgressPercent : null,
+      targetCompletions: targetCompletions ? Number(targetCompletions) : 30,
+      manualProgressPercent: manualProgressPercent !== undefined && manualProgressPercent !== null ? Number(manualProgressPercent) : null,
       status: status || 'active',
     });
 
@@ -85,17 +112,29 @@ export const updateGoal = async (req, res) => {
     const goal = await Goal.findOne({ _id: req.params.id, userId: req.user._id });
     if (!goal) return res.status(404).json({ message: 'Goal not found' });
 
-    const { title, type, category, description, linkedHabits, linkedHabitIds, targetDate, manualProgressPercent, status } = req.body;
+    const {
+      title,
+      type,
+      category,
+      description,
+      linkedHabits,
+      linkedHabitIds,
+      targetDate,
+      targetCompletions,
+      manualProgressPercent,
+      status,
+    } = req.body;
 
     if (title) goal.title = title.trim();
     if (type) goal.type = type;
     if (category) goal.category = category;
     if (description !== undefined) goal.description = description.trim();
-    if (linkedHabitIds !== undefined || linkedHabits !== undefined) {
-      goal.linkedHabitIds = linkedHabitIds || linkedHabits || [];
-    }
+    if (linkedHabitIds || linkedHabits) goal.linkedHabitIds = linkedHabitIds || linkedHabits;
     if (targetDate !== undefined) goal.targetDate = targetDate;
-    if (manualProgressPercent !== undefined) goal.manualProgressPercent = manualProgressPercent;
+    if (targetCompletions !== undefined) goal.targetCompletions = Number(targetCompletions);
+    if (manualProgressPercent !== undefined) {
+      goal.manualProgressPercent = manualProgressPercent !== null ? Number(manualProgressPercent) : null;
+    }
     if (status) goal.status = status;
 
     const updated = await goal.save();

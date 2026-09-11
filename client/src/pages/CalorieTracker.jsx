@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { PageHeader } from '../components/PageHeader';
 import { Card } from '../components/Card';
 import { StatCard } from '../components/StatCard';
@@ -6,6 +6,7 @@ import { Button } from '../components/Button';
 import { Modal } from '../components/Modal';
 import { EmptyState } from '../components/EmptyState';
 import { Badge } from '../components/Badge';
+import { DateInput } from '../components/DateInput';
 import api from '../utils/api';
 import { getFormattedDate, formatDisplayDate } from '../utils/dateHelpers';
 import {
@@ -17,12 +18,13 @@ import {
   Flame,
   PieChart as PieChartIcon,
   Sparkles,
+  Search,
 } from 'lucide-react';
 import { FastingTimer } from '../components/FastingTimer';
 import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip, Legend } from 'recharts';
 
 const MEAL_TYPES = ['Breakfast', 'Lunch', 'Dinner', 'Snack'];
-const UNITS = ['piece', 'gram', 'teaspoon', 'tablespoon', 'cup', 'bowl', 'ml'];
+const UNITS = ['piece', 'gram', 'ml', 'cup', 'bowl', 'tablespoon', 'teaspoon'];
 const MACRO_COLORS = ['#6366F1', '#10B981', '#F59E0B']; // Protein (Indigo), Carbs (Emerald), Fat (Amber)
 
 export const CalorieTracker = ({ selectedDate }) => {
@@ -62,6 +64,7 @@ export const CalorieTracker = ({ selectedDate }) => {
   const [selectedFoodItem, setSelectedFoodItem] = useState(null);
   const [suggestions, setSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [searchingSuggestions, setSearchingSuggestions] = useState(false);
   const [saving, setSaving] = useState(false);
 
   const fetchData = useCallback(async (showLoading = true) => {
@@ -86,11 +89,13 @@ export const CalorieTracker = ({ selectedDate }) => {
 
   // Autocomplete Food Item Search
   useEffect(() => {
-    if (!itemName.trim() || selectedFoodItem) {
+    if (!itemName.trim() || itemName.length < 2 || selectedFoodItem) {
       setSuggestions([]);
+      setShowSuggestions(false);
       return;
     }
 
+    setSearchingSuggestions(true);
     const timer = setTimeout(async () => {
       try {
         const res = await api.get(`/food-items/search?q=${encodeURIComponent(itemName.trim())}`);
@@ -98,6 +103,8 @@ export const CalorieTracker = ({ selectedDate }) => {
         setShowSuggestions(true);
       } catch (err) {
         console.error('Failed food item search', err);
+      } finally {
+        setSearchingSuggestions(false);
       }
     }, 150);
 
@@ -107,8 +114,16 @@ export const CalorieTracker = ({ selectedDate }) => {
   const handleSelectFoodItem = (item) => {
     setSelectedFoodItem(item);
     setItemName(item.name);
-    setUnit(item.unitType || 'piece');
-    setQuantity(1);
+    const itemUnit = item.unitType || 'piece';
+    setUnit(itemUnit);
+
+    // Default reasonable quantity: 100 for grams/ml, 1 for pieces
+    if (itemUnit === 'gram' || itemUnit === 'ml') {
+      setQuantity(100);
+    } else {
+      setQuantity(1);
+    }
+
     setCalPerUnit(item.caloriesPerUnit);
     setProteinPerUnit(item.proteinPerUnit || 0);
     setCarbsPerUnit(item.carbsPerUnit || 0);
@@ -131,11 +146,29 @@ export const CalorieTracker = ({ selectedDate }) => {
     setIsModalOpen(true);
   };
 
+  // Check if current unit is scaled per 100 units (grams or ml)
+  const isPerHundred = unit === 'gram' || unit === 'g' || unit === 'ml';
+
   // Live computed total calories and macros for current item
-  const liveItemCalories = Math.round(calPerUnit * quantity * 10) / 10;
-  const liveItemProtein = Math.round(proteinPerUnit * quantity * 10) / 10;
-  const liveItemCarbs = Math.round(carbsPerUnit * quantity * 10) / 10;
-  const liveItemFat = Math.round(fatPerUnit * quantity * 10) / 10;
+  const liveItemCalories = useMemo(() => {
+    const factor = isPerHundred ? quantity / 100 : quantity;
+    return Math.round(calPerUnit * factor * 10) / 10;
+  }, [calPerUnit, quantity, isPerHundred]);
+
+  const liveItemProtein = useMemo(() => {
+    const factor = isPerHundred ? quantity / 100 : quantity;
+    return Math.round(proteinPerUnit * factor * 10) / 10;
+  }, [proteinPerUnit, quantity, isPerHundred]);
+
+  const liveItemCarbs = useMemo(() => {
+    const factor = isPerHundred ? quantity / 100 : quantity;
+    return Math.round(carbsPerUnit * factor * 10) / 10;
+  }, [carbsPerUnit, quantity, isPerHundred]);
+
+  const liveItemFat = useMemo(() => {
+    const factor = isPerHundred ? quantity / 100 : quantity;
+    return Math.round(fatPerUnit * factor * 10) / 10;
+  }, [fatPerUnit, quantity, isPerHundred]);
 
   const handleAddMeal = async (e) => {
     e.preventDefault();
@@ -236,7 +269,7 @@ export const CalorieTracker = ({ selectedDate }) => {
       <PageHeader
         category="Nutrition & Macros"
         title="Calorie & Meal Tracker"
-        description={`Smart autocomplete meal logger with multi-unit support and automatic server-calculated macros for ${formatDisplayDate(activeDate)}`}
+        description={`Smart autocomplete meal logger with verified online nutritional profiles and accurate gram/piece conversions for ${formatDisplayDate(activeDate)}`}
         action={
           <Button variant="gradient" size="md" icon={Plus} onClick={() => openCreateModal('Breakfast')}>
             Log Meal
@@ -342,7 +375,7 @@ export const CalorieTracker = ({ selectedDate }) => {
         </Card>
       </div>
 
-      {/* 16:8 Fasting Timer */}
+      {/* Dynamic Intermittent Fasting Timer */}
       <FastingTimer />
 
       {/* Macronutrient Chart & Meal Log Sections */}
@@ -461,7 +494,7 @@ export const CalorieTracker = ({ selectedDate }) => {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         title="Log Meal & Food Items"
-        subtitle="Automatic calorie and macro computation with unit conversions"
+        subtitle="Search nutritional profiles and calculate exact calories for portions"
       >
         <form onSubmit={handleAddMeal} className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -482,49 +515,61 @@ export const CalorieTracker = ({ selectedDate }) => {
               </select>
             </div>
 
-            <div>
-              <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5">
-                Date
-              </label>
-              <input
-                type="date"
-                value={formDate}
-                onChange={(e) => setFormDate(e.target.value)}
-                className="input-base"
-                required
-              />
-            </div>
+            <DateInput
+              label="Meal Date"
+              value={formDate}
+              onChange={setFormDate}
+              required
+            />
           </div>
 
           {/* Autocomplete Food Search Input */}
           <div className="relative">
             <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5">
-              Food Item Name
+              Food Item Name (Search database & Open Food Facts)
             </label>
-            <input
-              type="text"
-              required
-              placeholder="e.g. Oatmeal, Boiled Egg, Chicken Breast, Rice"
-              value={itemName}
-              onChange={(e) => {
-                setItemName(e.target.value);
-                setSelectedFoodItem(null);
-              }}
-              onFocus={() => setShowSuggestions(true)}
-              className="input-base"
-            />
+            <div className="relative">
+              <input
+                type="text"
+                required
+                placeholder="e.g. Oatmeal, Boiled Egg, Chicken Breast, Banana, Rice"
+                value={itemName}
+                onChange={(e) => {
+                  setItemName(e.target.value);
+                  setSelectedFoodItem(null);
+                  setShowSuggestions(true);
+                }}
+                onFocus={() => {
+                  if (suggestions.length > 0) setShowSuggestions(true);
+                }}
+                className="input-base pr-8"
+              />
+              {searchingSuggestions && (
+                <div className="absolute right-2.5 top-2.5">
+                  <div className="w-4 h-4 border-2 border-accent border-t-transparent rounded-full animate-spin" />
+                </div>
+              )}
+            </div>
+
             {showSuggestions && suggestions.length > 0 && (
-              <div className="absolute left-0 right-0 top-full mt-1 bg-surface border border-theme rounded-xl card-shadow z-30 max-h-40 overflow-y-auto">
-                {suggestions.map((food) => (
+              <div className="absolute left-0 right-0 top-full mt-1.5 bg-surface border border-theme rounded-2xl card-shadow z-30 max-h-56 overflow-y-auto divide-y divide-theme/40 shadow-xl">
+                {suggestions.map((food, idx) => (
                   <div
-                    key={food._id}
+                    key={food._id || idx}
                     onClick={() => handleSelectFoodItem(food)}
-                    className="p-2.5 hover:bg-subtle cursor-pointer flex items-center justify-between text-xs"
+                    className="p-3 hover:bg-subtle cursor-pointer flex items-center justify-between text-xs transition-colors"
                   >
-                    <span className="font-bold text-primary">{food.name}</span>
-                    <span className="text-secondary text-[11px]">
-                      {food.caloriesPerUnit} kcal / {food.unitType || 'piece'} ({food.proteinPerUnit}g P)
-                    </span>
+                    <div>
+                      <span className="font-bold text-primary block">{food.name}</span>
+                      <span className="text-[11px] text-secondary">
+                        {food.caloriesPerUnit} kcal per {food.unitType === 'gram' ? '100g' : food.unitType === 'ml' ? '100ml' : food.unitType || 'piece'} · P: {food.proteinPerUnit}g, C: {food.carbsPerUnit}g, F: {food.fatPerUnit}g
+                      </span>
+                    </div>
+                    {food.source && (
+                      <span className="text-[9px] px-1.5 py-0.5 rounded bg-surface border border-theme text-secondary shrink-0">
+                        {food.source}
+                      </span>
+                    )}
                   </div>
                 ))}
               </div>
@@ -534,11 +579,11 @@ export const CalorieTracker = ({ selectedDate }) => {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5">
-                Quantity
+                Quantity {isPerHundred ? `(in ${unit}s)` : `(${unit}s)`}
               </label>
               <input
                 type="number"
-                step="0.1"
+                step="0.5"
                 min="0.1"
                 required
                 value={quantity}
@@ -568,7 +613,7 @@ export const CalorieTracker = ({ selectedDate }) => {
           {/* Unit Baseline Values */}
           <div className="p-3 bg-subtle rounded-2xl border border-theme space-y-2">
             <span className="text-[11px] font-bold text-secondary uppercase tracking-wider block">
-              Nutritional Profile (per 1 {unit})
+              Nutritional Profile {isPerHundred ? `(per 100 ${unit})` : `(per 1 ${unit})`}
             </span>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               <div>
@@ -622,8 +667,10 @@ export const CalorieTracker = ({ selectedDate }) => {
           </div>
 
           {/* Live Calculated Summary for Portion */}
-          <div className="p-3 bg-accent/5 rounded-2xl border border-accent/20 flex items-center justify-between text-xs font-bold">
-            <span className="text-secondary">Calculated for {quantity} {unit}:</span>
+          <div className="p-3.5 bg-accent/5 rounded-2xl border border-accent/20 flex items-center justify-between text-xs font-bold">
+            <span className="text-secondary">
+              Calculated Portion ({quantity} {unit}):
+            </span>
             <span className="text-accent font-extrabold">
               {liveItemCalories} kcal · {liveItemProtein}g P · {liveItemCarbs}g C · {liveItemFat}g F
             </span>

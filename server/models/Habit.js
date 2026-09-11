@@ -15,8 +15,13 @@ const habitSchema = new mongoose.Schema(
     },
     category: {
       type: String,
-      enum: ['Health', 'Productivity', 'Mindfulness', 'Deen', 'Other'],
+      enum: ['Health', 'Learning', 'Productivity', 'Deen', 'Mindset', 'Mindfulness', 'Other', 'General'],
       default: 'Health',
+    },
+    description: {
+      type: String,
+      trim: true,
+      default: '',
     },
     targetFrequency: {
       type: String,

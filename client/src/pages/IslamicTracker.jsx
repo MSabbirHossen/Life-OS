@@ -7,6 +7,7 @@ import { Modal } from '../components/Modal';
 import { EmptyState } from '../components/EmptyState';
 import { Badge } from '../components/Badge';
 import api from '../utils/api';
+import { DateInput } from '../components/DateInput';
 import { getFormattedDate, formatDisplayDate } from '../utils/dateHelpers';
 import { AdhkarCounter } from '../components/AdhkarCounter';
 import { useNavigate } from 'react-router-dom';
@@ -790,17 +791,11 @@ export const IslamicTracker = ({ selectedDate }) => {
             />
           </div>
 
-          <div>
-            <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5">
-              Target Completion Date (Optional)
-            </label>
-            <input
-              type="date"
-              value={vowTargetDate}
-              onChange={(e) => setVowTargetDate(e.target.value)}
-              className="input-base"
-            />
-          </div>
+          <DateInput
+            label="Target Completion Date"
+            value={vowTargetDate}
+            onChange={setVowTargetDate}
+          />
 
           <div className="flex justify-end gap-3 pt-3 border-t border-subtle">
             <Button variant="secondary" onClick={() => setIsVowModalOpen(false)}>

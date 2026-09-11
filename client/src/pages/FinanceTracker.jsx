@@ -7,6 +7,7 @@ import { Modal } from '../components/Modal';
 import { EmptyState } from '../components/EmptyState';
 import { Badge } from '../components/Badge';
 import api from '../utils/api';
+import { DateInput } from '../components/DateInput';
 import { getFormattedDate, formatDisplayDate } from '../utils/dateHelpers';
 import {
   Wallet,
@@ -547,18 +548,12 @@ export const FinanceTracker = ({ selectedDate }) => {
             </div>
           </div>
 
-          <div>
-            <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5">
-              Date
-            </label>
-            <input
-              type="date"
-              value={formDate}
-              onChange={(e) => setFormDate(e.target.value)}
-              className="input-base"
-              required
-            />
-          </div>
+          <DateInput
+            label="Transaction Date"
+            value={formDate}
+            onChange={setFormDate}
+            required
+          />
 
           <div>
             <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5">
@@ -679,18 +674,12 @@ export const FinanceTracker = ({ selectedDate }) => {
             </div>
           </div>
 
-          <div>
-            <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5">
-              Date
-            </label>
-            <input
-              type="date"
-              value={transferDate}
-              onChange={(e) => setTransferDate(e.target.value)}
-              className="input-base"
-              required
-            />
-          </div>
+          <DateInput
+            label="Transfer Date"
+            value={transferDate}
+            onChange={setTransferDate}
+            required
+          />
 
           <div>
             <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5">

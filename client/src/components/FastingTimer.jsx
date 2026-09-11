@@ -2,11 +2,23 @@ import React, { useState, useEffect } from 'react';
 import { Card } from './Card';
 import { Button } from './Button';
 import { Badge } from './Badge';
-import { Clock, Play, Square, RotateCcw, Sparkles, Utensils, Moon } from 'lucide-react';
+import { Clock, Play, Square, RotateCcw, Sparkles, Utensils, Moon, Settings2 } from 'lucide-react';
+
+const FASTING_PROTOCOLS = [
+  { id: '16:8', label: '16:8 Standard', fastHours: 16, eatHours: 8, desc: 'Most popular circadian window' },
+  { id: '18:6', label: '18:6 Extended', fastHours: 18, eatHours: 6, desc: 'Deep autophagy & metabolic focus' },
+  { id: '20:4', label: '20:4 Warrior', fastHours: 20, eatHours: 4, desc: 'Advanced intermittent window' },
+  { id: '14:10', label: '14:10 Gentle', fastHours: 14, eatHours: 10, desc: 'Beginner-friendly balance' },
+  { id: '12:12', label: '12:12 Circadian', fastHours: 12, eatHours: 12, desc: 'Natural day/night balance' },
+  { id: '24:0', label: '24:0 OMAD', fastHours: 24, eatHours: 0, desc: 'One meal a day full cycle' },
+  { id: 'custom', label: 'Custom Window', fastHours: 16, eatHours: 8, desc: 'Tailored hours' },
+];
 
 export const FastingTimer = ({ compact = false }) => {
-  const DEFAULT_TARGET_HOURS = 16;
-  const [targetHours, setTargetHours] = useState(DEFAULT_TARGET_HOURS);
+  const [selectedProtocolId, setSelectedProtocolId] = useState('16:8');
+  const [customHours, setCustomHours] = useState(16);
+  const [showSettings, setShowSettings] = useState(false);
+
   const [fastingState, setFastingState] = useState(() => {
     try {
       const saved = localStorage.getItem('lifeos_fasting_state');
@@ -15,7 +27,8 @@ export const FastingTimer = ({ compact = false }) => {
     return {
       isActive: false,
       startTime: null,
-      targetHours: DEFAULT_TARGET_HOURS,
+      protocolId: '16:8',
+      targetHours: 16,
     };
   });
 
@@ -25,6 +38,16 @@ export const FastingTimer = ({ compact = false }) => {
   useEffect(() => {
     localStorage.setItem('lifeos_fasting_state', JSON.stringify(fastingState));
   }, [fastingState]);
+
+  // If fasting state has a protocol saved, reflect it in UI
+  useEffect(() => {
+    if (fastingState?.protocolId) {
+      setSelectedProtocolId(fastingState.protocolId);
+      if (fastingState.protocolId === 'custom' && fastingState.targetHours) {
+        setCustomHours(fastingState.targetHours);
+      }
+    }
+  }, [fastingState?.protocolId, fastingState?.targetHours]);
 
   // Live timer tick
   useEffect(() => {
@@ -44,11 +67,18 @@ export const FastingTimer = ({ compact = false }) => {
     return () => clearInterval(interval);
   }, [fastingState]);
 
+  const activeTargetHours = fastingState.isActive
+    ? fastingState.targetHours || 16
+    : selectedProtocolId === 'custom'
+    ? Number(customHours) || 16
+    : FASTING_PROTOCOLS.find((p) => p.id === selectedProtocolId)?.fastHours || 16;
+
   const handleStart = () => {
     setFastingState({
       isActive: true,
       startTime: new Date().toISOString(),
-      targetHours,
+      protocolId: selectedProtocolId,
+      targetHours: activeTargetHours,
     });
   };
 
@@ -71,8 +101,25 @@ export const FastingTimer = ({ compact = false }) => {
     setElapsedSeconds(0);
   };
 
-  const totalTargetSeconds = (fastingState.targetHours || targetHours) * 3600;
-  const progressPercent = Math.min(100, Math.round((elapsedSeconds / totalTargetSeconds) * 100));
+  const handleProtocolChange = (protId) => {
+    setSelectedProtocolId(protId);
+    const target =
+      protId === 'custom'
+        ? Number(customHours) || 16
+        : FASTING_PROTOCOLS.find((p) => p.id === protId)?.fastHours || 16;
+
+    if (fastingState.isActive) {
+      // Update ongoing target hours dynamically
+      setFastingState((prev) => ({
+        ...prev,
+        protocolId: protId,
+        targetHours: target,
+      }));
+    }
+  };
+
+  const totalTargetSeconds = activeTargetHours * 3600;
+  const progressPercent = Math.min(100, Math.round((elapsedSeconds / Math.max(1, totalTargetSeconds)) * 100));
 
   const hoursElapsed = Math.floor(elapsedSeconds / 3600);
   const minutesElapsed = Math.floor((elapsedSeconds % 3600) / 60);
@@ -81,6 +128,8 @@ export const FastingTimer = ({ compact = false }) => {
   const remainingSeconds = Math.max(0, totalTargetSeconds - elapsedSeconds);
   const hoursRemaining = Math.floor(remainingSeconds / 3600);
   const minutesRemaining = Math.floor((remainingSeconds % 3600) / 60);
+
+  const eatingHours = Math.max(0, 24 - activeTargetHours);
 
   // SVG Circular Ring dimensions
   const size = compact ? 120 : 160;
@@ -122,7 +171,7 @@ export const FastingTimer = ({ compact = false }) => {
                 {fastingState.isActive ? `${progressPercent}%` : 'Off'}
               </span>
               <span className="text-[9px] font-bold text-secondary">
-                {fastingState.isActive ? `${hoursElapsed}h ${minutesElapsed}m` : '16:8'}
+                {fastingState.isActive ? `${hoursElapsed}h ${minutesElapsed}m` : selectedProtocolId}
               </span>
             </div>
           </div>
@@ -132,11 +181,11 @@ export const FastingTimer = ({ compact = false }) => {
               <Badge variant={fastingState.isActive ? 'purple' : 'neutral'} size="xs">
                 {fastingState.isActive ? (
                   <span className="flex items-center gap-1">
-                    <Moon className="w-3 h-3 text-purple-400" /> Fasting Mode
+                    <Moon className="w-3 h-3 text-purple-400" /> Fasting ({activeTargetHours}h)
                   </span>
                 ) : (
                   <span className="flex items-center gap-1">
-                    <Utensils className="w-3 h-3 text-emerald-400" /> Eating Window
+                    <Utensils className="w-3 h-3 text-emerald-400" /> Window ({eatingHours}h)
                   </span>
                 )}
               </Badge>
@@ -144,12 +193,12 @@ export const FastingTimer = ({ compact = false }) => {
             <p className="text-xs font-bold text-primary">
               {fastingState.isActive
                 ? `${hoursRemaining}h ${minutesRemaining}m to Eating Window`
-                : '16h Fast / 8h Eating Window'}
+                : `${activeTargetHours}h Fast / ${eatingHours}h Eating Window`}
             </p>
             <p className="text-[11px] text-secondary mt-0.5">
               {fastingState.isActive
                 ? `Started at ${new Date(fastingState.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
-                : 'Tap to start your daily 16h fast'}
+                : `Protocol: ${selectedProtocolId}`}
             </p>
           </div>
         </div>
@@ -169,16 +218,68 @@ export const FastingTimer = ({ compact = false }) => {
   return (
     <Card
       hover
-      title="16:8 Intermittent Fasting"
-      subtitle="Circadian rhythm & metabolic fasting timer"
+      title="Intermittent Fasting"
+      subtitle="Circadian rhythm & dynamic metabolic fasting windows"
       icon={Clock}
       badge={
-        <Badge variant={fastingState.isActive ? 'purple' : 'neutral'} size="xs">
-          {fastingState.isActive ? 'Active Fast' : 'Resting'}
-        </Badge>
+        <div className="flex items-center gap-2">
+          <Badge variant={fastingState.isActive ? 'purple' : 'neutral'} size="xs">
+            {fastingState.isActive ? `Active Fast (${activeTargetHours}h)` : 'Resting'}
+          </Badge>
+          <button
+            type="button"
+            onClick={() => setShowSettings(!showSettings)}
+            className="p-1 rounded-lg text-secondary hover:text-primary hover:bg-subtle transition-colors cursor-pointer"
+            title="Configure Fasting Protocol"
+          >
+            <Settings2 className="w-4 h-4" />
+          </button>
+        </div>
       }
     >
       <div className="flex flex-col items-center justify-center pt-2 pb-4">
+        {/* Protocol Selector Tabs */}
+        <div className="w-full flex items-center gap-1.5 overflow-x-auto pb-2 mb-2 scrollbar-none">
+          {FASTING_PROTOCOLS.map((prot) => (
+            <button
+              key={prot.id}
+              type="button"
+              onClick={() => handleProtocolChange(prot.id)}
+              className={`px-3 py-1 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
+                selectedProtocolId === prot.id
+                  ? 'bg-purple-600 text-white shadow-sm shadow-purple-600/25'
+                  : 'bg-subtle hover:bg-surface text-secondary hover:text-primary border border-theme/60'
+              }`}
+            >
+              {prot.id}
+            </button>
+          ))}
+        </div>
+
+        {/* Custom Hours Configuration */}
+        {selectedProtocolId === 'custom' && (
+          <div className="w-full p-3 mb-3 bg-subtle rounded-xl border border-theme flex items-center justify-between gap-3 text-xs">
+            <span className="font-bold text-secondary">Custom Target Hours:</span>
+            <div className="flex items-center gap-2">
+              <input
+                type="number"
+                min="1"
+                max="72"
+                value={customHours}
+                onChange={(e) => {
+                  const val = Math.max(1, Math.min(72, Number(e.target.value) || 16));
+                  setCustomHours(val);
+                  if (fastingState.isActive) {
+                    setFastingState((prev) => ({ ...prev, targetHours: val }));
+                  }
+                }}
+                className="input-base w-20 py-1 text-center font-bold"
+              />
+              <span className="text-secondary font-medium">hours</span>
+            </div>
+          </div>
+        )}
+
         {/* Visual Progress Ring */}
         <div className="relative flex items-center justify-center my-3">
           <svg width={size} height={size} className="transform -rotate-90">
@@ -214,13 +315,13 @@ export const FastingTimer = ({ compact = false }) => {
                   {progressPercent}% Complete
                 </span>
                 <span className="text-[10px] text-secondary">
-                  Target: {fastingState.targetHours}h
+                  Target: {activeTargetHours}h
                 </span>
               </>
             ) : (
               <>
                 <Utensils className="w-6 h-6 text-muted mb-1 stroke-1" />
-                <span className="text-sm font-extrabold text-primary">16:8 Protocol</span>
+                <span className="text-sm font-extrabold text-primary">{selectedProtocolId} Protocol</span>
                 <span className="text-[10px] font-semibold text-secondary">Ready to Fast</span>
               </>
             )}
@@ -234,7 +335,7 @@ export const FastingTimer = ({ compact = false }) => {
               Current Phase
             </span>
             <span className="text-xs font-black text-primary mt-1 block">
-              {fastingState.isActive ? '🌙 Fasting (16h)' : '☀️ Eating (8h)'}
+              {fastingState.isActive ? `🌙 Fasting (${activeTargetHours}h)` : `☀️ Eating (${eatingHours}h)`}
             </span>
           </div>
           <div className="p-3 bg-subtle rounded-xl border border-theme">
@@ -242,7 +343,7 @@ export const FastingTimer = ({ compact = false }) => {
               {fastingState.isActive ? 'Eating Window In' : 'Fast Target'}
             </span>
             <span className="text-xs font-black text-purple-600 dark:text-purple-400 mt-1 block">
-              {fastingState.isActive ? `${hoursRemaining}h ${minutesRemaining}m` : `${targetHours} Hours`}
+              {fastingState.isActive ? `${hoursRemaining}h ${minutesRemaining}m` : `${activeTargetHours} Hours`}
             </span>
           </div>
         </div>
@@ -276,7 +377,7 @@ export const FastingTimer = ({ compact = false }) => {
               icon={Play}
               onClick={handleStart}
             >
-              Start 16:8 Fast Now
+              Start {selectedProtocolId} Fast Now
             </Button>
           )}
         </div>

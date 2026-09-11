@@ -5,6 +5,8 @@ import { BodyMetric } from '../models/BodyMetric.js';
 import { WaterLog } from '../models/WaterLog.js';
 import { FoodItem } from '../models/FoodItem.js';
 import { User } from '../models/User.js';
+import { CURATED_EXERCISES, calculateWorkoutCalories } from '../config/workoutDataset.js';
+import { CURATED_FOODS, calculateFoodNutrients } from '../config/nutritionDataset.js';
 
 // --- Meals & Nutrition ---
 
@@ -42,7 +44,10 @@ export const createMeal = async (req, res) => {
 
     const processedItems = await Promise.all(
       items.map(async (item) => {
-        const qty = Number(item.quantity) || 1;
+        const qty = Math.max(0.1, Number(item.quantity) || 1);
+        const itemUnit = item.unit || 'piece';
+        const isGramOrMl = itemUnit === 'gram' || itemUnit === 'ml';
+
         let calPerUnit = Number(item.caloriesPerUnit) || 0;
         let pPerUnit = Number(item.proteinPerUnit) || 0;
         let cPerUnit = Number(item.carbsPerUnit) || 0;
@@ -59,7 +64,7 @@ export const createMeal = async (req, res) => {
               foodDoc.proteinPerUnit = pPerUnit;
               foodDoc.carbsPerUnit = cPerUnit;
               foodDoc.fatPerUnit = fPerUnit;
-              foodDoc.unitType = item.unit || foodDoc.unitType;
+              foodDoc.unitType = itemUnit;
               foodDoc.timesUsed += 1;
               foodDoc.lastUsedAt = new Date();
               await foodDoc.save();
@@ -67,7 +72,7 @@ export const createMeal = async (req, res) => {
               foodDoc = await FoodItem.create({
                 userId: req.user._id,
                 name: trimmedName,
-                unitType: item.unit || 'piece',
+                unitType: itemUnit,
                 caloriesPerUnit: calPerUnit,
                 proteinPerUnit: pPerUnit,
                 carbsPerUnit: cPerUnit,
@@ -82,35 +87,39 @@ export const createMeal = async (req, res) => {
           }
         }
 
-        const itemCal = item.calories !== undefined && Number(item.calories) > 0
-          ? Number(item.calories)
-          : Math.round(calPerUnit * qty * 10) / 10;
+        // Calculate precise calories & macros
+        const nutrients = calculateFoodNutrients({
+          foodItem: {
+            caloriesPer100g: isGramOrMl ? calPerUnit : undefined,
+            proteinPer100g: isGramOrMl ? pPerUnit : undefined,
+            carbsPer100g: isGramOrMl ? cPerUnit : undefined,
+            fatPer100g: isGramOrMl ? fPerUnit : undefined,
+            caloriesPerPiece: !isGramOrMl ? calPerUnit : undefined,
+            proteinPerPiece: !isGramOrMl ? pPerUnit : undefined,
+            carbsPerPiece: !isGramOrMl ? cPerUnit : undefined,
+            fatPerPiece: !isGramOrMl ? fPerUnit : undefined,
+          },
+          quantity: qty,
+          unit: itemUnit,
+          customCalories: item.calories,
+          customProtein: item.protein,
+          customCarbs: item.carbs,
+          customFat: item.fat,
+        });
 
-        const itemP = item.protein !== undefined && Number(item.protein) > 0
-          ? Number(item.protein)
-          : Math.round(pPerUnit * qty * 10) / 10;
-
-        const itemC = item.carbs !== undefined && Number(item.carbs) > 0
-          ? Number(item.carbs)
-          : Math.round(cPerUnit * qty * 10) / 10;
-
-        const itemF = item.fat !== undefined && Number(item.fat) > 0
-          ? Number(item.fat)
-          : Math.round(fPerUnit * qty * 10) / 10;
-
-        calculatedTotalCalories += itemCal;
-        calculatedTotalProtein += itemP;
-        calculatedTotalCarbs += itemC;
-        calculatedTotalFat += itemF;
+        calculatedTotalCalories += nutrients.calories;
+        calculatedTotalProtein += nutrients.protein;
+        calculatedTotalCarbs += nutrients.carbs;
+        calculatedTotalFat += nutrients.fat;
 
         return {
           name: item.name.trim(),
           quantity: qty,
-          unit: item.unit || 'piece',
-          calories: itemCal,
-          protein: itemP,
-          carbs: itemC,
-          fat: itemF,
+          unit: itemUnit,
+          calories: nutrients.calories,
+          protein: nutrients.protein,
+          carbs: nutrients.carbs,
+          fat: nutrients.fat,
         };
       })
     );
@@ -216,25 +225,31 @@ export const createWorkout = async (req, res) => {
       });
     }
 
-    // Determine Calories Burned
+    // Determine Calories Burned using verified MET and bodyweight
     let finalCalories = Number(caloriesBurned);
 
     if (!finalCalories || finalCalories <= 0) {
-      if (type === 'sets_reps' && numSets > 0) {
-        const calPerSet = workoutTypeDoc?.caloriesPerSet || 8;
-        finalCalories = Math.round(calPerSet * numSets);
-      } else if (numDuration > 0) {
-        // Retrieve latest user weight from BodyMetric
-        const latestMetric = await BodyMetric.findOne({ userId: req.user._id, weightKg: { $exists: true, $ne: null } }).sort({ date: -1, createdAt: -1 });
-        const user = await User.findById(req.user._id);
-        const bodyWeightKg = latestMetric?.weightKg || user?.weightGoal || 70;
+      // Retrieve latest user weight from BodyMetric
+      const latestMetric = await BodyMetric.findOne({ userId: req.user._id, weightKg: { $exists: true, $ne: null } }).sort({ date: -1, createdAt: -1 });
+      const user = await User.findById(req.user._id);
+      const bodyWeightKg = latestMetric?.weightKg || user?.weightGoal || 70;
 
-        const metValues = { Cardio: 8.5, Sports: 7.5, Muscle: 5.0, Flexibility: 3.0 };
-        const met = metValues[target || 'Muscle'] || 5.0;
-        finalCalories = Math.round(met * bodyWeightKg * (numDuration / 60));
-      } else {
-        finalCalories = Math.round((workoutTypeDoc?.caloriesPerSet || 8) * (numSets || 1));
-      }
+      const curatedMatch = CURATED_EXERCISES.find(
+        (e) => e.name.toLowerCase() === exerciseName.toLowerCase()
+      );
+
+      finalCalories = calculateWorkoutCalories({
+        exercise: curatedMatch || {
+          met: target === 'Cardio' ? 8.5 : target === 'Sports' ? 7.5 : target === 'Flexibility' ? 3.5 : 5.5,
+          trackingType: type,
+          caloriesPerRep: workoutTypeDoc.caloriesPerRep || 0.8,
+          defaultCaloriesPerMinute: workoutTypeDoc.defaultCaloriesPerMinute || 6,
+        },
+        weightKg: bodyWeightKg,
+        durationMinutes: numDuration,
+        sets: numSets,
+        reps: numReps,
+      });
     }
 
     const workout = await Workout.create({
@@ -268,16 +283,94 @@ export const deleteWorkout = async (req, res) => {
   }
 };
 
-// --- Autocomplete Searches ---
+// --- Autocomplete Searches with Curated & Online APIs ---
 
 export const searchFoodItems = async (req, res) => {
   try {
     const { q } = req.query;
-    const filter = { userId: req.user._id };
-    if (q) filter.name = { $regex: q, $options: 'i' };
+    const queryStr = (q || '').trim().toLowerCase();
 
-    const foods = await FoodItem.find(filter).sort({ timesUsed: -1, lastUsedAt: -1 }).limit(10);
-    res.json(foods);
+    // 1. User saved food items
+    const userFilter = { userId: req.user._id };
+    if (queryStr) userFilter.name = { $regex: queryStr, $options: 'i' };
+    const userFoods = await FoodItem.find(userFilter).sort({ timesUsed: -1, lastUsedAt: -1 }).limit(10);
+
+    // 2. Curated nutritional database
+    let curatedMatches = [];
+    if (queryStr) {
+      curatedMatches = CURATED_FOODS.filter((f) =>
+        f.name.toLowerCase().includes(queryStr) || f.category.toLowerCase().includes(queryStr)
+      ).slice(0, 10);
+    } else {
+      curatedMatches = CURATED_FOODS.slice(0, 8);
+    }
+
+    // 3. Online Open Food Facts search fallback (if query >= 2 chars)
+    let onlineFoods = [];
+    if (queryStr.length >= 2) {
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 1500);
+        const url = `https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(queryStr)}&search_simple=1&action=process&json=1&page_size=6`;
+        const resp = await fetch(url, { signal: controller.signal });
+        clearTimeout(timeoutId);
+        if (resp.ok) {
+          const data = await resp.json();
+          if (Array.isArray(data.products)) {
+            onlineFoods = data.products
+              .filter((p) => p.product_name && p.product_name.trim().length > 0)
+              .map((p) => ({
+                name: p.product_name.trim(),
+                category: 'Online Database',
+                unit: 'gram',
+                caloriesPer100g: Math.round(Number(p.nutriments?.['energy-kcal_100g']) || 0),
+                proteinPer100g: Math.round((Number(p.nutriments?.proteins_100g) || 0) * 10) / 10,
+                carbsPer100g: Math.round((Number(p.nutriments?.carbohydrates_100g) || 0) * 10) / 10,
+                fatPer100g: Math.round((Number(p.nutriments?.fat_100g) || 0) * 10) / 10,
+                caloriesPerUnit: Math.round(Number(p.nutriments?.['energy-kcal_100g']) || 0),
+                source: 'Open Food Facts',
+              }))
+              .filter((f) => f.caloriesPer100g > 0);
+          }
+        }
+      } catch (e) {
+        // Silently skip online search if timeout or offline
+      }
+    }
+
+    // Merge & Deduplicate by lowercased name
+    const seenNames = new Set();
+    const combined = [];
+
+    // Helper to add unique item
+    const addFood = (item, source) => {
+      const key = (item.name || '').toLowerCase().trim();
+      if (!seenNames.has(key)) {
+        seenNames.add(key);
+        combined.push({
+          _id: item._id,
+          name: item.name,
+          category: item.category || 'General',
+          unit: item.unit || item.unitType || 'piece',
+          caloriesPerUnit: item.caloriesPerUnit || item.caloriesPerPiece || item.caloriesPer100g || 100,
+          caloriesPer100g: item.caloriesPer100g || (item.unit === 'gram' ? item.caloriesPerUnit : 100),
+          proteinPer100g: item.proteinPer100g || item.proteinPerUnit || 0,
+          carbsPer100g: item.carbsPer100g || item.carbsPerUnit || 0,
+          fatPer100g: item.fatPer100g || item.fatPerUnit || 0,
+          caloriesPerPiece: item.caloriesPerPiece || (item.unit === 'piece' ? item.caloriesPerUnit : 100),
+          proteinPerPiece: item.proteinPerPiece || item.proteinPerUnit || 0,
+          carbsPerPiece: item.carbsPerPiece || item.carbsPerUnit || 0,
+          fatPerPiece: item.fatPerPiece || item.fatPerUnit || 0,
+          source,
+        });
+      }
+    };
+
+    userFoods.forEach((f) => addFood(f, 'user'));
+    curatedMatches.forEach((f) => addFood(f, 'verified'));
+    onlineFoods.forEach((f) => addFood(f, 'online'));
+
+    res.json(combined.slice(0, 15));
   } catch (error) {
     res.status(500).json({ message: error.message || 'Failed to search foods' });
   }
@@ -286,11 +379,89 @@ export const searchFoodItems = async (req, res) => {
 export const searchWorkoutTypes = async (req, res) => {
   try {
     const { q } = req.query;
-    const filter = { userId: req.user._id };
-    if (q) filter.name = { $regex: q, $options: 'i' };
+    const queryStr = (q || '').trim().toLowerCase();
 
-    const types = await WorkoutType.find(filter).sort({ updatedAt: -1 }).limit(10);
-    res.json(types);
+    // 1. User custom workout types
+    const filter = { userId: req.user._id };
+    if (queryStr) filter.name = { $regex: queryStr, $options: 'i' };
+    const userTypes = await WorkoutType.find(filter).sort({ updatedAt: -1 }).limit(10);
+
+    // 2. Curated workout dataset
+    let curatedMatches = [];
+    if (queryStr) {
+      curatedMatches = CURATED_EXERCISES.filter((e) =>
+        e.name.toLowerCase().includes(queryStr) ||
+        e.muscle.toLowerCase().includes(queryStr) ||
+        e.target.toLowerCase().includes(queryStr)
+      ).slice(0, 10);
+    } else {
+      curatedMatches = CURATED_EXERCISES.slice(0, 8);
+    }
+
+    // 3. Online Wger Exercise API query fallback (if query >= 3 chars)
+    let onlineExercises = [];
+    if (queryStr.length >= 3) {
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 1500);
+        const url = `https://wger.de/api/v2/exercise/search/?term=${encodeURIComponent(queryStr)}`;
+        const resp = await fetch(url, { signal: controller.signal });
+        clearTimeout(timeoutId);
+        if (resp.ok) {
+          const data = await resp.json();
+          if (Array.isArray(data.suggestions)) {
+            onlineExercises = data.suggestions.slice(0, 5).map((s) => ({
+              name: s.value.trim(),
+              target: 'Muscle',
+              trackingType: 'sets_reps',
+              muscle: s.data?.category || 'General',
+              equipment: 'Gym Equipment',
+              met: 5.5,
+              caloriesPerRep: 0.8,
+              defaultSets: 3,
+              defaultReps: 10,
+              source: 'wger',
+            }));
+          }
+        }
+      } catch (e) {
+        // Silently skip if offline
+      }
+    }
+
+    // Merge & Deduplicate
+    const seenNames = new Set();
+    const combined = [];
+
+    const addWorkout = (item, source) => {
+      const key = (item.name || '').toLowerCase().trim();
+      if (!seenNames.has(key)) {
+        seenNames.add(key);
+        combined.push({
+          _id: item._id,
+          name: item.name,
+          target: item.target || 'Muscle',
+          trackingType: item.trackingType || 'sets_reps',
+          muscle: item.muscle || item.target || 'Full Body',
+          equipment: item.equipment || 'Standard',
+          met: item.met || (item.target === 'Cardio' ? 8.0 : 5.5),
+          caloriesPerSet: item.caloriesPerSet || 8,
+          caloriesPerRep: item.caloriesPerRep || 0.8,
+          defaultCaloriesPerMinute: item.defaultCaloriesPerMinute || 6,
+          defaultSets: item.defaultSets || 3,
+          defaultReps: item.defaultReps || 10,
+          defaultDuration: item.defaultDuration || 30,
+          defaultWeight: item.defaultWeight || 0,
+          source,
+        });
+      }
+    };
+
+    userTypes.forEach((t) => addWorkout(t, 'user'));
+    curatedMatches.forEach((t) => addWorkout(t, 'verified'));
+    onlineExercises.forEach((t) => addWorkout(t, 'online'));
+
+    res.json(combined.slice(0, 15));
   } catch (error) {
     res.status(500).json({ message: error.message || 'Failed to search workout types' });
   }

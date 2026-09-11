@@ -14,7 +14,9 @@ export const getStudySessions = async (req, res) => {
       if (to) filter.date.$lte = to;
     }
 
-    const sessions = await StudySession.find(filter).sort({ date: -1, createdAt: -1 });
+    const sessions = await StudySession.find(filter)
+      .populate('topicId', 'title subject completedChapters totalChapters status')
+      .sort({ date: -1, createdAt: -1 });
     res.json(sessions);
   } catch (error) {
     res.status(500).json({ message: error.message || 'Failed to fetch study sessions' });
@@ -23,24 +25,44 @@ export const getStudySessions = async (req, res) => {
 
 export const createStudySession = async (req, res) => {
   try {
-    const { date, subject, resource, durationMinutes, progressPercent, goalId, habitId, notes } = req.body;
-    if (!date || !subject || !durationMinutes) {
-      return res.status(400).json({ message: 'Date, subject, and duration are required' });
+    const { date, subject, resource, durationMinutes, startTime, endTime, topicId, progressPercent, goalId, habitId, notes } = req.body;
+    if (!date || !durationMinutes) {
+      return res.status(400).json({ message: 'Date and duration are required' });
+    }
+
+    let finalSubject = subject?.trim();
+    if (topicId) {
+      const topicDoc = await StudyTopic.findOne({ _id: topicId, userId: req.user._id });
+      if (topicDoc) {
+        if (!finalSubject) finalSubject = topicDoc.subject;
+        if (topicDoc.status === 'backlog') {
+          topicDoc.status = 'in_progress';
+          await topicDoc.save();
+        }
+      }
+    }
+
+    if (!finalSubject) {
+      return res.status(400).json({ message: 'Subject is required' });
     }
 
     const session = await StudySession.create({
       userId: req.user._id,
       date,
-      subject: subject.trim(),
+      subject: finalSubject,
       resource: resource?.trim() || '',
       durationMinutes: Number(durationMinutes),
+      startTime: startTime || '',
+      endTime: endTime || '',
+      topicId: topicId || undefined,
       progressPercent: Number(progressPercent) || 0,
       goalId: goalId || undefined,
       habitId: habitId || undefined,
       notes: notes?.trim() || '',
     });
 
-    res.status(201).json(session);
+    const populated = await StudySession.findById(session._id).populate('topicId', 'title subject completedChapters totalChapters status');
+    res.status(201).json(populated);
   } catch (error) {
     res.status(500).json({ message: error.message || 'Failed to log study session' });
   }
@@ -91,16 +113,33 @@ export const getStudyTopics = async (req, res) => {
 
 export const createStudyTopic = async (req, res) => {
   try {
-    const { subject, title, status, targetDate, linkedGoalId, notes } = req.body;
+    const { subject, title, status, totalChapters, completedChapters, subtopics, targetDate, linkedGoalId, notes } = req.body;
     if (!subject || !title) {
       return res.status(400).json({ message: 'Subject and topic/chapter title are required' });
+    }
+
+    const total = Math.max(1, Number(totalChapters) || 1);
+    const completed = Math.max(0, Math.min(total, Number(completedChapters) || 0));
+    let initialStatus = status || 'backlog';
+    if (completed >= total) initialStatus = 'completed';
+    else if (completed > 0 && initialStatus === 'backlog') initialStatus = 'in_progress';
+
+    // Format subtopics if passed as array of strings or objects
+    let formattedSubtopics = [];
+    if (Array.isArray(subtopics)) {
+      formattedSubtopics = subtopics.map((st) =>
+        typeof st === 'string' ? { title: st.trim(), completed: false } : { title: st.title?.trim() || '', completed: !!st.completed }
+      ).filter((st) => st.title.length > 0);
     }
 
     const topic = await StudyTopic.create({
       userId: req.user._id,
       subject: subject.trim(),
       title: title.trim(),
-      status: status || 'backlog',
+      status: initialStatus,
+      totalChapters: total,
+      completedChapters: completed,
+      subtopics: formattedSubtopics,
       targetDate: targetDate || '',
       linkedGoalId: linkedGoalId || undefined,
       notes: notes?.trim() || '',
@@ -117,13 +156,39 @@ export const updateStudyTopic = async (req, res) => {
     const topic = await StudyTopic.findOne({ _id: req.params.id, userId: req.user._id });
     if (!topic) return res.status(404).json({ message: 'Study topic not found' });
 
-    const { subject, title, status, targetDate, linkedGoalId, notes } = req.body;
+    const { subject, title, status, totalChapters, completedChapters, subtopics, targetDate, linkedGoalId, notes, deltaChapter } = req.body;
+
     if (subject) topic.subject = subject.trim();
     if (title) topic.title = title.trim();
-    if (status) topic.status = status;
     if (targetDate !== undefined) topic.targetDate = targetDate;
     if (linkedGoalId !== undefined) topic.linkedGoalId = linkedGoalId || undefined;
     if (notes !== undefined) topic.notes = notes.trim();
+
+    if (totalChapters !== undefined) {
+      topic.totalChapters = Math.max(1, Number(totalChapters) || 1);
+    }
+
+    // Quick stepper delta support
+    if (deltaChapter !== undefined) {
+      topic.completedChapters = Math.max(0, Math.min(topic.totalChapters, topic.completedChapters + Number(deltaChapter)));
+    } else if (completedChapters !== undefined) {
+      topic.completedChapters = Math.max(0, Math.min(topic.totalChapters, Number(completedChapters) || 0));
+    }
+
+    if (Array.isArray(subtopics)) {
+      topic.subtopics = subtopics.map((st) =>
+        typeof st === 'string' ? { title: st.trim(), completed: false } : { title: st.title?.trim() || '', completed: !!st.completed }
+      ).filter((st) => st.title.length > 0);
+    }
+
+    // Automatically update status based on chapter completion
+    if (topic.completedChapters >= topic.totalChapters) {
+      topic.status = 'completed';
+    } else if (topic.completedChapters > 0 && (!status || status === 'backlog')) {
+      topic.status = 'in_progress';
+    } else if (status) {
+      topic.status = status;
+    }
 
     await topic.save();
     res.json(topic);

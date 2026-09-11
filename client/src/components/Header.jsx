@@ -4,6 +4,7 @@ import { useTheme } from '../context/ThemeContext';
 import { getFormattedDate, formatDisplayDate } from '../utils/dateHelpers';
 import { Menu, Sun, Moon, Monitor, LogOut, User as UserIcon, Calendar, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
 import { Button } from './Button';
+import { StreakWidget } from './StreakWidget';
 
 export const Header = ({ onOpenMobileMenu, selectedDate, setSelectedDate }) => {
   const { user, logout } = useAuth();
@@ -31,7 +32,7 @@ export const Header = ({ onOpenMobileMenu, selectedDate, setSelectedDate }) => {
   const isToday = currentDate === getFormattedDate();
 
   return (
-    <header className="h-16 glass-header px-4 lg:px-8 flex items-center justify-between sticky top-0 z-30 card-shadow">
+    <header className="h-16 glass-header px-4 lg:px-8 flex items-center justify-between sticky top-0 z-30 card-shadow gap-2">
       {/* Left: Mobile Menu & Date Control Pill */}
       <div className="flex items-center gap-3">
         <button
@@ -84,8 +85,22 @@ export const Header = ({ onOpenMobileMenu, selectedDate, setSelectedDate }) => {
         </div>
       </div>
 
+      {/* Center/Right: Universal Streak & Break Countdown Widget */}
+      {user && (
+        <div className="hidden sm:flex items-center justify-center">
+          <StreakWidget />
+        </div>
+      )}
+
       {/* Right: Theme Switcher & Profile Dropdown */}
       <div className="flex items-center gap-2.5">
+        {/* Mobile Streak Icon Pill */}
+        {user && (
+          <div className="sm:hidden">
+            <StreakWidget compact />
+          </div>
+        )}
+
         {/* Theme Toggle Button */}
         <button
           onClick={toggleTheme}

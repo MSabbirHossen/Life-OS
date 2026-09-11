@@ -37,6 +37,7 @@ export const HabitsTracker = ({ selectedDate }) => {
   const [category, setCategory] = useState('Productivity');
   const [targetFrequency, setTargetFrequency] = useState('daily');
   const [description, setDescription] = useState('');
+  const [createError, setCreateError] = useState('');
   const [saving, setSaving] = useState(false);
 
   const fetchData = useCallback(async (showLoading = true) => {
@@ -102,20 +103,31 @@ export const HabitsTracker = ({ selectedDate }) => {
 
     try {
       await api.post(`/habits/${habitId}/toggle`, { date: activeDate });
-      // Silent background sync
       fetchData(false);
     } catch (err) {
       console.error('Failed to toggle habit', err);
-      // Revert on error
       fetchData(false);
     }
   };
 
+  const handleOpenCreateModal = () => {
+    setName('');
+    setDescription('');
+    setCategory('Productivity');
+    setTargetFrequency('daily');
+    setCreateError('');
+    setIsModalOpen(true);
+  };
+
   const handleCreateHabit = async (e) => {
     e.preventDefault();
-    if (!name.trim()) return;
+    if (!name.trim()) {
+      setCreateError('Habit name is required');
+      return;
+    }
 
     setSaving(true);
+    setCreateError('');
     try {
       const res = await api.post('/habits', {
         name: name.trim(),
@@ -126,6 +138,7 @@ export const HabitsTracker = ({ selectedDate }) => {
       setIsModalOpen(false);
       setName('');
       setDescription('');
+      setCreateError('');
       // Optimistically append new habit
       if (res.data) {
         setHabits((prev) => [...prev, { ...res.data, completedToday: false, streak: 0 }]);
@@ -133,6 +146,7 @@ export const HabitsTracker = ({ selectedDate }) => {
       fetchData(false);
     } catch (err) {
       console.error('Failed to create habit', err);
+      setCreateError(err.response?.data?.message || err.message || 'Failed to create habit');
     } finally {
       setSaving(false);
     }
@@ -166,7 +180,7 @@ export const HabitsTracker = ({ selectedDate }) => {
         title="Habits Tracker"
         description={`Daily checklist, streak tracking, and rolling 12-week activity heatmap for ${formatDisplayDate(activeDate)}`}
         action={
-          <Button variant="gradient" size="md" icon={Plus} onClick={() => setIsModalOpen(true)}>
+          <Button variant="gradient" size="md" icon={Plus} onClick={handleOpenCreateModal}>
             New Habit
           </Button>
         }
@@ -216,7 +230,7 @@ export const HabitsTracker = ({ selectedDate }) => {
             title="No habits created yet"
             description="Start by building a new habit routine (e.g. Read 20 mins, Workout, Fasting)."
             actionText="Create Habit"
-            onAction={() => setIsModalOpen(true)}
+            onAction={handleOpenCreateModal}
           />
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
@@ -340,6 +354,11 @@ export const HabitsTracker = ({ selectedDate }) => {
         subtitle="Establish a recurring positive habit"
       >
         <form onSubmit={handleCreateHabit} className="space-y-4">
+          {createError && (
+            <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 text-xs font-semibold animate-in fade-in">
+              {createError}
+            </div>
+          )}
           <div>
             <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5">
               Habit Name

@@ -7,7 +7,7 @@ import { Modal } from '../components/Modal';
 import { EmptyState } from '../components/EmptyState';
 import { Badge } from '../components/Badge';
 import api from '../utils/api';
-import { formatDisplayDate } from '../utils/dateHelpers';
+import { DateInput } from '../components/DateInput';
 import {
   Target,
   Plus,
@@ -18,6 +18,9 @@ import {
   Sparkles,
   CheckCircle2,
   TrendingUp,
+  Flame,
+  Check,
+  Search,
 } from 'lucide-react';
 
 const CATEGORIES = ['Health', 'Career', 'Learning', 'Spiritual', 'Financial', 'Personal'];
@@ -39,8 +42,10 @@ export const GoalsTracker = () => {
   const [type, setType] = useState('short_term');
   const [category, setCategory] = useState('Career');
   const [targetDate, setTargetDate] = useState('');
+  const [targetCompletions, setTargetCompletions] = useState(30);
   const [description, setDescription] = useState('');
   const [linkedHabits, setLinkedHabits] = useState([]);
+  const [habitSearch, setHabitSearch] = useState('');
 
   const fetchData = async () => {
     setLoading(true);
@@ -72,6 +77,7 @@ export const GoalsTracker = () => {
         type,
         category,
         targetDate: targetDate || undefined,
+        targetCompletions: Number(targetCompletions) || 30,
         description: description.trim(),
         linkedHabits,
       });
@@ -79,7 +85,9 @@ export const GoalsTracker = () => {
       setTitle('');
       setDescription('');
       setTargetDate('');
+      setTargetCompletions(30);
       setLinkedHabits([]);
+      setHabitSearch('');
       fetchData();
     } catch (err) {
       console.error('Failed to create goal', err);
@@ -242,8 +250,11 @@ export const GoalsTracker = () => {
                   {/* Progress Gauge */}
                   <div className="space-y-1.5 pt-1">
                     <div className="flex items-center justify-between text-xs font-bold">
-                      <span className="text-secondary">Progress</span>
-                      <span className="text-accent">{goal.progressPercent || 0}%</span>
+                      <span className="text-secondary flex items-center gap-1.5">
+                        <TrendingUp className="w-3.5 h-3.5 text-accent" />
+                        Overall Progress
+                      </span>
+                      <span className="text-accent font-extrabold">{goal.progressPercent || 0}%</span>
                     </div>
                     <div className="w-full h-2.5 bg-subtle rounded-full overflow-hidden border border-theme">
                       <div
@@ -251,12 +262,52 @@ export const GoalsTracker = () => {
                         style={{ width: `${goal.progressPercent || 0}%` }}
                       />
                     </div>
+                    {goal.targetCompletions && (
+                      <div className="flex items-center justify-between text-[11px] text-secondary font-medium">
+                        <span>Habit Consistency:</span>
+                        <span>{goal.totalCompletedCount || 0} / {goal.targetCompletions || 30} days</span>
+                      </div>
+                    )}
                   </div>
+
+                  {/* Linked Habits Status */}
+                  {goal.linkedHabitIds && goal.linkedHabitIds.length > 0 && (
+                    <div className="pt-2 border-t border-subtle space-y-1.5">
+                      <div className="flex items-center justify-between text-[11px] font-bold">
+                        <span className="text-secondary flex items-center gap-1">
+                          <CheckCircle2 className="w-3 h-3 text-emerald-500" />
+                          Today's Linked Habits
+                        </span>
+                        <span className={goal.todayLinkedHabitsCompleted >= goal.todayLinkedHabitsTotal ? 'text-emerald-500' : 'text-primary'}>
+                          {goal.todayLinkedHabitsCompleted || 0} / {goal.todayLinkedHabitsTotal || goal.linkedHabitIds.length} done
+                        </span>
+                      </div>
+                      <div className="flex flex-wrap gap-1.5 pt-0.5">
+                        {goal.linkedHabitIds.map((h) => {
+                          const hId = h._id?.toString() || h.toString();
+                          const isDoneToday = goal.todayCompletedHabitIds?.includes(hId);
+                          return (
+                            <span
+                              key={hId}
+                              className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold border ${
+                                isDoneToday
+                                  ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
+                                  : 'bg-subtle text-secondary border-theme'
+                              }`}
+                            >
+                              {isDoneToday && <Check className="w-2.5 h-2.5 text-emerald-500" />}
+                              {h.name || 'Habit'}
+                            </span>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
 
                   {goal.targetDate && (
                     <div className="flex items-center gap-1.5 text-xs text-secondary font-medium pt-2 border-t border-subtle">
                       <Calendar className="w-3.5 h-3.5 text-muted shrink-0" />
-                      <span>Target: {formatDisplayDate(goal.targetDate)}</span>
+                      <span>Target: {goal.targetDate}</span>
                     </div>
                   )}
                 </div>
@@ -271,7 +322,7 @@ export const GoalsTracker = () => {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         title="Create Vision Goal"
-        subtitle="Set clear targets and link daily habits"
+        subtitle="Set clear targets and link daily habits to auto-track progress"
         maxWidth="max-w-xl"
       >
         <form onSubmit={handleCreateGoal} className="space-y-4">
@@ -322,16 +373,27 @@ export const GoalsTracker = () => {
             </div>
           </div>
 
-          <div>
-            <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5">
-              Target Deadline (Optional)
-            </label>
-            <input
-              type="date"
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <DateInput
+              label="Target Deadline (Optional)"
               value={targetDate}
-              onChange={(e) => setTargetDate(e.target.value)}
-              className="input-base"
+              onChange={setTargetDate}
             />
+
+            <div>
+              <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5">
+                Target Days to Accomplish
+              </label>
+              <input
+                type="number"
+                min="1"
+                max="365"
+                value={targetCompletions}
+                onChange={(e) => setTargetCompletions(e.target.value)}
+                className="input-base"
+                placeholder="e.g. 30"
+              />
+            </div>
           </div>
 
           <div>
@@ -347,29 +409,75 @@ export const GoalsTracker = () => {
             />
           </div>
 
-          {availableHabits.length > 0 && (
-            <div>
-              <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5">
-                Link Daily Habits (Auto-drives progress)
+          {/* Enhanced Linked Habits Selector */}
+          <div>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="block text-xs font-bold text-secondary uppercase tracking-wider">
+                Link Daily Habits ({linkedHabits.length} selected)
               </label>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-36 overflow-y-auto p-2 bg-subtle rounded-xl border border-theme">
-                {availableHabits.map((habit) => (
-                  <label
-                    key={habit._id}
-                    className="flex items-center gap-2 p-1.5 hover:bg-surface rounded-lg cursor-pointer text-xs font-medium"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={linkedHabits.includes(habit._id)}
-                      onChange={() => handleToggleHabitSelection(habit._id)}
-                      className="accent-indigo-600 rounded"
-                    />
-                    <span className="truncate">{habit.name}</span>
-                  </label>
-                ))}
-              </div>
+              <span className="text-[11px] text-accent font-semibold">
+                Auto-advances goal progress
+              </span>
             </div>
-          )}
+
+            {availableHabits.length === 0 ? (
+              <div className="p-3 text-center text-xs text-secondary italic bg-subtle rounded-xl border border-theme">
+                No active habits found. Create a habit in /habits first to link it to this goal.
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {/* Search Bar for Habits */}
+                <div className="relative">
+                  <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-secondary" />
+                  <input
+                    type="text"
+                    placeholder="Search habits to link..."
+                    value={habitSearch}
+                    onChange={(e) => setHabitSearch(e.target.value)}
+                    className="input-base pl-8 py-1.5 text-xs"
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-44 overflow-y-auto p-2 bg-subtle rounded-xl border border-theme">
+                  {availableHabits
+                    .filter((h) => h.name.toLowerCase().includes(habitSearch.toLowerCase()))
+                    .map((habit) => {
+                      const isSelected = linkedHabits.includes(habit._id);
+                      return (
+                        <div
+                          key={habit._id}
+                          onClick={() => handleToggleHabitSelection(habit._id)}
+                          className={`flex items-center justify-between p-2 rounded-xl border transition-all cursor-pointer select-none text-xs ${
+                            isSelected
+                              ? 'bg-accent/10 border-accent text-primary font-bold shadow-sm'
+                              : 'bg-surface border-theme text-secondary hover:text-primary hover:border-theme'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2 min-w-0 pr-2">
+                            <input
+                              type="checkbox"
+                              checked={isSelected}
+                              onChange={() => {}}
+                              className="accent-indigo-600 rounded shrink-0 cursor-pointer"
+                            />
+                            <div className="truncate">
+                              <span className="truncate block font-semibold">{habit.name}</span>
+                              <span className="text-[10px] text-secondary font-normal">{habit.category}</span>
+                            </div>
+                          </div>
+                          {(habit.streak || habit.currentStreak) > 0 && (
+                            <span className="inline-flex items-center gap-0.5 text-[10px] font-extrabold text-amber-500 shrink-0">
+                              <Flame className="w-2.5 h-2.5 fill-amber-500/20" />
+                              {habit.streak || habit.currentStreak}d
+                            </span>
+                          )}
+                        </div>
+                      );
+                    })}
+                </div>
+              </div>
+            )}
+          </div>
 
           <div className="flex justify-end gap-3 pt-3 border-t border-subtle">
             <Button variant="secondary" onClick={() => setIsModalOpen(false)}>

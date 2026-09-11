@@ -7,6 +7,7 @@ import { Modal } from '../components/Modal';
 import { EmptyState } from '../components/EmptyState';
 import { Badge } from '../components/Badge';
 import api from '../utils/api';
+import { DateInput } from '../components/DateInput';
 import { formatDisplayDate } from '../utils/dateHelpers';
 import {
   FileText,
@@ -276,29 +277,17 @@ export const Reports = () => {
               </select>
             </div>
 
-            <div>
-              <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5">
-                Start Date
-              </label>
-              <input
-                type="date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                className="input-base"
-              />
-            </div>
+            <DateInput
+              label="Start Date"
+              value={startDate}
+              onChange={setStartDate}
+            />
 
-            <div>
-              <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5">
-                End Date
-              </label>
-              <input
-                type="date"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-                className="input-base"
-              />
-            </div>
+            <DateInput
+              label="End Date"
+              value={endDate}
+              onChange={setEndDate}
+            />
           </div>
 
           <div>

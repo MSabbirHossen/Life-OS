@@ -119,7 +119,7 @@ export const getHabits = async (req, res) => {
 // @access  Private
 export const createHabit = async (req, res) => {
   try {
-    const { name, category, targetFrequency, targetValue, unit } = req.body;
+    const { name, category, targetFrequency, targetValue, unit, description } = req.body;
 
     if (!name) {
       return res.status(400).json({ message: 'Habit name is required' });
@@ -127,8 +127,9 @@ export const createHabit = async (req, res) => {
 
     const habit = await Habit.create({
       userId: req.user._id,
-      name,
+      name: name.trim(),
       category: category || 'Health',
+      description: description?.trim() || '',
       targetFrequency: targetFrequency || 'daily',
       targetValue: targetValue || 1,
       unit: unit || '',
@@ -157,10 +158,11 @@ export const updateHabit = async (req, res) => {
       return res.status(404).json({ message: 'Habit not found' });
     }
 
-    const { name, category, targetFrequency, targetValue, unit, archived } = req.body;
+    const { name, category, targetFrequency, targetValue, unit, description, archived } = req.body;
 
     if (name !== undefined) habit.name = name;
     if (category !== undefined) habit.category = category;
+    if (description !== undefined) habit.description = description;
     if (targetFrequency !== undefined) habit.targetFrequency = targetFrequency;
     if (targetValue !== undefined) habit.targetValue = targetValue;
     if (unit !== undefined) habit.unit = unit;

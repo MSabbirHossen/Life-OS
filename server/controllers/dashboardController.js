@@ -84,6 +84,55 @@ export const getDashboardSummary = async (req, res) => {
     // Habit completion count
     const habitsCompletedToday = habitLogs.filter((h) => h.completed).length;
 
+    // Cross-Module Global Continuous Streak Calculation
+    const allCompletedDates = new Set([
+      ...habitLogs.filter((h) => h.completed).map((h) => h.date),
+      ...studies.map((s) => s.date),
+      ...workouts.map((w) => w.date),
+      ...timeLogs.map((t) => t.date),
+      ...(journal ? [journal.date] : []),
+      ...salahLogs.filter((s) => s.status && s.status !== 'missed' && s.status !== 'pending').map((s) => s.date),
+    ]);
+
+    // Query past 90 days activity to determine unbroken consecutive streak
+    const [pastHabitLogs, pastStudies, pastWorkouts, pastTimeLogs] = await Promise.all([
+      HabitLog.distinct('date', { userId, completed: true }),
+      StudySession.distinct('date', { userId }),
+      Workout.distinct('date', { userId }),
+      TimeLog.distinct('date', { userId }),
+    ]);
+
+    const globalActiveDates = Array.from(new Set([
+      ...pastHabitLogs,
+      ...pastStudies,
+      ...pastWorkouts,
+      ...pastTimeLogs,
+      ...Array.from(allCompletedDates),
+    ])).sort((a, b) => (a < b ? 1 : -1));
+
+    const todayDateStr = date;
+    const isSecuredToday = globalActiveDates.includes(todayDateStr);
+
+    let globalStreak = 0;
+    const getDaysDiff = (d1, d2) => Math.round((new Date(d1).getTime() - new Date(d2).getTime()) / (1000 * 3600 * 24));
+
+    if (globalActiveDates.length > 0) {
+      const mostRecent = globalActiveDates[0];
+      const diffFromToday = getDaysDiff(todayDateStr, mostRecent);
+
+      if (diffFromToday === 0 || diffFromToday === 1) {
+        globalStreak = 1;
+        for (let i = 0; i < globalActiveDates.length - 1; i++) {
+          const stepDiff = getDaysDiff(globalActiveDates[i], globalActiveDates[i + 1]);
+          if (stepDiff === 1) {
+            globalStreak++;
+          } else {
+            break;
+          }
+        }
+      }
+    }
+
     // Fallback prompt if database is empty
     const fallbackPrompt = {
       category: 'Self-Growth',
@@ -100,6 +149,12 @@ export const getDashboardSummary = async (req, res) => {
       summary: {
         journal: journal || null,
         prompt: prompts[0] || fallbackPrompt,
+        streak: {
+          currentStreak: globalStreak,
+          isSecuredToday,
+          activeDatesCount: globalActiveDates.length,
+          todayActionsCount: allCompletedDates.size,
+        },
         time: {
           totalMinutes: timeMinutesTotal,
           byCategory: timeByCategory,

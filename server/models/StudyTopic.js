@@ -23,6 +23,22 @@ const studyTopicSchema = new mongoose.Schema(
       enum: ['backlog', 'in_progress', 'completed'],
       default: 'backlog',
     },
+    totalChapters: {
+      type: Number,
+      default: 1,
+      min: 1,
+    },
+    completedChapters: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    subtopics: [
+      {
+        title: { type: String, trim: true },
+        completed: { type: Boolean, default: false },
+      },
+    ],
     targetDate: {
       type: String,
       default: '',

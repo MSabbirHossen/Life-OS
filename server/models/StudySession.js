@@ -28,11 +28,23 @@ const studySessionSchema = new mongoose.Schema(
       required: true,
       min: 1,
     },
+    startTime: {
+      type: String,
+      default: '',
+    },
+    endTime: {
+      type: String,
+      default: '',
+    },
     progressPercent: {
       type: Number,
       min: 0,
       max: 100,
       default: 0,
+    },
+    topicId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'StudyTopic',
     },
     goalId: {
       type: mongoose.Schema.Types.ObjectId,

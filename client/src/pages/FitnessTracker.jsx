@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { PageHeader } from '../components/PageHeader';
 import { Card } from '../components/Card';
 import { Button } from '../components/Button';
@@ -6,6 +6,7 @@ import { Modal } from '../components/Modal';
 import { StatCard } from '../components/StatCard';
 import { EmptyState } from '../components/EmptyState';
 import { Badge } from '../components/Badge';
+import { DateInput } from '../components/DateInput';
 import api from '../utils/api';
 import { getFormattedDate, formatDisplayDate } from '../utils/dateHelpers';
 import {
@@ -17,6 +18,8 @@ import {
   Scale,
   LineChart as LineChartIcon,
   Zap,
+  Check,
+  Search,
 } from 'lucide-react';
 import {
   ResponsiveContainer,
@@ -59,6 +62,7 @@ export const FitnessTracker = ({ selectedDate }) => {
   const [wWeight, setWWeight] = useState('');
   const [wDuration, setWDuration] = useState(30);
   const [wCalories, setWCalories] = useState('');
+  const [wMet, setWMet] = useState(6.0);
   const [wIdealCalPerSet, setWIdealCalPerSet] = useState(8);
   const [wIdealCalPerMin, setWIdealCalPerMin] = useState(6);
   const [wTarget, setWTarget] = useState('Muscle');
@@ -69,6 +73,7 @@ export const FitnessTracker = ({ selectedDate }) => {
   // Workout Autocomplete Suggestions
   const [wSuggestions, setWSuggestions] = useState([]);
   const [showWSuggestions, setShowWSuggestions] = useState(false);
+  const [searchingSuggestions, setSearchingSuggestions] = useState(false);
 
   // Metric Form State
   const [mDate, setMDate] = useState(currentDate);
@@ -98,13 +103,41 @@ export const FitnessTracker = ({ selectedDate }) => {
     fetchData(true);
   }, [fetchData]);
 
+  // Latest user weight for calorie estimation (defaults to 70kg)
+  const latestUserWeight = useMemo(() => {
+    const found = bodyMetrics.slice().reverse().find((m) => m.weightKg && m.weightKg > 0);
+    return found ? found.weightKg : 70;
+  }, [bodyMetrics]);
+
+  // Live calorie calculation formula based on MET, duration/sets, and user weight
+  const estimatedCalories = useMemo(() => {
+    const weightKg = latestUserWeight;
+    if (wTrackingType === 'duration') {
+      const met = Number(wMet) || (wTarget === 'Cardio' ? 8.0 : 6.0);
+      const hours = (Number(wDuration) || 0) / 60;
+      return Math.round(met * weightKg * hours);
+    } else {
+      // Strength sets & reps
+      const sets = Number(wSets) || 0;
+      const reps = Number(wReps) || 0;
+      const liftWeight = Number(wWeight) || 0;
+      const weightBonus = liftWeight > 0 ? (liftWeight / 100) * 2 : 0;
+      const calPerRep = 0.35 + (weightBonus / Math.max(1, sets * reps));
+      const base = sets * reps * calPerRep;
+      const bodyFactor = weightKg / 70;
+      return Math.max(5, Math.round(base * bodyFactor));
+    }
+  }, [wTrackingType, wDuration, wMet, wTarget, wSets, wReps, wWeight, latestUserWeight]);
+
   // Autocomplete Workout Types Search
   useEffect(() => {
-    if (!wName.trim()) {
+    if (!wName.trim() || wName.length < 2) {
       setWSuggestions([]);
+      setShowWSuggestions(false);
       return;
     }
 
+    setSearchingSuggestions(true);
     const timer = setTimeout(async () => {
       try {
         const res = await api.get(`/workout-types/search?q=${encodeURIComponent(wName.trim())}`);
@@ -112,6 +145,8 @@ export const FitnessTracker = ({ selectedDate }) => {
         setShowWSuggestions(true);
       } catch (err) {
         console.error('Failed workout search', err);
+      } finally {
+        setSearchingSuggestions(false);
       }
     }, 150);
 
@@ -122,17 +157,12 @@ export const FitnessTracker = ({ selectedDate }) => {
     setWName(wt.name);
     setWTarget(wt.target || 'Muscle');
     setWTrackingType(wt.trackingType || 'sets_reps');
+    if (wt.met) setWMet(wt.met);
     if (wt.defaultSets) setWSets(wt.defaultSets);
     if (wt.defaultReps) setWReps(wt.defaultReps);
     if (wt.defaultWeight) setWWeight(wt.defaultWeight);
     if (wt.caloriesPerSet) setWIdealCalPerSet(wt.caloriesPerSet);
     if (wt.defaultCaloriesPerMinute) setWIdealCalPerMin(wt.defaultCaloriesPerMinute);
-
-    if (wt.trackingType === 'duration' && wt.defaultCaloriesPerMinute) {
-      setWCalories(Math.round(wt.defaultCaloriesPerMinute * wDuration));
-    } else if (wt.caloriesPerSet && wt.defaultSets) {
-      setWCalories(Math.round(wt.caloriesPerSet * wt.defaultSets));
-    }
 
     setShowWSuggestions(false);
   };
@@ -140,6 +170,8 @@ export const FitnessTracker = ({ selectedDate }) => {
   const handleWorkoutSubmit = async (e) => {
     e.preventDefault();
     if (!wName.trim()) return;
+
+    const finalCalories = wCalories ? Number(wCalories) : estimatedCalories;
 
     setSavingWorkout(true);
     try {
@@ -151,7 +183,7 @@ export const FitnessTracker = ({ selectedDate }) => {
         reps: wTrackingType === 'sets_reps' ? Number(wReps) : 0,
         weight: Number(wWeight) || 0,
         durationMinutes: wTrackingType === 'duration' ? Number(wDuration) : Number(wSets) * 3,
-        caloriesBurned: wCalories ? Number(wCalories) : 0,
+        caloriesBurned: finalCalories,
         idealCaloriesPerSet: Number(wIdealCalPerSet),
         idealCaloriesPerMin: Number(wIdealCalPerMin),
         target: wTarget,
@@ -229,7 +261,7 @@ export const FitnessTracker = ({ selectedDate }) => {
       <PageHeader
         category="Health & Physicality"
         title="Fitness & Workouts"
-        description={`Track strength, cardio, and energy expenditure with automatic server-calculated calorie burns for ${formatDisplayDate(currentDate)}`}
+        description={`Track strength, cardio, and energy expenditure with real MET-based calorie burn calculations for ${formatDisplayDate(currentDate)}`}
         action={
           <div className="flex items-center gap-2.5">
             <Button
@@ -276,8 +308,8 @@ export const FitnessTracker = ({ selectedDate }) => {
         />
         <StatCard
           title="Current Weight"
-          value={latestWeight ? `${latestWeight} kg` : 'Not recorded'}
-          subtitle="Latest logged scale measurement"
+          value={latestWeight ? `${latestWeight} kg` : `${latestUserWeight} kg (est)`}
+          subtitle="Used for accurate calorie formula"
           icon={Scale}
           color="emerald"
         />
@@ -447,7 +479,7 @@ export const FitnessTracker = ({ selectedDate }) => {
         isOpen={isWorkoutModalOpen}
         onClose={() => setIsWorkoutModalOpen(false)}
         title="Log Workout & Exercise"
-        subtitle="Automatic calorie burn calculation based on sets, reps, duration & weight"
+        subtitle="Automatic calorie burn calculation based on MET values, sets, reps & bodyweight"
       >
         <form onSubmit={handleWorkoutSubmit} className="space-y-4">
           <div className="flex bg-subtle p-1 rounded-xl border border-theme">
@@ -476,18 +508,12 @@ export const FitnessTracker = ({ selectedDate }) => {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5">
-                Date
-              </label>
-              <input
-                type="date"
-                value={wDate}
-                onChange={(e) => setWDate(e.target.value)}
-                className="input-base"
-                required
-              />
-            </div>
+            <DateInput
+              label="Workout Date"
+              value={wDate}
+              onChange={setWDate}
+              required
+            />
 
             <div>
               <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5">
@@ -509,32 +535,54 @@ export const FitnessTracker = ({ selectedDate }) => {
 
           <div className="relative">
             <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5">
-              Exercise Name
+              Exercise Name (Search server suggestions)
             </label>
-            <input
-              type="text"
-              required
-              placeholder="e.g. Bench Press, Squats, Treadmill Running"
-              value={wName}
-              onChange={(e) => {
-                setWName(e.target.value);
-                setShowWSuggestions(true);
-              }}
-              onFocus={() => setShowWSuggestions(true)}
-              className="input-base"
-            />
+            <div className="relative">
+              <input
+                type="text"
+                required
+                placeholder="e.g. Bench Press, Squats, Running, Jump Rope"
+                value={wName}
+                onChange={(e) => {
+                  setWName(e.target.value);
+                  setShowWSuggestions(true);
+                }}
+                onFocus={() => {
+                  if (wSuggestions.length > 0) setShowWSuggestions(true);
+                }}
+                className="input-base pr-8"
+              />
+              {searchingSuggestions && (
+                <div className="absolute right-2.5 top-2.5">
+                  <div className="w-4 h-4 border-2 border-accent border-t-transparent rounded-full animate-spin" />
+                </div>
+              )}
+            </div>
+
             {showWSuggestions && wSuggestions.length > 0 && (
-              <div className="absolute left-0 right-0 top-full mt-1 bg-surface border border-theme rounded-xl card-shadow z-30 max-h-40 overflow-y-auto">
-                {wSuggestions.map((wt) => (
+              <div className="absolute left-0 right-0 top-full mt-1.5 bg-surface border border-theme rounded-2xl card-shadow z-30 max-h-56 overflow-y-auto divide-y divide-theme/40 shadow-xl">
+                {wSuggestions.map((wt, idx) => (
                   <div
-                    key={wt._id}
+                    key={wt._id || idx}
                     onClick={() => handleSelectWorkoutType(wt)}
-                    className="p-2.5 hover:bg-subtle cursor-pointer flex items-center justify-between text-xs"
+                    className="p-3 hover:bg-subtle cursor-pointer flex items-center justify-between text-xs transition-colors"
                   >
-                    <span className="font-bold text-primary">{wt.name}</span>
-                    <Badge variant={TARGET_COLORS[wt.target] || 'neutral'} size="xs">
-                      {wt.target}
-                    </Badge>
+                    <div>
+                      <span className="font-bold text-primary block">{wt.name}</span>
+                      <span className="text-[11px] text-secondary">
+                        {wt.category || wt.target} {wt.met ? `• MET: ${wt.met}` : ''}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <Badge variant={TARGET_COLORS[wt.target] || 'neutral'} size="xs">
+                        {wt.target || 'Exercise'}
+                      </Badge>
+                      {wt.source && (
+                        <span className="text-[9px] px-1.5 py-0.5 rounded bg-surface border border-theme text-secondary">
+                          {wt.source}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>
@@ -599,49 +647,31 @@ export const FitnessTracker = ({ selectedDate }) => {
             </div>
           )}
 
-          <div className="p-3 bg-subtle rounded-2xl border border-theme space-y-2">
-            <span className="text-[11px] font-bold text-secondary uppercase tracking-wider block">
-              Calorie Burn Estimation
-            </span>
-            <div className="grid grid-cols-2 gap-3">
-              {wTrackingType === 'sets_reps' ? (
-                <div>
-                  <label className="block text-[10px] font-bold text-secondary mb-1">
-                    Ideal Burn (kcal / set)
-                  </label>
-                  <input
-                    type="number"
-                    value={wIdealCalPerSet}
-                    onChange={(e) => setWIdealCalPerSet(e.target.value)}
-                    className="input-base text-xs py-1.5"
-                  />
-                </div>
-              ) : (
-                <div>
-                  <label className="block text-[10px] font-bold text-secondary mb-1">
-                    Ideal Burn (kcal / min)
-                  </label>
-                  <input
-                    type="number"
-                    value={wIdealCalPerMin}
-                    onChange={(e) => setWIdealCalPerMin(e.target.value)}
-                    className="input-base text-xs py-1.5"
-                  />
-                </div>
-              )}
+          {/* Dynamic Calorie Burn Preview */}
+          <div className="p-3.5 bg-subtle rounded-2xl border border-theme space-y-2.5">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-bold text-secondary uppercase tracking-wider">
+                Live Calorie Estimation
+              </span>
+              <span className="text-xs font-extrabold text-rose-600 dark:text-rose-400 bg-rose-500/10 px-2.5 py-0.5 rounded-full border border-rose-500/20">
+                ~{estimatedCalories} kcal calculated
+              </span>
+            </div>
+            <p className="text-[11px] text-secondary">
+              Formula based on MET {wMet || 6.0} and your weight ({latestUserWeight} kg).
+            </p>
 
-              <div>
-                <label className="block text-[10px] font-bold text-secondary mb-1">
-                  Total Burn (Optional Override)
-                </label>
-                <input
-                  type="number"
-                  placeholder="Auto-calculated"
-                  value={wCalories}
-                  onChange={(e) => setWCalories(e.target.value)}
-                  className="input-base text-xs py-1.5"
-                />
-              </div>
+            <div>
+              <label className="block text-[10px] font-bold text-secondary mb-1">
+                Custom Calorie Override (Leave blank to use calculated ~{estimatedCalories} kcal)
+              </label>
+              <input
+                type="number"
+                placeholder={`Auto: ${estimatedCalories} kcal`}
+                value={wCalories}
+                onChange={(e) => setWCalories(e.target.value)}
+                className="input-base text-xs py-1.5"
+              />
             </div>
           </div>
 
@@ -674,21 +704,15 @@ export const FitnessTracker = ({ selectedDate }) => {
         isOpen={isMetricModalOpen}
         onClose={() => setIsMetricModalOpen(false)}
         title="Log Weight & Measurements"
-        subtitle="Track physical evolution over time"
+        subtitle="Track physical metrics and calculate accurate calorie burns"
       >
         <form onSubmit={handleMetricSubmit} className="space-y-4">
-          <div>
-            <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5">
-              Date
-            </label>
-            <input
-              type="date"
-              value={mDate}
-              onChange={(e) => setMDate(e.target.value)}
-              className="input-base"
-              required
-            />
-          </div>
+          <DateInput
+            label="Measurement Date"
+            value={mDate}
+            onChange={setMDate}
+            required
+          />
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>

@@ -6,16 +6,23 @@ import { Modal } from '../components/Modal';
 import { StatCard } from '../components/StatCard';
 import { EmptyState } from '../components/EmptyState';
 import { Badge } from '../components/Badge';
+import { DateInput } from '../components/DateInput';
 import api from '../utils/api';
 import { getFormattedDate, formatDisplayDate } from '../utils/dateHelpers';
 import {
   GraduationCap,
   Plus,
+  Minus,
   Clock,
   BookOpen,
   Trash2,
   ExternalLink,
   ListTodo,
+  CheckCircle2,
+  Circle,
+  Play,
+  Square,
+  Bookmark,
 } from 'lucide-react';
 
 export const StudyTracker = ({ selectedDate }) => {
@@ -30,8 +37,12 @@ export const StudyTracker = ({ selectedDate }) => {
 
   // Session Modal State
   const [isSessionModalOpen, setIsSessionModalOpen] = useState(false);
+  const [sessionDate, setSessionDate] = useState(activeDate);
   const [subject, setSubject] = useState('');
+  const [selectedTopicId, setSelectedTopicId] = useState('');
   const [resource, setResource] = useState('');
+  const [startTime, setStartTime] = useState('');
+  const [endTime, setEndTime] = useState('');
   const [durationMinutes, setDurationMinutes] = useState(45);
   const [progressPercent, setProgressPercent] = useState(50);
   const [selectedGoalId, setSelectedGoalId] = useState('');
@@ -44,6 +55,10 @@ export const StudyTracker = ({ selectedDate }) => {
   const [topicSubject, setTopicSubject] = useState('');
   const [topicTitle, setTopicTitle] = useState('');
   const [topicStatus, setTopicStatus] = useState('backlog');
+  const [totalChapters, setTotalChapters] = useState(1);
+  const [completedChapters, setCompletedChapters] = useState(0);
+  const [subtopicsList, setSubtopicsList] = useState([]);
+  const [newSubtopicInput, setNewSubtopicInput] = useState('');
   const [topicTargetDate, setTopicTargetDate] = useState('');
   const [topicGoalId, setTopicGoalId] = useState('');
   const [topicNotes, setTopicNotes] = useState('');
@@ -79,6 +94,80 @@ export const StudyTracker = ({ selectedDate }) => {
     fetchData(true);
   }, [fetchData]);
 
+  // Helper to format current time as HH:MM
+  const getCurrentTimeHHMM = () => {
+    const now = new Date();
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    return `${hours}:${minutes}`;
+  };
+
+  // Auto-calculate duration whenever start or end time changes
+  const calculateDurationFromTimes = (start, end) => {
+    if (!start || !end) return;
+    const [startH, startM] = start.split(':').map(Number);
+    const [endH, endM] = end.split(':').map(Number);
+    if (isNaN(startH) || isNaN(startM) || isNaN(endH) || isNaN(endM)) return;
+
+    let startTotal = startH * 60 + startM;
+    let endTotal = endH * 60 + endM;
+    if (endTotal < startTotal) {
+      // Crossed midnight
+      endTotal += 24 * 60;
+    }
+    const diff = endTotal - startTotal;
+    if (diff > 0) {
+      setDurationMinutes(diff);
+    }
+  };
+
+  const handleStartTimeChange = (newStart) => {
+    setStartTime(newStart);
+    calculateDurationFromTimes(newStart, endTime);
+  };
+
+  const handleEndTimeChange = (newEnd) => {
+    setEndTime(newEnd);
+    calculateDurationFromTimes(startTime, newEnd);
+  };
+
+  const handleSetStartNow = () => {
+    const now = getCurrentTimeHHMM();
+    setStartTime(now);
+    calculateDurationFromTimes(now, endTime);
+  };
+
+  const handleSetEndNow = () => {
+    const now = getCurrentTimeHHMM();
+    setEndTime(now);
+    calculateDurationFromTimes(startTime, now);
+  };
+
+  const handleTopicSelectionInSession = (topicId) => {
+    setSelectedTopicId(topicId);
+    if (topicId) {
+      const found = topics.find((t) => t._id === topicId);
+      if (found) {
+        if (!subject || subject === '') {
+          setSubject(found.subject);
+        }
+        if (found.linkedGoalId) {
+          setSelectedGoalId(found.linkedGoalId);
+        }
+      }
+    }
+  };
+
+  const handleAddSubtopicToDraft = () => {
+    if (!newSubtopicInput.trim()) return;
+    setSubtopicsList((prev) => [...prev, { title: newSubtopicInput.trim(), completed: false }]);
+    setNewSubtopicInput('');
+  };
+
+  const handleRemoveSubtopicFromDraft = (index) => {
+    setSubtopicsList((prev) => prev.filter((_, idx) => idx !== index));
+  };
+
   const handleCreateSession = async (e) => {
     e.preventDefault();
     if (!subject.trim()) return;
@@ -86,9 +175,12 @@ export const StudyTracker = ({ selectedDate }) => {
     setSavingSession(true);
     try {
       const res = await api.post('/study', {
-        date: activeDate,
+        date: sessionDate || activeDate,
         subject: subject.trim(),
         resource: resource.trim(),
+        startTime: startTime || undefined,
+        endTime: endTime || undefined,
+        topicId: selectedTopicId || undefined,
         durationMinutes: Number(durationMinutes) || 45,
         progressPercent: Number(progressPercent) || 0,
         goalId: selectedGoalId || undefined,
@@ -97,7 +189,10 @@ export const StudyTracker = ({ selectedDate }) => {
       });
       setIsSessionModalOpen(false);
       setSubject('');
+      setSelectedTopicId('');
       setResource('');
+      setStartTime('');
+      setEndTime('');
       setNotes('');
       if (res.data) setSessions((prev) => [res.data, ...prev]);
       fetchData(false);
@@ -118,6 +213,9 @@ export const StudyTracker = ({ selectedDate }) => {
         subject: topicSubject.trim(),
         title: topicTitle.trim(),
         status: topicStatus,
+        totalChapters: Number(totalChapters) || 1,
+        completedChapters: Number(completedChapters) || 0,
+        subtopics: subtopicsList,
         targetDate: topicTargetDate || undefined,
         linkedGoalId: topicGoalId || undefined,
         notes: topicNotes.trim(),
@@ -125,6 +223,10 @@ export const StudyTracker = ({ selectedDate }) => {
       setIsTopicModalOpen(false);
       setTopicSubject('');
       setTopicTitle('');
+      setTotalChapters(1);
+      setCompletedChapters(0);
+      setSubtopicsList([]);
+      setNewSubtopicInput('');
       setTopicNotes('');
       if (res.data) setTopics((prev) => [res.data, ...prev]);
       fetchData(false);
@@ -135,7 +237,54 @@ export const StudyTracker = ({ selectedDate }) => {
     }
   };
 
-  // Instant 0ms Optimistic Topic Status Switch
+  // Stepper increment / decrement for chapters
+  const handleDeltaChapter = async (topicId, delta) => {
+    // Optimistic UI update
+    setTopics((prev) =>
+      prev.map((t) => {
+        if (t._id !== topicId) return t;
+        const total = t.totalChapters || 1;
+        const newCompleted = Math.max(0, Math.min(total, (t.completedChapters || 0) + delta));
+        let newStatus = t.status;
+        if (newCompleted >= total) newStatus = 'completed';
+        else if (newCompleted > 0 && t.status === 'backlog') newStatus = 'in_progress';
+        return { ...t, completedChapters: newCompleted, status: newStatus };
+      })
+    );
+
+    try {
+      await api.put(`/study/topics/${topicId}`, { deltaChapter: delta });
+      fetchData(false);
+    } catch (err) {
+      console.error('Failed to update chapter count', err);
+      fetchData(false);
+    }
+  };
+
+  // Toggle subtopic completion
+  const handleToggleSubtopic = async (topicId, subIndex) => {
+    const topic = topics.find((t) => t._id === topicId);
+    if (!topic || !topic.subtopics) return;
+
+    const updatedSubtopics = topic.subtopics.map((st, idx) =>
+      idx === subIndex ? { ...st, completed: !st.completed } : st
+    );
+
+    // Optimistic update
+    setTopics((prev) =>
+      prev.map((t) => (t._id === topicId ? { ...t, subtopics: updatedSubtopics } : t))
+    );
+
+    try {
+      await api.put(`/study/topics/${topicId}`, { subtopics: updatedSubtopics });
+      fetchData(false);
+    } catch (err) {
+      console.error('Failed to update subtopic', err);
+      fetchData(false);
+    }
+  };
+
+  // Status Switch
   const handleUpdateTopicStatus = async (topicId, newStatus) => {
     setTopics((prev) =>
       prev.map((t) => (t._id === topicId ? { ...t, status: newStatus } : t))
@@ -180,7 +329,7 @@ export const StudyTracker = ({ selectedDate }) => {
     }
   };
 
-  const totalMinutes = sessions.reduce((sum, s) => sum + s.durationMinutes, 0);
+  const totalMinutes = sessions.reduce((sum, s) => sum + (s.durationMinutes || 0), 0);
   const completedTopics = topics.filter((t) => t.status === 'completed').length;
 
   const formatExternalUrl = (url) => {
@@ -194,14 +343,19 @@ export const StudyTracker = ({ selectedDate }) => {
       <PageHeader
         category="Learning & Mastery"
         title="Study & Topic Planning"
-        description={`Log deep focus study sessions, plan backlogs chapter by chapter, and link to goals for ${formatDisplayDate(activeDate)}`}
+        description={`Log deep focus study sessions, plan backlogs chapter by chapter, and track completion for ${formatDisplayDate(activeDate)}`}
         action={
           <div className="flex items-center gap-2.5">
             <Button
               variant="secondary"
               size="md"
               icon={ListTodo}
-              onClick={() => setIsTopicModalOpen(true)}
+              onClick={() => {
+                setTotalChapters(1);
+                setCompletedChapters(0);
+                setSubtopicsList([]);
+                setIsTopicModalOpen(true);
+              }}
             >
               Plan Topic / Chapter
             </Button>
@@ -209,7 +363,10 @@ export const StudyTracker = ({ selectedDate }) => {
               variant="gradient"
               size="md"
               icon={Plus}
-              onClick={() => setIsSessionModalOpen(true)}
+              onClick={() => {
+                setSessionDate(activeDate);
+                setIsSessionModalOpen(true);
+              }}
             >
               Log Session
             </Button>
@@ -246,7 +403,7 @@ export const StudyTracker = ({ selectedDate }) => {
       <Card
         hover
         title="Chapter & Topic Backlog Planning"
-        subtitle="Manage chapter syllabus and eliminate study backlogs"
+        subtitle="Manage chapter syllabus, monitor remaining progress, and check off sub-topics"
         icon={ListTodo}
         action={
           <Button variant="outline" size="sm" icon={Plus} onClick={() => setIsTopicModalOpen(true)}>
@@ -259,7 +416,7 @@ export const StudyTracker = ({ selectedDate }) => {
             No chapter topics planned yet. Click "Add Chapter / Topic" to organize your curriculum and eliminate backlogs.
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5 mt-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-3">
             {topics.map((top) => {
               const statusColors = {
                 backlog: 'warning',
@@ -267,12 +424,17 @@ export const StudyTracker = ({ selectedDate }) => {
                 completed: 'success',
               };
 
+              const totalCh = top.totalChapters || 1;
+              const compCh = top.completedChapters || 0;
+              const remainingCh = Math.max(0, totalCh - compCh);
+              const chapterPercent = Math.min(100, Math.round((compCh / totalCh) * 100));
+
               return (
                 <div
                   key={top._id}
-                  className="p-4 rounded-2xl bg-subtle border border-theme flex flex-col justify-between space-y-3 transition-all duration-200"
+                  className="p-4 rounded-2xl bg-subtle border border-theme flex flex-col justify-between space-y-3.5 transition-all duration-200 hover:border-accent/40 shadow-sm"
                 >
-                  <div className="space-y-1.5">
+                  <div className="space-y-2">
                     <div className="flex items-center justify-between gap-2">
                       <Badge variant="purple" size="xs">
                         {top.subject}
@@ -281,8 +443,92 @@ export const StudyTracker = ({ selectedDate }) => {
                         {top.status.replace('_', ' ')}
                       </Badge>
                     </div>
+
                     <h4 className="text-sm font-bold text-primary tracking-tight">{top.title}</h4>
                     {top.notes && <p className="text-xs text-secondary font-medium">{top.notes}</p>}
+
+                    {/* Chapter Counter & Steppers */}
+                    <div className="p-2.5 rounded-xl bg-surface border border-theme/60 space-y-2">
+                      <div className="flex items-center justify-between text-xs font-semibold">
+                        <span className="text-secondary">Chapters Progress:</span>
+                        <div className="flex items-center gap-1.5">
+                          <span className="font-extrabold text-primary">
+                            {compCh} / {totalCh}
+                          </span>
+                          <span className={`text-[10px] px-1.5 py-0.5 rounded font-bold ${
+                            remainingCh === 0
+                              ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
+                              : 'bg-amber-500/15 text-amber-600 dark:text-amber-400'
+                          }`}>
+                            {remainingCh === 0 ? 'Completed' : `${remainingCh} left`}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Progress bar */}
+                      <div className="w-full h-1.5 bg-subtle rounded-full overflow-hidden border border-theme/50">
+                        <div
+                          className="h-full bg-gradient-to-r from-indigo-500 to-emerald-500 rounded-full transition-all duration-300"
+                          style={{ width: `${chapterPercent}%` }}
+                        />
+                      </div>
+
+                      {/* Quick Chapter Stepper Buttons */}
+                      <div className="flex items-center justify-between pt-1">
+                        <span className="text-[11px] text-secondary font-medium">Quick Stepper:</span>
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            type="button"
+                            disabled={compCh <= 0}
+                            onClick={() => handleDeltaChapter(top._id, -1)}
+                            className="px-2 py-1 rounded-lg bg-subtle hover:bg-rose-500/10 text-secondary hover:text-rose-600 border border-theme/60 text-xs font-bold transition-colors disabled:opacity-30 disabled:cursor-not-allowed flex items-center gap-0.5"
+                            title="Decrement completed chapters"
+                          >
+                            <Minus className="w-3 h-3" /> 1 Ch
+                          </button>
+                          <button
+                            type="button"
+                            disabled={compCh >= totalCh}
+                            onClick={() => handleDeltaChapter(top._id, 1)}
+                            className="px-2 py-1 rounded-lg bg-accent/10 hover:bg-accent text-accent hover:text-white border border-accent/20 text-xs font-bold transition-colors disabled:opacity-30 disabled:cursor-not-allowed flex items-center gap-0.5"
+                            title="Increment completed chapters"
+                          >
+                            <Plus className="w-3 h-3" /> 1 Ch
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Sub-topics Checklist */}
+                    {top.subtopics && top.subtopics.length > 0 && (
+                      <div className="space-y-1.5 pt-1">
+                        <div className="text-[11px] font-bold text-secondary uppercase tracking-wider">
+                          Sub-topics ({top.subtopics.filter((s) => s.completed).length}/{top.subtopics.length})
+                        </div>
+                        <div className="max-h-28 overflow-y-auto space-y-1 pr-1">
+                          {top.subtopics.map((sub, sIdx) => (
+                            <div
+                              key={sIdx}
+                              onClick={() => handleToggleSubtopic(top._id, sIdx)}
+                              className="flex items-center gap-2 p-1.5 rounded-lg bg-surface/80 hover:bg-surface border border-theme/40 text-xs cursor-pointer transition-colors"
+                            >
+                              {sub.completed ? (
+                                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                              ) : (
+                                <Circle className="w-3.5 h-3.5 text-secondary shrink-0" />
+                              )}
+                              <span
+                                className={`truncate font-medium ${
+                                  sub.completed ? 'line-through text-secondary' : 'text-primary'
+                                }`}
+                              >
+                                {sub.title}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   <div className="flex items-center justify-between pt-2 border-t border-theme/50 gap-2">
@@ -351,7 +597,10 @@ export const StudyTracker = ({ selectedDate }) => {
             title="No study sessions logged today"
             description="Log your study session to track duration, completion percentage, and resource materials."
             actionText="Log Study Session"
-            onAction={() => setIsSessionModalOpen(true)}
+            onAction={() => {
+              setSessionDate(activeDate);
+              setIsSessionModalOpen(true);
+            }}
           />
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
@@ -374,10 +623,27 @@ export const StudyTracker = ({ selectedDate }) => {
                     <Badge variant="purple" size="sm" dot>
                       {sess.subject}
                     </Badge>
-                    <span className="text-xs font-extrabold text-accent">
-                      {Math.floor(sess.durationMinutes / 60)}h {sess.durationMinutes % 60}m
-                    </span>
+                    <div className="text-right">
+                      <span className="text-xs font-extrabold text-accent block">
+                        {Math.floor(sess.durationMinutes / 60)}h {sess.durationMinutes % 60}m
+                      </span>
+                      {sess.startTime && sess.endTime && (
+                        <span className="text-[10px] text-secondary font-medium block">
+                          {sess.startTime} - {sess.endTime}
+                        </span>
+                      )}
+                    </div>
                   </div>
+
+                  {/* Attached Topic Badge if applicable */}
+                  {sess.topicId && (
+                    <div className="flex items-center gap-1.5 text-xs text-secondary bg-subtle p-2 rounded-xl border border-theme/50">
+                      <Bookmark className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
+                      <span className="truncate font-medium text-primary">
+                        Plan: {typeof sess.topicId === 'object' ? sess.topicId.title : 'Attached Topic'}
+                      </span>
+                    </div>
+                  )}
 
                   {/* External Resource Link */}
                   {sess.resource && (
@@ -426,9 +692,16 @@ export const StudyTracker = ({ selectedDate }) => {
         isOpen={isSessionModalOpen}
         onClose={() => setIsSessionModalOpen(false)}
         title="Log Study Session"
-        subtitle={`Record focus session for ${formatDisplayDate(activeDate)}`}
+        subtitle={`Record focus session for ${formatDisplayDate(sessionDate || activeDate)}`}
       >
         <form onSubmit={handleCreateSession} className="space-y-4">
+          <DateInput
+            label="Session Date"
+            value={sessionDate}
+            onChange={setSessionDate}
+            required
+          />
+
           <div>
             <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5">
               Subject / Topic
@@ -447,6 +720,72 @@ export const StudyTracker = ({ selectedDate }) => {
                 <option key={idx} value={sub} />
               ))}
             </datalist>
+          </div>
+
+          {/* Attach to Planned Topic Dropdown */}
+          {topics.length > 0 && (
+            <div>
+              <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5">
+                Attach to Planned Topic (Optional)
+              </label>
+              <select
+                value={selectedTopicId}
+                onChange={(e) => handleTopicSelectionInSession(e.target.value)}
+                className="select-base"
+              >
+                <option value="">None (Independent Study)</option>
+                {topics.map((t) => (
+                  <option key={t._id} value={t._id}>
+                    [{t.subject}] {t.title} ({t.completedChapters || 0}/{t.totalChapters || 1} ch)
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {/* Start Time & End Time with Start Now / End Now Buttons */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="text-xs font-bold text-secondary uppercase tracking-wider">
+                  Start Time
+                </label>
+                <button
+                  type="button"
+                  onClick={handleSetStartNow}
+                  className="inline-flex items-center gap-1 text-[11px] font-bold text-accent hover:text-accent-hover transition-colors"
+                >
+                  <Play className="w-3 h-3" /> Start Now
+                </button>
+              </div>
+              <input
+                type="time"
+                value={startTime}
+                onChange={(e) => handleStartTimeChange(e.target.value)}
+                className="input-base"
+              />
+            </div>
+
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="text-xs font-bold text-secondary uppercase tracking-wider">
+                  End Time
+                </label>
+                <button
+                  type="button"
+                  onClick={handleSetEndNow}
+                  className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600 dark:text-emerald-400 hover:opacity-80 transition-colors"
+                >
+                  <Square className="w-3 h-3" /> End Now
+                </button>
+              </div>
+              <input
+                type="time"
+                value={endTime}
+                onChange={(e) => handleEndTimeChange(e.target.value)}
+                className="input-base"
+              />
+            </div>
           </div>
 
           <div>
@@ -542,7 +881,7 @@ export const StudyTracker = ({ selectedDate }) => {
         isOpen={isTopicModalOpen}
         onClose={() => setIsTopicModalOpen(false)}
         title="Plan Chapter / Topic Backlog"
-        subtitle="Organize syllabus and clear study backlogs"
+        subtitle="Organize syllabus, configure chapters, and eliminate study backlogs"
       >
         <form onSubmit={handleCreateTopic} className="space-y-4">
           <div>
@@ -567,16 +906,89 @@ export const StudyTracker = ({ selectedDate }) => {
 
           <div>
             <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5">
-              Topic / Chapter Title
+              Topic / Syllabus Title
             </label>
             <input
               type="text"
               required
-              placeholder="e.g. Chapter 5: Raft Consensus Algorithm"
+              placeholder="e.g. System Design: Scalability, Consensus & Caching"
               value={topicTitle}
               onChange={(e) => setTopicTitle(e.target.value)}
               className="input-base"
             />
+          </div>
+
+          {/* Chapter Count Inputs */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5">
+                Total Chapters Count
+              </label>
+              <input
+                type="number"
+                min="1"
+                required
+                value={totalChapters}
+                onChange={(e) => setTotalChapters(Math.max(1, Number(e.target.value) || 1))}
+                className="input-base"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5">
+                Already Completed Chapters
+              </label>
+              <input
+                type="number"
+                min="0"
+                max={totalChapters}
+                value={completedChapters}
+                onChange={(e) => setCompletedChapters(Math.max(0, Math.min(totalChapters, Number(e.target.value) || 0)))}
+                className="input-base"
+              />
+            </div>
+          </div>
+
+          {/* Sub-topics Input Builder */}
+          <div>
+            <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5">
+              Sub-topics / Sections Checklist (Optional)
+            </label>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                placeholder="e.g. 1. Master-Worker Architecture"
+                value={newSubtopicInput}
+                onChange={(e) => setNewSubtopicInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleAddSubtopicToDraft();
+                  }
+                }}
+                className="input-base flex-1"
+              />
+              <Button type="button" variant="secondary" size="sm" onClick={handleAddSubtopicToDraft}>
+                Add Sub-topic
+              </Button>
+            </div>
+
+            {subtopicsList.length > 0 && (
+              <div className="mt-2 space-y-1.5 max-h-32 overflow-y-auto p-2 bg-subtle rounded-xl border border-theme">
+                {subtopicsList.map((st, idx) => (
+                  <div key={idx} className="flex items-center justify-between text-xs py-1 px-2 bg-surface rounded-lg">
+                    <span className="text-primary font-medium truncate">{st.title}</span>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveSubtopicFromDraft(idx)}
+                      className="text-secondary hover:text-rose-500 font-bold ml-2 cursor-pointer"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -595,17 +1007,11 @@ export const StudyTracker = ({ selectedDate }) => {
               </select>
             </div>
 
-            <div>
-              <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5">
-                Target Date (Optional)
-              </label>
-              <input
-                type="date"
-                value={topicTargetDate}
-                onChange={(e) => setTopicTargetDate(e.target.value)}
-                className="input-base"
-              />
-            </div>
+            <DateInput
+              label="Target Date"
+              value={topicTargetDate}
+              onChange={setTopicTargetDate}
+            />
           </div>
 
           <div>

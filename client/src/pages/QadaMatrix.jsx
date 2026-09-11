@@ -20,6 +20,7 @@ import {
   ShieldCheck,
 } from 'lucide-react';
 import api from '../utils/api';
+import { DateInput } from '../components/DateInput';
 
 const ALL_PRAYERS = ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha', 'Witr'];
 
@@ -471,17 +472,11 @@ export const QadaMatrix = () => {
             />
           </div>
           <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs font-bold text-secondary mb-1">
-                Target Date (Optional)
-              </label>
-              <input
-                type="date"
-                value={vowTargetDate}
-                onChange={(e) => setVowTargetDate(e.target.value)}
-                className="input-base"
-              />
-            </div>
+            <DateInput
+              label="Target Date"
+              value={vowTargetDate}
+              onChange={setVowTargetDate}
+            />
             <div>
               <label className="block text-xs font-bold text-secondary mb-1">
                 Related Salah
