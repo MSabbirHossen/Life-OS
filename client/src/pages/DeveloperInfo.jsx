@@ -232,14 +232,22 @@ export const DeveloperInfo = ({ isCompact = false }) => {
     setTimeout(() => setCopiedEmail(false), 2500);
   };
 
+  const getWhatsAppUrl = (text) => {
+    const trimmed = text?.trim();
+    return trimmed
+      ? `https://wa.me/sabb1rhossen?text=${encodeURIComponent(trimmed)}`
+      : 'https://wa.me/sabb1rhossen';
+  };
+
   const handleFeedbackSubmit = (e) => {
     e.preventDefault();
-    if (!feedbackText.trim()) return;
+    const url = getWhatsAppUrl(feedbackText);
+    window.open(url, '_blank', 'noopener,noreferrer');
     setFeedbackSent(true);
     setTimeout(() => {
       setFeedbackText('');
       setFeedbackSent(false);
-    }, 3500);
+    }, 4000);
   };
 
   const filteredLinks =
@@ -593,7 +601,7 @@ export const DeveloperInfo = ({ isCompact = false }) => {
         <Card
           hover
           title="Send a Note to MS Hossen"
-          subtitle="Direct thoughts, feedback, or collaboration queries"
+          subtitle="Direct thoughts, feedback, or collaboration queries delivered straight via WhatsApp"
           icon={Mail}
           className="lg:col-span-2"
         >
@@ -602,10 +610,18 @@ export const DeveloperInfo = ({ isCompact = false }) => {
               <div className="w-12 h-12 rounded-full bg-emerald-500 text-white flex items-center justify-center shadow-md shadow-emerald-500/30">
                 <Check className="w-6 h-6" />
               </div>
-              <h4 className="text-base font-bold text-primary">Thank you for connecting!</h4>
+              <h4 className="text-base font-bold text-primary">Opening WhatsApp...</h4>
               <p className="text-xs text-secondary max-w-sm">
-                Your message has been captured. Feel free to also reach out directly on WhatsApp (<strong className="text-primary">sabb1rhossen</strong>), Telegram, or Email for immediate discussions.
+                Your message is ready to send directly to Sabbir Hossen (<strong className="text-primary">sabb1rhossen</strong>).
               </p>
+              <a
+                href={getWhatsAppUrl(feedbackText)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-2 text-xs font-bold text-emerald-500 hover:underline flex items-center gap-1"
+              >
+                Click here if WhatsApp didn't open automatically <ExternalLink className="w-3.5 h-3.5" />
+              </a>
             </div>
           ) : (
             <form onSubmit={handleFeedbackSubmit} className="space-y-4 mt-2">
@@ -648,17 +664,24 @@ export const DeveloperInfo = ({ isCompact = false }) => {
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
                 <div className="flex items-center gap-2 text-xs text-secondary font-medium">
                   <UserCheck className="w-4 h-4 text-accent" />
-                  <span>Direct Creator Channel</span>
+                  <span>Direct Creator Channel via WhatsApp</span>
                 </div>
-                <Button
-                  type="submit"
-                  variant="gradient"
-                  size="md"
-                  icon={Send}
-                  className="shadow-sm shadow-indigo-500/20"
+                <a
+                  href={getWhatsAppUrl(feedbackText)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full sm:w-auto"
                 >
-                  Send Note to Developer
-                </Button>
+                  <Button
+                    type="submit"
+                    variant="gradient"
+                    size="md"
+                    icon={Send}
+                    className="shadow-sm shadow-indigo-500/20 w-full"
+                  >
+                    Send Note to Developer
+                  </Button>
+                </a>
               </div>
             </form>
           )}
