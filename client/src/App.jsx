@@ -21,6 +21,7 @@ import { HabitsTracker } from './pages/HabitsTracker';
 import { GoalsTracker } from './pages/GoalsTracker';
 import { Reports } from './pages/Reports';
 import { Settings } from './pages/Settings';
+import { DeveloperInfo } from './pages/DeveloperInfo';
 
 const Layout = ({ children, selectedDate, setSelectedDate }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -212,6 +213,14 @@ export function App() {
               element={
                 <ProtectedRoute selectedDate={selectedDate} setSelectedDate={setSelectedDate}>
                   <Settings />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/developer"
+              element={
+                <ProtectedRoute selectedDate={selectedDate} setSelectedDate={setSelectedDate}>
+                  <DeveloperInfo />
                 </ProtectedRoute>
               }
             />

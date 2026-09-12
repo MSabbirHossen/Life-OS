@@ -17,6 +17,7 @@ import {
   ChevronLeft,
   ChevronRight,
   X,
+  Code2,
 } from 'lucide-react';
 
 const navigationGroups = [
@@ -51,6 +52,7 @@ const navigationGroups = [
     items: [
       { name: 'Reports', path: '/reports', icon: FileText },
       { name: 'Settings', path: '/settings', icon: Settings },
+      { name: 'Developer', path: '/developer', icon: Code2 },
     ],
   },
 ];
@@ -140,10 +142,34 @@ export const Sidebar = ({ isCollapsed, setIsCollapsed, isMobileOpen, setIsMobile
           ))}
         </div>
 
-        {/* Footer info */}
-        <div className={`p-4 border-t border-theme flex items-center justify-between text-[11px] font-medium text-secondary shrink-0 ${isCollapsed ? 'flex lg:hidden' : 'flex'}`}>
-          <span>Life OS v1.0</span>
-          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" title="System Live" />
+        {/* Footer info & Developer quick link */}
+        <div className={`p-3 border-t border-theme flex flex-col gap-2 shrink-0 ${isCollapsed ? 'flex lg:hidden' : 'flex'}`}>
+          <NavLink
+            to="/developer"
+            onClick={() => setIsMobileOpen(false)}
+            className="flex items-center justify-between p-2 rounded-xl bg-subtle hover:bg-accent/10 border border-theme hover:border-accent/30 text-secondary hover:text-primary transition-all group cursor-pointer"
+            title="Connect with Developer (MS Hossen)"
+          >
+            <div className="flex items-center gap-2 min-w-0">
+              <div className="w-6 h-6 rounded-lg bg-gradient-to-tr from-indigo-500 to-purple-600 flex items-center justify-center text-white text-[10px] font-black shrink-0 shadow-xs">
+                MS
+              </div>
+              <div className="flex flex-col min-w-0">
+                <span className="text-[11px] font-bold text-primary truncate group-hover:text-accent transition-colors">
+                  MS Hossen
+                </span>
+                <span className="text-[9px] text-secondary font-medium truncate">
+                  Connect with Dev
+                </span>
+              </div>
+            </div>
+            <span className="text-[10px] font-bold text-accent group-hover:underline">View &rarr;</span>
+          </NavLink>
+
+          <div className="flex items-center justify-between text-[11px] font-medium text-secondary px-1">
+            <span>Life OS v1.0</span>
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" title="System Live" />
+          </div>
         </div>
       </aside>
     </>

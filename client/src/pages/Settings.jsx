@@ -6,6 +6,7 @@ import { Badge } from '../components/Badge';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import api from '../utils/api';
+import { Link } from 'react-router-dom';
 import {
   Settings as SettingsIcon,
   User,
@@ -18,6 +19,8 @@ import {
   CheckCircle2,
   Lock,
   Sparkles,
+  Code2,
+  ExternalLink,
 } from 'lucide-react';
 
 export const Settings = () => {
@@ -267,6 +270,31 @@ export const Settings = () => {
           >
             Export All Data
           </Button>
+        </div>
+      </Card>
+
+      {/* Creator & Developer Info */}
+      <Card hover title="About the Creator" subtitle="Designed & Engineered by MS Hossen" icon={Code2}>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2">
+          <div className="flex items-center gap-3.5">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-indigo-600 to-purple-600 flex items-center justify-center text-white font-extrabold text-base shadow-sm shadow-indigo-500/25 shrink-0">
+              MS
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-extrabold text-primary">MS Hossen</span>
+                <Badge variant="purple" size="xs">Part-Time Coder</Badge>
+              </div>
+              <p className="text-xs text-secondary mt-0.5">
+                Creator of Life OS. Connect on LinkedIn, YouTube, Facebook, Instagram, and GitHub.
+              </p>
+            </div>
+          </div>
+          <Link to="/developer">
+            <Button variant="secondary" size="md" icon={ExternalLink} className="w-full sm:w-auto shrink-0">
+              Developer Hub & Links
+            </Button>
+          </Link>
         </div>
       </Card>
     </div>
