@@ -482,48 +482,53 @@ export const DeveloperInfo = ({ isCompact = false }) => {
               key={item.name}
               hover
               className="flex flex-col justify-between group transition-all duration-200 border-theme hover:border-accent/40"
-              action={
-                item.isUpcoming ? (
-                  <Badge variant="neutral" size="xs" className="bg-subtle text-secondary font-bold">
-                    <Clock className="w-3 h-3 text-amber-500 mr-1" /> Coming Soon
-                  </Badge>
-                ) : item.isEmail ? (
-                  <button
-                    type="button"
-                    onClick={() => handleCopyEmail(item.email)}
-                    className="p-1.5 rounded-xl text-secondary hover:text-accent hover:bg-accent/10 transition-colors cursor-pointer"
-                    title="Copy Email Address"
-                  >
-                    {copiedEmail ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
-                  </button>
-                ) : (
-                  <a
-                    href={item.link}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="p-1.5 rounded-xl text-secondary hover:text-accent hover:bg-accent/10 transition-colors"
-                    title={`Open ${item.name}`}
-                  >
-                    <ExternalLink className="w-4 h-4" />
-                  </a>
-                )
-              }
             >
               <div className="space-y-3.5">
-                <div className="flex items-center gap-3">
-                  <div
-                    className="w-11 h-11 rounded-2xl flex items-center justify-center text-white shrink-0 shadow-sm transition-transform group-hover:scale-105"
-                    style={{ backgroundColor: item.color }}
-                  >
-                    {item.icon}
+                {/* Header Row: Icon + Title/Handle on left, External Link on right */}
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div
+                      className="w-11 h-11 rounded-2xl flex items-center justify-center text-white shrink-0 shadow-sm transition-transform group-hover:scale-105"
+                      style={{ backgroundColor: item.color }}
+                    >
+                      {item.icon}
+                    </div>
+                    <div className="min-w-0">
+                      <h4 className="text-base font-extrabold text-primary tracking-tight truncate">
+                        {item.name}
+                      </h4>
+                      <span className="text-xs font-semibold text-accent block truncate">
+                        {item.handle || item.subHandle}
+                      </span>
+                    </div>
                   </div>
-                  <div className="min-w-0">
-                    <h4 className="text-base font-extrabold text-primary tracking-tight truncate">
-                      {item.name}
-                    </h4>
-                    <span className="text-xs font-semibold text-accent block truncate">
-                      {item.handle || item.subHandle}
-                    </span>
+
+                  {/* External Link Icon aligned with header */}
+                  <div className="shrink-0 flex items-center">
+                    {item.isUpcoming ? (
+                      <Badge variant="neutral" size="xs" className="bg-subtle text-secondary font-bold">
+                        <Clock className="w-3 h-3 text-amber-500 mr-1" /> Soon
+                      </Badge>
+                    ) : item.isEmail ? (
+                      <button
+                        type="button"
+                        onClick={() => handleCopyEmail(item.email)}
+                        className="p-1.5 rounded-xl text-secondary hover:text-accent hover:bg-accent/10 transition-colors cursor-pointer"
+                        title="Copy Email Address"
+                      >
+                        {copiedEmail ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
+                      </button>
+                    ) : (
+                      <a
+                        href={item.link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="p-1.5 rounded-xl text-secondary hover:text-accent hover:bg-accent/10 transition-colors"
+                        title={`Open ${item.name}`}
+                      >
+                        <ExternalLink className="w-4 h-4" />
+                      </a>
+                    )}
                   </div>
                 </div>
 
