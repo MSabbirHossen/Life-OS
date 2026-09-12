@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import { useNavigate } from 'react-router-dom';
 import { Sparkles, Mail, Lock, User, ArrowRight, Eye, EyeOff, Info, CheckCircle2, ShieldCheck } from 'lucide-react';
 import { Button } from '../components/Button';
@@ -39,6 +40,7 @@ export const Auth = () => {
   const [showGoogleGuideModal, setShowGoogleGuideModal] = useState(false);
 
   const { login, register, loginWithGoogle } = useAuth();
+  const { effectiveTheme } = useTheme();
   const navigate = useNavigate();
   const googleBtnContainerRef = useRef(null);
   const tokenClientRef = useRef(null);
@@ -124,11 +126,12 @@ export const Auth = () => {
 
           if (googleBtnContainerRef.current) {
             googleBtnContainerRef.current.innerHTML = '';
+            const isDark = effectiveTheme === 'dark' || document.documentElement.getAttribute('data-theme') === 'dark';
             window.google.accounts.id.renderButton(googleBtnContainerRef.current, {
-              theme: 'outline',
+              theme: isDark ? 'filled_black' : 'outline',
               size: 'large',
               width: 380,
-              shape: 'pill',
+              shape: 'rectangular',
               text: isLogin ? 'signin_with' : 'signup_with',
               logo_alignment: 'left',
             });
@@ -151,7 +154,7 @@ export const Auth = () => {
       }, 300);
       return () => clearInterval(timer);
     }
-  }, [googleClientId, isLogin]);
+  }, [googleClientId, isLogin, effectiveTheme]);
 
   // Handle Google Token Response from official Google Sign-In button
   const handleGoogleCredentialResponse = async (response) => {
@@ -358,14 +361,15 @@ export const Auth = () => {
                 Full Name
               </label>
               <div className="relative">
-                <User className="w-4 h-4 text-muted absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <User className="w-4 h-4 text-muted absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none z-10" />
                 <input
                   type="text"
                   required
                   placeholder="e.g. Alex Morgan"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="input-base pl-10"
+                  className="input-base input-with-icon-left"
+                  style={{ paddingLeft: '2.75rem' }}
                 />
               </div>
             </div>
@@ -376,14 +380,15 @@ export const Auth = () => {
               Email Address
             </label>
             <div className="relative">
-              <Mail className="w-4 h-4 text-muted absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <Mail className="w-4 h-4 text-muted absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none z-10" />
               <input
                 type="email"
                 required
                 placeholder="name@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="input-base pl-10"
+                className="input-base input-with-icon-left"
+                style={{ paddingLeft: '2.75rem' }}
               />
             </div>
           </div>
@@ -393,7 +398,7 @@ export const Auth = () => {
               Password
             </label>
             <div className="relative">
-              <Lock className="w-4 h-4 text-muted absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <Lock className="w-4 h-4 text-muted absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none z-10" />
               <input
                 type={showPassword ? 'text' : 'password'}
                 required
@@ -401,12 +406,13 @@ export const Auth = () => {
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="input-base pl-10 pr-10"
+                className="input-base input-with-icon-left input-with-icon-right"
+                style={{ paddingLeft: '2.75rem', paddingRight: '2.75rem' }}
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-secondary hover:text-primary cursor-pointer p-1"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-secondary hover:text-primary cursor-pointer p-1 z-10"
                 title={showPassword ? 'Hide password' : 'Show password'}
               >
                 {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}

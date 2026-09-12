@@ -204,7 +204,10 @@ h1, h2, h3, h4, h5, h6 {
 /* Standardized Form Input / Select / Textarea */
 .input-base {
   width: 100%;
-  padding: 0.625rem 0.875rem;
+  padding-top: 0.625rem;
+  padding-bottom: 0.625rem;
+  padding-left: 0.875rem;
+  padding-right: 0.875rem;
   font-size: 0.875rem;
   line-height: 1.25rem;
   border-radius: 0.75rem;
@@ -224,6 +227,35 @@ h1, h2, h3, h4, h5, h6 {
 }
 .input-base::placeholder {
   color: var(--color-text-muted);
+}
+
+/* Explicit icon-offset classes for inputs with left/right icons */
+.input-with-icon-left {
+  padding-left: 2.75rem !important;
+}
+.input-with-icon-right {
+  padding-right: 2.75rem !important;
+}
+
+/* Override browser autofill background to match current theme */
+input:-webkit-autofill,
+input:-webkit-autofill:hover, 
+input:-webkit-autofill:focus, 
+input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px var(--color-surface) inset !important;
+  -webkit-text-fill-color: var(--color-text-primary) !important;
+  box-shadow: 0 0 0 1000px var(--color-surface) inset !important;
+  transition: background-color 5000s ease-in-out 0s;
+  caret-color: var(--color-text-primary);
+}
+
+/* Google Sign-In wrapper styling */
+.google-btn-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  min-height: 44px;
 }
 
 .select-base {
