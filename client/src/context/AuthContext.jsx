@@ -44,8 +44,14 @@ export const AuthProvider = ({ children }) => {
     return res.data;
   };
 
-  const loginWithGoogle = async (credential, testUser = null) => {
-    const res = await api.post('/auth/google', { credential, testUser });
+  const loginWithGoogle = async (credentialOrParams, testUser = null) => {
+    let payload = {};
+    if (typeof credentialOrParams === 'object' && credentialOrParams !== null) {
+      payload = credentialOrParams;
+    } else {
+      payload = { credential: credentialOrParams, testUser };
+    }
+    const res = await api.post('/auth/google', payload);
     const { token, ...userData } = res.data;
     localStorage.setItem('lifeos_token', token);
     setUser(userData);

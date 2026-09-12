@@ -114,12 +114,28 @@ export const loginUser = async (req, res) => {
 // @access  Public
 export const googleAuth = async (req, res) => {
   try {
-    const { credential, testUser } = req.body;
+    const { credential, accessToken, testUser } = req.body;
 
     let payload = null;
 
-    // 1. Verify via Google Client ID if available
-    if (credential && process.env.GOOGLE_CLIENT_ID) {
+    // 1. If accessToken provided via OAuth2 Token Client
+    if (accessToken) {
+      try {
+        const userInfoRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        });
+        if (userInfoRes.ok) {
+          payload = await userInfoRes.json();
+        } else {
+          console.warn('[Google OAuth2 UserInfo Error]: Status', userInfoRes.status);
+        }
+      } catch (err) {
+        console.warn('[Google OAuth2 UserInfo Fetch Notice]:', err.message);
+      }
+    }
+
+    // 2. Verify via Google Client ID if available (ID token)
+    if (!payload && credential && process.env.GOOGLE_CLIENT_ID) {
       try {
         const ticket = await googleClient.verifyIdToken({
           idToken: credential,
@@ -131,7 +147,7 @@ export const googleAuth = async (req, res) => {
       }
     }
 
-    // 2. Verification fallback via Google's tokeninfo API
+    // 3. Verification fallback via Google's tokeninfo API
     if (!payload && credential) {
       try {
         const response = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${credential}`);

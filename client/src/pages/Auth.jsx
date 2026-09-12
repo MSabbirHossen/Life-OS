@@ -41,77 +41,162 @@ export const Auth = () => {
   const { login, register, loginWithGoogle } = useAuth();
   const navigate = useNavigate();
   const googleBtnContainerRef = useRef(null);
+  const tokenClientRef = useRef(null);
+  const [googleBtnRendered, setGoogleBtnRendered] = useState(false);
 
   const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
-  // Initialize Google Identity Services if client ID is configured
+  // Handle detailed auth errors with actionable messages
+  const handleAuthError = (err) => {
+    console.error('Authentication Error:', err);
+    if (err.response?.data?.message) {
+      setError(err.response.data.message);
+    } else if (err.code === 'ERR_NETWORK' || !err.response) {
+      setError('Unable to connect to backend server. Make sure the backend is running on port 5000.');
+    } else if (err.message) {
+      setError(err.message);
+    } else {
+      setError('Google sign-in failed. Please try again.');
+    }
+  };
+
+  // Initialize Google Identity Services & OAuth2 Token Client
   useEffect(() => {
     if (!googleClientId) return;
 
-    const initGoogle = () => {
+    const setupGoogle = () => {
+      // 1. Initialize OAuth2 Token Client (opens Google account chooser popup on button click)
+      if (window.google?.accounts?.oauth2 && !tokenClientRef.current) {
+        try {
+          tokenClientRef.current = window.google.accounts.oauth2.initTokenClient({
+            client_id: googleClientId,
+            scope: 'email profile openid',
+            callback: async (tokenResponse) => {
+              if (tokenResponse?.error) {
+                console.warn('[Google OAuth Response Error]:', tokenResponse);
+                if (tokenResponse.error === 'popup_closed_by_user') {
+                  setError('Google sign-in popup was closed.');
+                } else if (tokenResponse.error === 'access_denied') {
+                  setError('Google sign-in was denied.');
+                } else {
+                  setError(`Google sign-in error: ${tokenResponse.error_description || tokenResponse.error}`);
+                }
+                setGoogleLoading(false);
+                return;
+              }
+              if (tokenResponse?.access_token) {
+                setGoogleLoading(true);
+                setError('');
+                try {
+                  await loginWithGoogle({ accessToken: tokenResponse.access_token });
+                  navigate('/dashboard');
+                } catch (err) {
+                  handleAuthError(err);
+                } finally {
+                  setGoogleLoading(false);
+                }
+              }
+            },
+            error_callback: (err) => {
+              console.warn('[Google OAuth Error Callback]:', err);
+              setGoogleLoading(false);
+              if (err?.type === 'popup_closed') {
+                setError('Google sign-in window was closed.');
+              } else {
+                setError('Could not open Google sign-in window. Check popup permissions.');
+              }
+            },
+          });
+        } catch (e) {
+          console.warn('[Google OAuth2 init error]:', e);
+        }
+      }
+
+      // 2. Initialize Identity Services (ID Token / One Tap & Official Button)
       if (window.google?.accounts?.id) {
         try {
           window.google.accounts.id.initialize({
             client_id: googleClientId,
             callback: handleGoogleCredentialResponse,
             auto_select: false,
+            use_fedcm_for_prompt: false, // Disables FedCM to avoid localhost NetworkError
           });
 
-          // Render official Google button if container ref is ready
           if (googleBtnContainerRef.current) {
+            googleBtnContainerRef.current.innerHTML = '';
             window.google.accounts.id.renderButton(googleBtnContainerRef.current, {
               theme: 'outline',
               size: 'large',
-              width: '100%',
+              width: 380,
               shape: 'pill',
               text: isLogin ? 'signin_with' : 'signup_with',
+              logo_alignment: 'left',
             });
+            setGoogleBtnRendered(true);
           }
         } catch (e) {
-          console.warn('Google Identity initialization error:', e);
+          console.warn('Google Identity initialization notice:', e);
         }
       }
     };
 
-    if (window.google?.accounts?.id) {
-      initGoogle();
+    if (window.google?.accounts) {
+      setupGoogle();
     } else {
       const timer = setInterval(() => {
-        if (window.google?.accounts?.id) {
+        if (window.google?.accounts) {
           clearInterval(timer);
-          initGoogle();
+          setupGoogle();
         }
       }, 300);
       return () => clearInterval(timer);
     }
   }, [googleClientId, isLogin]);
 
-  // Handle Google Token Response from real Google Sign-In
+  // Handle Google Token Response from official Google Sign-In button
   const handleGoogleCredentialResponse = async (response) => {
     if (!response?.credential) return;
     setGoogleLoading(true);
     setError('');
     try {
-      await loginWithGoogle(response.credential);
+      await loginWithGoogle({ credential: response.credential });
       navigate('/dashboard');
     } catch (err) {
-      setError(err.response?.data?.message || 'Google sign-in failed. Please try again.');
+      handleAuthError(err);
     } finally {
       setGoogleLoading(false);
     }
   };
 
-  // Google button click handler
+  // Google button click handler (uses OAuth2 token client popup)
   const handleGoogleClick = () => {
     setError('');
     if (!googleClientId) {
-      // Guide user on how to add Google Client ID, with a 1-click test simulation
       setShowGoogleGuideModal(true);
+      return;
+    }
+
+    if (tokenClientRef.current) {
+      try {
+        setGoogleLoading(true);
+        tokenClientRef.current.requestAccessToken({ prompt: 'select_account' });
+        return;
+      } catch (err) {
+        console.warn('Token client request failed:', err);
+      }
+    }
+
+    // Fallback: trigger click on rendered Google button if present
+    const renderedBtn = googleBtnContainerRef.current?.querySelector('div[role="button"]');
+    if (renderedBtn) {
+      renderedBtn.click();
       return;
     }
 
     if (window.google?.accounts?.id) {
       window.google.accounts.id.prompt();
+    } else {
+      setError('Google Sign-In service is still loading. Please wait a moment.');
     }
   };
 
@@ -127,10 +212,10 @@ export const Auth = () => {
         avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
         googleId: `google_sim_${Date.now()}`,
       };
-      await loginWithGoogle(null, mockTestUser);
+      await loginWithGoogle({ testUser: mockTestUser });
       navigate('/dashboard');
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to simulate Google authentication.');
+      handleAuthError(err);
     } finally {
       setGoogleLoading(false);
     }
@@ -184,11 +269,10 @@ export const Auth = () => {
               setIsLogin(true);
               setError('');
             }}
-            className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${
-              isLogin
-                ? 'bg-surface text-primary card-shadow'
-                : 'text-secondary hover:text-primary'
-            }`}
+            className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${isLogin
+              ? 'bg-surface text-primary card-shadow'
+              : 'text-secondary hover:text-primary'
+              }`}
           >
             Sign In
           </button>
@@ -198,11 +282,10 @@ export const Auth = () => {
               setIsLogin(false);
               setError('');
             }}
-            className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${
-              !isLogin
-                ? 'bg-surface text-primary card-shadow'
-                : 'text-secondary hover:text-primary'
-            }`}
+            className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${!isLogin
+              ? 'bg-surface text-primary card-shadow'
+              : 'text-secondary hover:text-primary'
+              }`}
           >
             Create Account
           </button>
@@ -217,29 +300,46 @@ export const Auth = () => {
 
         {/* --- GOOGLE AUTHENTICATION SECTION --- */}
         <div className="space-y-3">
-          {/* Official Google GSI Container (if configured) */}
-          <div ref={googleBtnContainerRef} className="hidden" />
+          {/* Official Google GSI Button Container */}
+          <div
+            ref={googleBtnContainerRef}
+            className={`flex justify-center w-full min-h-[44px] overflow-hidden ${googleBtnRendered ? '' : 'hidden'
+              }`}
+          />
 
-          {/* Prominent Google Button */}
-          <button
-            type="button"
-            onClick={handleGoogleClick}
-            disabled={googleLoading}
-            className="w-full flex items-center justify-center gap-3 py-2.5 px-4 rounded-xl bg-surface hover:bg-subtle border border-theme hover:border-accent/40 text-primary font-bold text-xs sm:text-sm transition-all duration-200 card-shadow cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed group"
-          >
-            {googleLoading ? (
-              <div className="w-4 h-4 border-2 border-accent border-t-transparent rounded-full animate-spin" />
-            ) : (
-              <GoogleIcon />
-            )}
-            <span>
-              {googleLoading
-                ? 'Signing in with Google...'
-                : isLogin
-                ? 'Continue with Google'
-                : 'Sign up with Google'}
-            </span>
-          </button>
+          {/* Custom Google Button (visible when official button is loading or on ad-blocker fallback) */}
+          {!googleBtnRendered && (
+            <button
+              type="button"
+              onClick={handleGoogleClick}
+              disabled={googleLoading}
+              className="w-full flex items-center justify-center gap-3 py-2.5 px-4 rounded-xl bg-surface hover:bg-subtle border border-theme hover:border-accent/40 text-primary font-bold text-xs sm:text-sm transition-all duration-200 card-shadow cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed group"
+            >
+              {googleLoading ? (
+                <div className="w-4 h-4 border-2 border-accent border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <GoogleIcon />
+              )}
+              <span>
+                {googleLoading
+                  ? 'Connecting to Google...'
+                  : isLogin
+                    ? 'Continue with Google'
+                    : 'Sign up with Google'}
+              </span>
+            </button>
+          )}
+
+          {/* Micro troubleshoot link */}
+          <div className="text-center">
+            <button
+              type="button"
+              onClick={() => setShowGoogleGuideModal(true)}
+              className="text-[11px] text-secondary hover:text-accent font-medium underline transition-colors cursor-pointer"
+            >
+              Google Sign-In troubleshooting & test mode
+            </button>
+          </div>
         </div>
 
         {/* Divider */}
@@ -377,6 +477,15 @@ export const Auth = () => {
             </p>
             <p className="text-primary">
               <span className="text-purple-400">server/.env:</span> GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com
+            </p>
+          </div>
+
+          <div className="p-3 bg-subtle rounded-xl border border-theme text-[11px] space-y-1.5">
+            <p className="font-bold text-primary font-sans">
+              Important: Authorized JavaScript Origins in Google Cloud Console
+            </p>
+            <p className="text-secondary leading-relaxed">
+              In your OAuth 2.0 Client ID settings, verify that <code className="text-accent font-mono">http://localhost:3000</code> and <code className="text-accent font-mono">http://localhost:5173</code> are added under <strong>Authorized JavaScript origins</strong>.
             </p>
           </div>
 

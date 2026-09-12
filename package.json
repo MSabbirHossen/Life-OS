@@ -12,7 +12,7 @@
     "build": "npm --prefix client run build",
     "vercel-build": "npm --prefix client run build",
     "postinstall": "npm --prefix client install && npm --prefix server install",
-    "dev": "npm --prefix client run dev",
+    "dev": "concurrently -n \"server,client\" -c \"blue,magenta\" \"npm:dev:server\" \"npm:dev:client\"",
     "start": "npm --prefix server start",
     "test:features": "node server/testAllRequirements.js"
   },
@@ -26,5 +26,8 @@
     "helmet": "^8.3.0",
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.1.5"
+  },
+  "devDependencies": {
+    "concurrently": "^10.0.5"
   }
 }
