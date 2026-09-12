@@ -202,7 +202,7 @@ export const Journal = ({ selectedDate }) => {
 
       {/* Guided Reflection Hero Card */}
       {prompt && (
-        <div className="relative overflow-hidden p-6 sm:p-7 rounded-3xl bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-transparent border border-indigo-500/20 card-shadow">
+        <div className="relative overflow-hidden p-4 sm:p-6 lg:p-7 rounded-3xl bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-transparent border border-indigo-500/20 card-shadow">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="space-y-2">
               <div className="flex items-center gap-2">
@@ -217,7 +217,7 @@ export const Journal = ({ selectedDate }) => {
                 "{prompt.question}"
               </h3>
             </div>
-            <div className="flex items-center gap-2.5 shrink-0">
+            <div className="flex items-center gap-2.5 shrink-0 flex-wrap">
               <Button
                 variant="secondary"
                 size="sm"

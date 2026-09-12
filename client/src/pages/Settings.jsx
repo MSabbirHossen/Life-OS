@@ -241,7 +241,7 @@ export const Settings = () => {
             size="lg"
             icon={Save}
             loading={saving}
-            className="shadow-md shadow-indigo-500/20 font-bold"
+            className="w-full sm:w-auto shadow-md shadow-indigo-500/20 font-bold"
           >
             Save All Preferences
           </Button>
@@ -263,6 +263,7 @@ export const Settings = () => {
             icon={Download}
             loading={exportLoading}
             onClick={handleExportData}
+            className="w-full sm:w-auto shrink-0"
           >
             Export All Data
           </Button>

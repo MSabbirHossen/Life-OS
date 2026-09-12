@@ -470,7 +470,7 @@ export const IslamicTracker = ({ selectedDate }) => {
 
       {/* Interactive 5 Daily Salah Grid */}
       <Card title="Daily 5 Salah Prayers" subtitle="Click status button to instantly toggle and save" icon={Compass}>
-        <div className="grid grid-cols-1 sm:grid-cols-5 gap-3.5 mt-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-3.5 mt-2">
           {SALAH_NAMES.map((prayerName) => {
             const currentLog = salahLogs.find((l) => (l.prayerName || l.salah) === prayerName);
             const currentStatus = currentLog?.status || 'unlogged';

@@ -68,7 +68,7 @@ export const Sidebar = ({ isCollapsed, setIsCollapsed, isMobileOpen, setIsMobile
 
       <aside
         className={`fixed top-0 bottom-0 left-0 z-40 bg-surface border-r border-theme transition-all duration-300 flex flex-col ${
-          isCollapsed ? 'w-20' : 'w-64'
+          isCollapsed ? 'w-64 lg:w-20' : 'w-64'
         } ${
           isMobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
         }`}
@@ -79,14 +79,12 @@ export const Sidebar = ({ isCollapsed, setIsCollapsed, isMobileOpen, setIsMobile
             <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-indigo-600 to-purple-600 flex items-center justify-center text-white shrink-0 shadow-sm shadow-indigo-500/25">
               <Sparkles className="w-5 h-5" />
             </div>
-            {!isCollapsed && (
-              <div className="flex flex-col">
-                <span className="font-extrabold text-base text-primary tracking-tight">Life OS</span>
-                <span className="text-[10px] text-secondary font-semibold uppercase tracking-wider">
-                  Personal Dashboard
-                </span>
-              </div>
-            )}
+            <div className={`flex flex-col ${isCollapsed ? 'flex lg:hidden' : 'flex'}`}>
+              <span className="font-extrabold text-base text-primary tracking-tight">Life OS</span>
+              <span className="text-[10px] text-secondary font-semibold uppercase tracking-wider">
+                Personal Dashboard
+              </span>
+            </div>
           </div>
 
           {/* Desktop Toggle Button */}
@@ -109,14 +107,12 @@ export const Sidebar = ({ isCollapsed, setIsCollapsed, isMobileOpen, setIsMobile
         </div>
 
         {/* Navigation List */}
-        <div className="flex-1 overflow-y-auto px-3 py-4 space-y-6">
+        <div className="flex-1 overflow-y-auto px-3 py-4 space-y-6 touch-scroll-y">
           {navigationGroups.map((group, idx) => (
             <div key={idx}>
-              {!isCollapsed && (
-                <h4 className="px-3 text-[10px] font-bold text-secondary uppercase tracking-widest mb-2">
-                  {group.title}
-                </h4>
-              )}
+              <h4 className={`px-3 text-[10px] font-bold text-secondary uppercase tracking-widest mb-2 ${isCollapsed ? 'block lg:hidden' : 'block'}`}>
+                {group.title}
+              </h4>
               <div className="space-y-1">
                 {group.items.map((item) => {
                   const Icon = item.icon;
@@ -130,12 +126,12 @@ export const Sidebar = ({ isCollapsed, setIsCollapsed, isMobileOpen, setIsMobile
                           isActive
                             ? 'bg-accent text-white shadow-sm shadow-indigo-500/20'
                             : 'text-secondary hover:text-primary hover:bg-subtle'
-                        } ${isCollapsed ? 'justify-center px-0' : ''}`
+                        } ${isCollapsed ? 'lg:justify-center lg:px-0' : ''}`
                       }
                       title={isCollapsed ? item.name : undefined}
                     >
                       <Icon className="w-4 h-4 shrink-0" />
-                      {!isCollapsed && <span className="truncate">{item.name}</span>}
+                      <span className={`truncate ${isCollapsed ? 'inline lg:hidden' : 'inline'}`}>{item.name}</span>
                     </NavLink>
                   );
                 })}
@@ -145,12 +141,10 @@ export const Sidebar = ({ isCollapsed, setIsCollapsed, isMobileOpen, setIsMobile
         </div>
 
         {/* Footer info */}
-        {!isCollapsed && (
-          <div className="p-4 border-t border-theme flex items-center justify-between text-[11px] font-medium text-secondary shrink-0">
-            <span>Life OS v1.0</span>
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" title="System Live" />
-          </div>
-        )}
+        <div className={`p-4 border-t border-theme flex items-center justify-between text-[11px] font-medium text-secondary shrink-0 ${isCollapsed ? 'flex lg:hidden' : 'flex'}`}>
+          <span>Life OS v1.0</span>
+          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" title="System Live" />
+        </div>
       </aside>
     </>
   );

@@ -260,8 +260,8 @@ export const QadaMatrix = () => {
         icon={Compass}
         badge={<Badge variant="success" size="xs">Live Matrix</Badge>}
       >
-        <div className="overflow-x-auto mt-3">
-          <table className="w-full text-left text-xs border-collapse">
+        <div className="overflow-x-auto touch-scroll-x mt-3">
+          <table className="w-full min-w-[650px] text-left text-xs border-collapse">
             <thead>
               <tr className="border-b border-theme text-secondary uppercase tracking-wider text-[11px] font-bold">
                 <th className="py-3 px-4">Prayer</th>

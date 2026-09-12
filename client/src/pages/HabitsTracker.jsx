@@ -344,7 +344,7 @@ export const HabitsTracker = ({ selectedDate }) => {
         subtitle="Visual consistency and completions per day"
         icon={Calendar}
       >
-        <div className="overflow-x-auto pt-3">
+        <div className="overflow-x-auto touch-scroll-x pt-3">
           <div className="flex gap-1.5 min-w-[700px]">
             {safeHeatmap.map((day, idx) => {
               const count = day.count || 0;
@@ -363,7 +363,7 @@ export const HabitsTracker = ({ selectedDate }) => {
               );
             })}
           </div>
-          <div className="flex items-center justify-between text-[11px] text-secondary font-semibold mt-4 pt-2 border-t border-subtle">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-2 text-[11px] text-secondary font-semibold mt-4 pt-2 border-t border-subtle">
             <span>12 Weeks Ago</span>
             <div className="flex items-center gap-2">
               <span>Less</span>

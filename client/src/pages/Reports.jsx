@@ -115,7 +115,7 @@ export const Reports = () => {
         title="Weekly & Monthly Reports"
         description="Conduct high-level retrospectives, extract insights, and export comprehensive JSON backups."
         action={
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2 sm:gap-2.5 flex-wrap">
             <Button
               variant="secondary"
               size="md"

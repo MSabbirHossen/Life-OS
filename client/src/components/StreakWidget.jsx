@@ -92,7 +92,7 @@ export const StreakWidget = ({ compact = false, className = '' }) => {
       onClick={() => setShowTooltip((prev) => !prev)}
     >
       <div
-        className={`flex items-center gap-2 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl border text-xs font-bold transition-all duration-200 cursor-pointer select-none ${
+        className={`flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 rounded-xl border text-xs font-bold transition-all duration-200 cursor-pointer select-none ${
           isSecuredToday
             ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/25 hover:bg-emerald-500/15'
             : currentStreak > 0
@@ -102,7 +102,7 @@ export const StreakWidget = ({ compact = false, className = '' }) => {
       >
         <div className="flex items-center gap-1 shrink-0">
           <Flame
-            className={`w-4 h-4 ${
+            className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${
               isSecuredToday
                 ? 'text-emerald-500 fill-emerald-500/30'
                 : currentStreak > 0
@@ -110,32 +110,36 @@ export const StreakWidget = ({ compact = false, className = '' }) => {
                 : 'text-secondary'
             }`}
           />
-          <span className="tracking-tight">{currentStreak}d Streak</span>
+          <span className="tracking-tight">{compact ? `${currentStreak}d` : `${currentStreak}d Streak`}</span>
         </div>
 
-        <span className="text-theme opacity-40">|</span>
+        {!compact && (
+          <>
+            <span className="text-theme opacity-40">|</span>
 
-        <div className="flex items-center gap-1 text-[11px] font-semibold">
-          <Clock className="w-3 h-3 opacity-70" />
-          <span className="font-mono">{countdownFormatted}</span>
-        </div>
+            <div className="flex items-center gap-1 text-[11px] font-semibold">
+              <Clock className="w-3 h-3 opacity-70" />
+              <span className="font-mono">{countdownFormatted}</span>
+            </div>
 
-        {/* Small Status Dot */}
-        <span
-          className={`w-2 h-2 rounded-full shrink-0 ${
-            isSecuredToday
-              ? 'bg-emerald-500 shadow-sm shadow-emerald-500/50'
-              : currentStreak > 0
-              ? 'bg-amber-500 shadow-sm shadow-amber-500/50'
-              : 'bg-muted'
-          }`}
-          title={isSecuredToday ? 'Secured for today' : 'At risk before midnight'}
-        />
+            {/* Small Status Dot */}
+            <span
+              className={`w-2 h-2 rounded-full shrink-0 ${
+                isSecuredToday
+                  ? 'bg-emerald-500 shadow-sm shadow-emerald-500/50'
+                  : currentStreak > 0
+                  ? 'bg-amber-500 shadow-sm shadow-amber-500/50'
+                  : 'bg-muted'
+              }`}
+              title={isSecuredToday ? 'Secured for today' : 'At risk before midnight'}
+            />
+          </>
+        )}
       </div>
 
       {/* Hover / Click Detail Popover */}
       {showTooltip && (
-        <div className="absolute top-full left-0 sm:left-auto sm:right-0 mt-2 w-72 p-3.5 bg-surface border border-theme rounded-2xl card-shadow z-50 animate-in fade-in zoom-in-95 duration-150 text-xs">
+        <div className="absolute top-full right-0 mt-2 w-72 sm:w-80 max-w-[calc(100vw-2rem)] p-3.5 bg-surface border border-theme rounded-2xl card-shadow z-50 animate-in fade-in zoom-in-95 duration-150 text-xs">
           <div className="flex items-center gap-2 mb-2 pb-2 border-b border-subtle">
             {isSecuredToday ? (
               <ShieldCheck className="w-4 h-4 text-emerald-500" />

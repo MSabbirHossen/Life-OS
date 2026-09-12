@@ -140,9 +140,9 @@ export const FastingTimer = ({ compact = false }) => {
 
   if (compact) {
     return (
-      <div className="p-4 rounded-2xl bg-subtle border border-theme flex items-center justify-between gap-4">
-        <div className="flex items-center gap-3.5">
-          <div className="relative flex items-center justify-center">
+      <div className="p-3 sm:p-4 rounded-2xl bg-subtle border border-theme flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 sm:gap-4">
+        <div className="flex items-center gap-3 sm:gap-3.5 min-w-0">
+          <div className="relative flex items-center justify-center shrink-0">
             <svg width={size} height={size} className="transform -rotate-90">
               <circle
                 cx={size / 2}
@@ -176,7 +176,7 @@ export const FastingTimer = ({ compact = false }) => {
             </div>
           </div>
 
-          <div>
+          <div className="min-w-0">
             <div className="flex items-center gap-1.5 mb-1">
               <Badge variant={fastingState.isActive ? 'purple' : 'neutral'} size="xs">
                 {fastingState.isActive ? (
@@ -190,12 +190,12 @@ export const FastingTimer = ({ compact = false }) => {
                 )}
               </Badge>
             </div>
-            <p className="text-xs font-bold text-primary">
+            <p className="text-xs font-bold text-primary truncate">
               {fastingState.isActive
                 ? `${hoursRemaining}h ${minutesRemaining}m to Eating Window`
                 : `${activeTargetHours}h Fast / ${eatingHours}h Eating Window`}
             </p>
-            <p className="text-[11px] text-secondary mt-0.5">
+            <p className="text-[11px] text-secondary mt-0.5 truncate">
               {fastingState.isActive
                 ? `Started at ${new Date(fastingState.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
                 : `Protocol: ${selectedProtocolId}`}
@@ -206,6 +206,7 @@ export const FastingTimer = ({ compact = false }) => {
         <Button
           variant={fastingState.isActive ? 'danger' : 'primary'}
           size="sm"
+          className="w-full sm:w-auto shrink-0"
           icon={fastingState.isActive ? Square : Play}
           onClick={fastingState.isActive ? handleStop : handleStart}
         >

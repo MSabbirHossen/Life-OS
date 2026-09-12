@@ -338,11 +338,11 @@ export const FinanceTracker = ({ selectedDate }) => {
         subtitle="Chronological list of all financial entries"
         icon={CreditCard}
         action={
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap w-full sm:w-auto">
             <select
               value={filterCurrency}
               onChange={(e) => setFilterCurrency(e.target.value)}
-              className="select-base text-xs py-1.5 px-2.5 rounded-lg"
+              className="select-base text-xs py-1.5 px-2.5 rounded-lg flex-1 sm:flex-initial"
             >
               <option value="all">All Currencies</option>
               {CURRENCIES.map((c) => (
@@ -355,7 +355,7 @@ export const FinanceTracker = ({ selectedDate }) => {
             <select
               value={filterType}
               onChange={(e) => setFilterType(e.target.value)}
-              className="select-base text-xs py-1.5 px-2.5 rounded-lg"
+              className="select-base text-xs py-1.5 px-2.5 rounded-lg flex-1 sm:flex-initial"
             >
               <option value="all">All Types</option>
               <option value="income">Income</option>
@@ -378,8 +378,8 @@ export const FinanceTracker = ({ selectedDate }) => {
             onAction={() => openTransactionModal('expense')}
           />
         ) : (
-          <div className="overflow-x-auto mt-3">
-            <table className="w-full text-left text-xs border-collapse">
+          <div className="touch-scroll-x overflow-x-auto mt-3 -mx-2 sm:mx-0 px-2 sm:px-0">
+            <table className="w-full min-w-[660px] text-left text-xs border-collapse">
               <thead>
                 <tr className="border-b border-theme text-secondary font-bold uppercase tracking-wider">
                   <th className="pb-3 px-3">Date</th>

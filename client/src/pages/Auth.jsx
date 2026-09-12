@@ -245,12 +245,12 @@ export const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 sm:p-6 bg-bg relative overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center p-3 sm:p-6 bg-bg relative overflow-hidden">
       {/* Ambient background glow */}
       <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
 
-      <div className="w-full max-w-md bg-surface border border-theme rounded-3xl p-7 sm:p-9 card-shadow relative z-10 animate-in fade-in zoom-in-95 duration-200">
+      <div className="w-full max-w-md bg-surface border border-theme rounded-3xl p-5 sm:p-7 md:p-9 card-shadow relative z-10 animate-in fade-in zoom-in-95 duration-200">
         {/* Header Branding */}
         <div className="text-center mb-6">
           <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-indigo-600 via-purple-600 to-accent text-white flex items-center justify-center mx-auto mb-3.5 shadow-lg shadow-indigo-500/25">

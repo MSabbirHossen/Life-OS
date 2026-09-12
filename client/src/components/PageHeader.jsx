@@ -9,10 +9,10 @@ export const PageHeader = ({ title, description, category, action, className = '
             {category}
           </span>
         )}
-        <h1 className="text-2xl sm:text-3xl font-extrabold text-primary tracking-tight">{title}</h1>
-        {description && <p className="text-sm text-secondary mt-1 max-w-2xl">{description}</p>}
+        <h1 className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-primary tracking-tight">{title}</h1>
+        {description && <p className="text-xs sm:text-sm text-secondary mt-1 max-w-2xl">{description}</p>}
       </div>
-      {action && <div className="shrink-0 flex items-center gap-2 flex-wrap">{action}</div>}
+      {action && <div className="shrink-0 flex items-center gap-2 flex-wrap w-full sm:w-auto">{action}</div>}
     </div>
   );
 };

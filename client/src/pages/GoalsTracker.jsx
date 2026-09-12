@@ -203,7 +203,7 @@ export const GoalsTracker = () => {
 
       {/* Goals Filter Tabs & Grid */}
       <div className="space-y-4">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-2.5 sm:gap-3">
           <div className="flex bg-subtle p-1 rounded-xl border border-theme">
             <button
               onClick={() => setFilterType('all')}

@@ -360,7 +360,7 @@ export const FitnessTracker = ({ selectedDate }) => {
         title="Fitness & Workouts"
         description={`Track strength, cardio, and energy expenditure with real MET-based calorie burn calculations for ${formatDisplayDate(currentDate)}`}
         action={
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2 sm:gap-2.5 flex-wrap">
             <Button
               variant="secondary"
               size="md"

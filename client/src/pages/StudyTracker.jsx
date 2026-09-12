@@ -608,8 +608,8 @@ export const StudyTracker = ({ selectedDate }) => {
                     )}
                   </div>
 
-                  <div className="flex items-center justify-between pt-2 border-t border-theme/50 gap-2">
-                    <div className="flex items-center gap-1">
+                  <div className="flex items-center justify-between pt-2 border-t border-theme/50 gap-2 flex-wrap">
+                    <div className="flex items-center gap-1 bg-subtle p-0.5 rounded-xl border border-theme/40">
                       <button
                         onClick={() => handleUpdateTopicStatus(top._id, 'backlog')}
                         className={`px-2 py-0.5 rounded-lg text-[10px] font-bold cursor-pointer transition-all duration-150 ${

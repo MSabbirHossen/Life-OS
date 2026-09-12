@@ -205,7 +205,7 @@ export const Dashboard = ({ selectedDate }) => {
           </button>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-2.5">
           {['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'].map((prayer) => {
             const status = salahMap[prayer] || 'pending';
             const config = SALAH_STATUS_CONFIG[status] || SALAH_STATUS_CONFIG.pending;
@@ -214,13 +214,13 @@ export const Dashboard = ({ selectedDate }) => {
                 key={prayer}
                 type="button"
                 onClick={() => handleCycleSalah(prayer)}
-                className={`p-3 rounded-xl border flex items-center justify-between transition-all cursor-pointer hover:scale-[1.02] active:scale-95 ${config.class}`}
+                className={`p-2.5 sm:p-3 rounded-xl border flex items-center justify-between transition-all cursor-pointer hover:scale-[1.02] active:scale-95 ${config.class}`}
                 title={`Click to cycle status: ${prayer}`}
               >
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-extrabold text-primary">{prayer}</span>
+                <div className="flex items-center gap-1.5 sm:gap-2">
+                  <span className="text-xs sm:text-sm font-extrabold text-primary">{prayer}</span>
                 </div>
-                <span className="text-xs font-bold flex items-center gap-1">
+                <span className="text-[11px] sm:text-xs font-bold flex items-center gap-1">
                   {config.icon} {config.label}
                 </span>
               </button>
