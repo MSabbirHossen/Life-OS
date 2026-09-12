@@ -90,7 +90,10 @@ export const Auth = () => {
                 setGoogleLoading(true);
                 setError('');
                 try {
-                  await loginWithGoogle({ accessToken: tokenResponse.access_token });
+                  await loginWithGoogle({
+                    accessToken: tokenResponse.access_token,
+                    name: name?.trim() || undefined,
+                  });
                   navigate('/dashboard');
                 } catch (err) {
                   handleAuthError(err);
@@ -162,7 +165,10 @@ export const Auth = () => {
     setGoogleLoading(true);
     setError('');
     try {
-      await loginWithGoogle({ credential: response.credential });
+      await loginWithGoogle({
+        credential: response.credential,
+        name: name?.trim() || undefined,
+      });
       navigate('/dashboard');
     } catch (err) {
       handleAuthError(err);

@@ -7,6 +7,9 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: [true, 'Name is required'],
       trim: true,
+      default: function () {
+        return this.email ? this.email.split('@')[0] : 'Life OS User';
+      },
     },
     email: {
       type: String,
@@ -59,6 +62,13 @@ const userSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
+
+// Pre-validate hook to guarantee a non-empty name before Mongoose validation
+userSchema.pre('validate', function () {
+  if (!this.name || (typeof this.name === 'string' && !this.name.trim())) {
+    this.name = (this.email && this.email.includes('@') && this.email.split('@')[0]) || 'Life OS User';
+  }
+});
 
 // Method to match entered password with hashed password
 userSchema.methods.matchPassword = async function (enteredPassword) {

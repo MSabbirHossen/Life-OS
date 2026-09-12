@@ -194,8 +194,24 @@ export const googleAuth = async (req, res) => {
     }
 
     const googleId = payload.sub;
-    const email = payload.email.trim().toLowerCase();
-    const name = payload.name || payload.given_name || email.split('@')[0];
+    const email = (payload.email || '').trim().toLowerCase();
+
+    // Extract cleanest possible non-empty name from available sources
+    let extractedName = '';
+    if (typeof payload.name === 'string' && payload.name.trim()) {
+      extractedName = payload.name.trim();
+    } else if (typeof payload.given_name === 'string' && payload.given_name.trim()) {
+      const family = typeof payload.family_name === 'string' ? payload.family_name.trim() : '';
+      extractedName = `${payload.given_name.trim()} ${family}`.trim();
+    } else if (typeof req.body.name === 'string' && req.body.name.trim()) {
+      extractedName = req.body.name.trim();
+    } else if (email && email.includes('@')) {
+      const prefix = email.split('@')[0];
+      extractedName = prefix.charAt(0).toUpperCase() + prefix.slice(1);
+    } else {
+      extractedName = 'Google User';
+    }
+
     const picture = payload.picture || '';
 
     // Check if user already exists by googleId or email
@@ -204,9 +220,13 @@ export const googleAuth = async (req, res) => {
     });
 
     if (user) {
-      // Link Google ID and avatar if missing
+      // Ensure existing user has a valid, non-empty name and link Google ID
       let changed = false;
-      if (!user.googleId) {
+      if (!user.name || (typeof user.name === 'string' && !user.name.trim())) {
+        user.name = extractedName;
+        changed = true;
+      }
+      if (!user.googleId && googleId) {
         user.googleId = googleId;
         changed = true;
       }
@@ -220,7 +240,7 @@ export const googleAuth = async (req, res) => {
     } else {
       // Create new user linked with Google
       user = await User.create({
-        name,
+        name: extractedName,
         email,
         googleId,
         avatar: picture,
