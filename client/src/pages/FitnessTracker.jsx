@@ -13,6 +13,7 @@ import {
   Dumbbell,
   Plus,
   Trash2,
+  Edit2,
   Flame,
   Activity,
   Scale,
@@ -51,7 +52,10 @@ export const FitnessTracker = ({ selectedDate }) => {
   // Modals
   const [isWorkoutModalOpen, setIsWorkoutModalOpen] = useState(false);
   const [isMetricModalOpen, setIsMetricModalOpen] = useState(false);
+  const [editingWorkoutId, setEditingWorkoutId] = useState(null);
   const [deleteWorkoutId, setDeleteWorkoutId] = useState(null);
+  const [editingMetricId, setEditingMetricId] = useState(null);
+  const [deleteMetricId, setDeleteMetricId] = useState(null);
 
   // Workout Form State
   const [wDate, setWDate] = useState(currentDate);
@@ -167,6 +171,58 @@ export const FitnessTracker = ({ selectedDate }) => {
     setShowWSuggestions(false);
   };
 
+  const openCreateWorkoutModal = () => {
+    setEditingWorkoutId(null);
+    setWDate(currentDate);
+    setWName('');
+    setWTrackingType('sets_reps');
+    setWSets(3);
+    setWReps(10);
+    setWWeight('');
+    setWDuration(30);
+    setWCalories('');
+    setWTarget('Muscle');
+    setWNotes('');
+    setIsWorkoutModalOpen(true);
+  };
+
+  const handleEditWorkout = (w) => {
+    setEditingWorkoutId(w._id);
+    setWDate(w.date || currentDate);
+    setWName(w.name || '');
+    setWTrackingType(w.trackingType || 'sets_reps');
+    setWSets(w.sets !== undefined ? w.sets : 3);
+    setWReps(w.reps !== undefined ? w.reps : 10);
+    setWWeight(w.weight !== undefined && w.weight !== 0 ? w.weight : '');
+    setWDuration(w.durationMinutes !== undefined ? w.durationMinutes : 30);
+    setWCalories(w.caloriesBurned !== undefined ? w.caloriesBurned : '');
+    setWTarget(w.target || 'Muscle');
+    setWNotes(w.notes || '');
+    setIsWorkoutModalOpen(true);
+  };
+
+  const openCreateMetricModal = () => {
+    setEditingMetricId(null);
+    setMDate(currentDate);
+    setMWeight('');
+    setMWaist('');
+    setMChest('');
+    setMArm('');
+    setMNotes('');
+    setIsMetricModalOpen(true);
+  };
+
+  const handleEditMetric = (metric) => {
+    setEditingMetricId(metric._id);
+    setMDate(metric.date || currentDate);
+    setMWeight(metric.weightKg !== undefined && metric.weightKg !== null ? metric.weightKg : '');
+    setMWaist(metric.waistCm !== undefined && metric.waistCm !== null ? metric.waistCm : '');
+    setMChest(metric.chestCm !== undefined && metric.chestCm !== null ? metric.chestCm : '');
+    setMArm(metric.armCm !== undefined && metric.armCm !== null ? metric.armCm : '');
+    setMNotes(metric.notes || '');
+    setIsMetricModalOpen(true);
+  };
+
   const handleWorkoutSubmit = async (e) => {
     e.preventDefault();
     if (!wName.trim()) return;
@@ -175,7 +231,7 @@ export const FitnessTracker = ({ selectedDate }) => {
 
     setSavingWorkout(true);
     try {
-      const res = await api.post('/workouts', {
+      const payload = {
         date: wDate,
         name: wName.trim(),
         trackingType: wTrackingType,
@@ -188,12 +244,25 @@ export const FitnessTracker = ({ selectedDate }) => {
         idealCaloriesPerMin: Number(wIdealCalPerMin),
         target: wTarget,
         notes: wNotes.trim(),
-      });
-      setIsWorkoutModalOpen(false);
+      };
+
+      if (editingWorkoutId) {
+        const res = await api.put(`/workouts/${editingWorkoutId}`, payload);
+        setIsWorkoutModalOpen(false);
+        setEditingWorkoutId(null);
+        if (res.data) {
+          setWorkouts((prev) =>
+            prev.map((w) => (w._id === editingWorkoutId ? res.data : w))
+          );
+        }
+      } else {
+        const res = await api.post('/workouts', payload);
+        setIsWorkoutModalOpen(false);
+        if (res.data) setWorkouts((prev) => [res.data, ...prev]);
+      }
       setWName('');
       setWNotes('');
       setWCalories('');
-      if (res.data) setWorkouts((prev) => [res.data, ...prev]);
       fetchData(false);
     } catch (err) {
       console.error('Failed to log workout', err);
@@ -208,21 +277,34 @@ export const FitnessTracker = ({ selectedDate }) => {
 
     setSavingMetric(true);
     try {
-      const res = await api.post('/body-metrics', {
+      const payload = {
         date: mDate,
         weightKg: mWeight ? Number(mWeight) : undefined,
         waistCm: mWaist ? Number(mWaist) : undefined,
         chestCm: mChest ? Number(mChest) : undefined,
         armCm: mArm ? Number(mArm) : undefined,
         notes: mNotes.trim(),
-      });
-      setIsMetricModalOpen(false);
+      };
+
+      if (editingMetricId) {
+        const res = await api.put(`/body-metrics/${editingMetricId}`, payload);
+        setIsMetricModalOpen(false);
+        setEditingMetricId(null);
+        if (res.data) {
+          setBodyMetrics((prev) =>
+            prev.map((m) => (m._id === editingMetricId ? res.data : m))
+          );
+        }
+      } else {
+        const res = await api.post('/body-metrics', payload);
+        setIsMetricModalOpen(false);
+        if (res.data) setBodyMetrics((prev) => [...prev.filter((m) => m.date !== mDate), res.data]);
+      }
       setMWeight('');
       setMWaist('');
       setMChest('');
       setMArm('');
       setMNotes('');
-      if (res.data) setBodyMetrics((prev) => [...prev.filter((m) => m.date !== mDate), res.data]);
       fetchData(false);
     } catch (err) {
       console.error('Failed to log body metric', err);
@@ -242,6 +324,21 @@ export const FitnessTracker = ({ selectedDate }) => {
       fetchData(false);
     } catch (err) {
       console.error('Failed to delete workout', err);
+      fetchData(false);
+    }
+  };
+
+  const handleDeleteMetric = async () => {
+    if (!deleteMetricId) return;
+    const targetId = deleteMetricId;
+    setDeleteMetricId(null);
+    setBodyMetrics((prev) => prev.filter((m) => m._id !== targetId));
+
+    try {
+      await api.delete(`/body-metrics/${targetId}`);
+      fetchData(false);
+    } catch (err) {
+      console.error('Failed to delete body metric', err);
       fetchData(false);
     }
   };
@@ -268,21 +365,15 @@ export const FitnessTracker = ({ selectedDate }) => {
               variant="secondary"
               size="md"
               icon={Scale}
-              onClick={() => {
-                setMDate(currentDate);
-                setIsMetricModalOpen(true);
-              }}
+              onClick={openCreateMetricModal}
             >
-              Log Body Metric
+              Measurements
             </Button>
             <Button
               variant="gradient"
               size="md"
               icon={Plus}
-              onClick={() => {
-                setWDate(currentDate);
-                setIsWorkoutModalOpen(true);
-              }}
+              onClick={openCreateWorkoutModal}
             >
               Log Workout
             </Button>
@@ -332,10 +423,7 @@ export const FitnessTracker = ({ selectedDate }) => {
             title="No workouts recorded today"
             description="Log your workout session to calculate calories burned and track physical progress."
             actionText="Log Workout"
-            onAction={() => {
-              setWDate(currentDate);
-              setIsWorkoutModalOpen(true);
-            }}
+            onAction={openCreateWorkoutModal}
           />
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
@@ -344,13 +432,22 @@ export const FitnessTracker = ({ selectedDate }) => {
                 key={w._id}
                 hover
                 action={
-                  <button
-                    onClick={() => setDeleteWorkoutId(w._id)}
-                    className="p-1.5 rounded-lg text-secondary hover:text-rose-600 hover:bg-rose-500/10 transition-colors cursor-pointer"
-                    title="Delete Workout"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => handleEditWorkout(w)}
+                      className="p-1.5 rounded-lg text-secondary hover:text-accent hover:bg-accent/10 transition-colors cursor-pointer"
+                      title="Edit Workout"
+                    >
+                      <Edit2 className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => setDeleteWorkoutId(w._id)}
+                      className="p-1.5 rounded-lg text-secondary hover:text-rose-600 hover:bg-rose-500/10 transition-colors cursor-pointer"
+                      title="Delete Workout"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
                 }
               >
                 <div className="space-y-3">
@@ -451,22 +548,43 @@ export const FitnessTracker = ({ selectedDate }) => {
               {bodyMetrics
                 .slice()
                 .reverse()
-                .slice(0, 4)
+                .slice(0, 6)
                 .map((m, idx) => (
                   <div
-                    key={idx}
-                    className="p-3 rounded-xl bg-subtle border border-theme flex items-center justify-between"
+                    key={m._id || idx}
+                    className="p-3 rounded-xl bg-subtle border border-theme flex items-center justify-between gap-2"
                   >
                     <div>
                       <span className="text-xs font-bold text-primary block">{formatDisplayDate(m.date)}</span>
                       <span className="text-[11px] text-secondary">
                         {m.waistCm ? `Waist: ${m.waistCm}cm ` : ''}
-                        {m.chestCm ? `Chest: ${m.chestCm}cm` : ''}
+                        {m.chestCm ? `Chest: ${m.chestCm}cm ` : ''}
+                        {m.armCm ? `Arm: ${m.armCm}cm` : ''}
                       </span>
                     </div>
-                    {m.weightKg && (
-                      <span className="text-sm font-extrabold text-accent">{m.weightKg} kg</span>
-                    )}
+                    <div className="flex items-center gap-2">
+                      {m.weightKg && (
+                        <span className="text-sm font-extrabold text-accent">{m.weightKg} kg</span>
+                      )}
+                      <div className="flex items-center gap-0.5">
+                        <button
+                          type="button"
+                          onClick={() => handleEditMetric(m)}
+                          className="p-1 rounded-lg text-secondary hover:text-accent hover:bg-accent/10 transition-colors cursor-pointer"
+                          title="Edit Measurement"
+                        >
+                          <Edit2 className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setDeleteMetricId(m._id)}
+                          className="p-1 rounded-lg text-secondary hover:text-rose-600 hover:bg-rose-500/10 transition-colors cursor-pointer"
+                          title="Delete Measurement"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 ))}
             </div>
@@ -478,8 +596,9 @@ export const FitnessTracker = ({ selectedDate }) => {
       <Modal
         isOpen={isWorkoutModalOpen}
         onClose={() => setIsWorkoutModalOpen(false)}
-        title="Log Workout & Exercise"
-        subtitle="Automatic calorie burn calculation based on MET values, sets, reps & bodyweight"
+        title={editingWorkoutId ? 'Edit Workout' : 'Log Exercise / Workout'}
+        subtitle={editingWorkoutId ? 'Update exercises, sets, reps, and energy burn' : 'Choose an exercise or search online to calculate calorie burns'}
+        maxWidth="max-w-xl"
       >
         <form onSubmit={handleWorkoutSubmit} className="space-y-4">
           <div className="flex bg-subtle p-1 rounded-xl border border-theme">
@@ -693,7 +812,7 @@ export const FitnessTracker = ({ selectedDate }) => {
               Cancel
             </Button>
             <Button type="submit" variant="primary" loading={savingWorkout}>
-              Save Exercise
+              {editingWorkoutId ? 'Update Workout' : 'Save Exercise'}
             </Button>
           </div>
         </form>
@@ -703,8 +822,8 @@ export const FitnessTracker = ({ selectedDate }) => {
       <Modal
         isOpen={isMetricModalOpen}
         onClose={() => setIsMetricModalOpen(false)}
-        title="Log Weight & Measurements"
-        subtitle="Track physical metrics and calculate accurate calorie burns"
+        title={editingMetricId ? 'Edit Body Measurements' : 'Log Weight & Measurements'}
+        subtitle={editingMetricId ? 'Update logged physical metrics' : 'Track physical metrics and calculate accurate calorie burns'}
       >
         <form onSubmit={handleMetricSubmit} className="space-y-4">
           <DateInput
@@ -792,13 +911,13 @@ export const FitnessTracker = ({ selectedDate }) => {
               Cancel
             </Button>
             <Button type="submit" variant="primary" loading={savingMetric}>
-              Save Measurements
+              {editingMetricId ? 'Update Measurements' : 'Save Measurements'}
             </Button>
           </div>
         </form>
       </Modal>
 
-      {/* Delete Confirmation Modal */}
+      {/* Delete Confirmation Modal for Workout */}
       <Modal
         isOpen={!!deleteWorkoutId}
         onClose={() => setDeleteWorkoutId(null)}
@@ -814,6 +933,28 @@ export const FitnessTracker = ({ selectedDate }) => {
               Cancel
             </Button>
             <Button variant="danger" onClick={handleDeleteWorkout}>
+              Delete
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Delete Confirmation Modal for Body Metric */}
+      <Modal
+        isOpen={!!deleteMetricId}
+        onClose={() => setDeleteMetricId(null)}
+        title="Confirm Deletion"
+        subtitle="This action cannot be undone."
+      >
+        <div className="space-y-4">
+          <p className="text-sm text-secondary">
+            Are you sure you want to delete this body measurement entry?
+          </p>
+          <div className="flex justify-end gap-3 pt-3 border-t border-subtle">
+            <Button variant="secondary" onClick={() => setDeleteMetricId(null)}>
+              Cancel
+            </Button>
+            <Button variant="danger" onClick={handleDeleteMetric}>
               Delete
             </Button>
           </div>

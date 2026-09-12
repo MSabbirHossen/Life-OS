@@ -3,6 +3,7 @@ import {
   getStudySessions,
   createStudySession,
   getSubjects,
+  updateStudySession,
   deleteStudySession,
   getStudyTopics,
   createStudyTopic,
@@ -19,6 +20,6 @@ router.route('/').get(getStudySessions).post(createStudySession);
 router.route('/subjects').get(getSubjects);
 router.route('/topics').get(getStudyTopics).post(createStudyTopic);
 router.route('/topics/:id').put(updateStudyTopic).delete(deleteStudyTopic);
-router.route('/:id').delete(deleteStudySession);
+router.route('/:id').put(updateStudySession).delete(deleteStudySession);
 
 export default router;

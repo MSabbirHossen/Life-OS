@@ -35,8 +35,9 @@ export const QadaMatrix = () => {
   const [totalCompletedInput, setTotalCompletedInput] = useState(0);
   const [savingEdit, setSavingEdit] = useState(false);
 
-  // New Vow modal
+  // New/Edit Vow modal
   const [isVowModalOpen, setIsVowModalOpen] = useState(false);
+  const [editingVowId, setEditingVowId] = useState(null);
   const [vowDescription, setVowDescription] = useState('');
   const [vowTargetDate, setVowTargetDate] = useState('');
   const [vowRelatedSalah, setVowRelatedSalah] = useState('All');
@@ -109,24 +110,47 @@ export const QadaMatrix = () => {
     }
   };
 
-  const handleCreateVow = async (e) => {
+  const handleEditVow = (vow) => {
+    setEditingVowId(vow._id);
+    setVowDescription(vow.title || vow.description || '');
+    setVowTargetDate(vow.targetDate || '');
+    setVowRelatedSalah(vow.relatedSalah || 'All');
+    setVowNotes(vow.notes || '');
+    setIsVowModalOpen(true);
+  };
+
+  const handleSaveVow = async (e) => {
     e.preventDefault();
     if (!vowDescription.trim()) return;
     setSavingVow(true);
     try {
-      await api.post('/islamic/vows', {
+      const payload = {
+        title: vowDescription.trim(),
         description: vowDescription.trim(),
         targetDate: vowTargetDate,
         relatedSalah: vowRelatedSalah,
         notes: vowNotes,
-      });
+      };
+
+      if (editingVowId) {
+        const res = await api.put(`/islamic/vows/${editingVowId}`, payload);
+        if (res.data) {
+          setVows((prev) => prev.map((v) => (v._id === editingVowId ? res.data : v)));
+        }
+      } else {
+        const res = await api.post('/islamic/vows', payload);
+        if (res.data) {
+          setVows((prev) => [res.data, ...prev]);
+        }
+      }
       setVowDescription('');
       setVowTargetDate('');
       setVowNotes('');
+      setEditingVowId(null);
       setIsVowModalOpen(false);
       fetchQadaData();
     } catch (err) {
-      console.error('Failed to create spiritual vow', err);
+      console.error('Failed to save spiritual vow', err);
     } finally {
       setSavingVow(false);
     }
@@ -178,14 +202,21 @@ export const QadaMatrix = () => {
         title="Qada Salah Matrix & Niyyah Tracker"
         description="Comprehensive debt tracker for missed prayers (including Witr) and spiritual promises"
         action={
-          <Button
-            variant="gradient"
-            size="md"
-            icon={Plus}
-            onClick={() => setIsVowModalOpen(true)}
-          >
-            New Spiritual Vow
-          </Button>
+            <Button
+              variant="gradient"
+              size="md"
+              icon={Plus}
+              onClick={() => {
+                setEditingVowId(null);
+                setVowDescription('');
+                setVowTargetDate('');
+                setVowRelatedSalah('All');
+                setVowNotes('');
+                setIsVowModalOpen(true);
+              }}
+            >
+              New Spiritual Vow
+            </Button>
         }
       />
 
@@ -388,14 +419,24 @@ export const QadaMatrix = () => {
                     </div>
                   </div>
 
-                  <button
-                    type="button"
-                    onClick={() => handleDeleteVow(vow._id)}
-                    className="p-1.5 text-secondary hover:text-rose-500 transition-colors cursor-pointer"
-                    title="Delete vow"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
+                  <div className="flex items-center gap-1">
+                    <button
+                      type="button"
+                      onClick={() => handleEditVow(vow)}
+                      className="p-1.5 text-secondary hover:text-accent hover:bg-accent/10 rounded-lg transition-colors cursor-pointer"
+                      title="Edit vow"
+                    >
+                      <Edit2 className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteVow(vow._id)}
+                      className="p-1.5 text-secondary hover:text-rose-500 hover:bg-rose-500/10 rounded-lg transition-colors cursor-pointer"
+                      title="Delete vow"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 </div>
               );
             })}
@@ -450,14 +491,17 @@ export const QadaMatrix = () => {
         </Modal>
       )}
 
-      {/* New Vow Modal */}
+      {/* New / Edit Vow Modal */}
       <Modal
         isOpen={isVowModalOpen}
-        onClose={() => setIsVowModalOpen(false)}
-        title="Record New Spiritual Vow (Nazr / Niyyah)"
+        onClose={() => {
+          setIsVowModalOpen(false);
+          setEditingVowId(null);
+        }}
+        title={editingVowId ? 'Edit Spiritual Vow (Nazr / Niyyah)' : 'Record New Spiritual Vow (Nazr / Niyyah)'}
         maxWidth="md"
       >
-        <form onSubmit={handleCreateVow} className="space-y-4">
+        <form onSubmit={handleSaveVow} className="space-y-4">
           <div>
             <label className="block text-xs font-bold text-secondary mb-1">
               Vow Description / Resolution *
@@ -507,11 +551,19 @@ export const QadaMatrix = () => {
             />
           </div>
           <div className="flex justify-end gap-2 pt-3 border-t border-theme">
-            <Button variant="ghost" size="md" type="button" onClick={() => setIsVowModalOpen(false)}>
+            <Button
+              variant="ghost"
+              size="md"
+              type="button"
+              onClick={() => {
+                setIsVowModalOpen(false);
+                setEditingVowId(null);
+              }}
+            >
               Cancel
             </Button>
             <Button variant="gradient" size="md" type="submit" loading={savingVow}>
-              Record Vow
+              {editingVowId ? 'Update Vow' : 'Record Vow'}
             </Button>
           </div>
         </form>

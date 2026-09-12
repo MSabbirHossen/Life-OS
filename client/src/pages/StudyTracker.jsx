@@ -16,6 +16,7 @@ import {
   Clock,
   BookOpen,
   Trash2,
+  Edit2,
   ExternalLink,
   ListTodo,
   CheckCircle2,
@@ -37,6 +38,7 @@ export const StudyTracker = ({ selectedDate }) => {
 
   // Session Modal State
   const [isSessionModalOpen, setIsSessionModalOpen] = useState(false);
+  const [editingSessionId, setEditingSessionId] = useState(null);
   const [sessionDate, setSessionDate] = useState(activeDate);
   const [subject, setSubject] = useState('');
   const [selectedTopicId, setSelectedTopicId] = useState('');
@@ -52,6 +54,7 @@ export const StudyTracker = ({ selectedDate }) => {
 
   // Topic / Backlog Modal State
   const [isTopicModalOpen, setIsTopicModalOpen] = useState(false);
+  const [editingTopicId, setEditingTopicId] = useState(null);
   const [topicSubject, setTopicSubject] = useState('');
   const [topicTitle, setTopicTitle] = useState('');
   const [topicStatus, setTopicStatus] = useState('backlog');
@@ -168,13 +171,75 @@ export const StudyTracker = ({ selectedDate }) => {
     setSubtopicsList((prev) => prev.filter((_, idx) => idx !== index));
   };
 
+  const openCreateSessionModal = () => {
+    setEditingSessionId(null);
+    setSessionDate(activeDate);
+    setSubject('');
+    setSelectedTopicId('');
+    setResource('');
+    setStartTime('');
+    setEndTime('');
+    setDurationMinutes(45);
+    setProgressPercent(50);
+    setSelectedGoalId('');
+    setSelectedHabitId('');
+    setNotes('');
+    setIsSessionModalOpen(true);
+  };
+
+  const handleEditSession = (sess) => {
+    setEditingSessionId(sess._id);
+    setSessionDate(sess.date || activeDate);
+    setSubject(sess.subject || '');
+    setSelectedTopicId(sess.topicId ? (typeof sess.topicId === 'object' ? sess.topicId._id : sess.topicId) : '');
+    setResource(sess.resource || '');
+    setStartTime(sess.startTime || '');
+    setEndTime(sess.endTime || '');
+    setDurationMinutes(sess.durationMinutes || 45);
+    setProgressPercent(sess.progressPercent || 0);
+    setSelectedGoalId(sess.goalId ? (typeof sess.goalId === 'object' ? sess.goalId._id : sess.goalId) : '');
+    setSelectedHabitId(sess.habitId ? (typeof sess.habitId === 'object' ? sess.habitId._id : sess.habitId) : '');
+    setNotes(sess.notes || '');
+    setIsSessionModalOpen(true);
+  };
+
+  const openCreateTopicModal = () => {
+    setEditingTopicId(null);
+    setTopicSubject('');
+    setTopicTitle('');
+    setTopicStatus('backlog');
+    setTotalChapters(1);
+    setCompletedChapters(0);
+    setSubtopicsList([]);
+    setNewSubtopicInput('');
+    setTopicTargetDate('');
+    setTopicGoalId('');
+    setTopicNotes('');
+    setIsTopicModalOpen(true);
+  };
+
+  const handleEditTopic = (top) => {
+    setEditingTopicId(top._id);
+    setTopicSubject(top.subject || '');
+    setTopicTitle(top.title || '');
+    setTopicStatus(top.status || 'backlog');
+    setTotalChapters(top.totalChapters || 1);
+    setCompletedChapters(top.completedChapters || 0);
+    setSubtopicsList(Array.isArray(top.subtopics) ? top.subtopics : []);
+    setNewSubtopicInput('');
+    setTopicTargetDate(top.targetDate || '');
+    setTopicGoalId(top.linkedGoalId ? (typeof top.linkedGoalId === 'object' ? top.linkedGoalId._id : top.linkedGoalId) : '');
+    setTopicNotes(top.notes || '');
+    setIsTopicModalOpen(true);
+  };
+
   const handleCreateSession = async (e) => {
     e.preventDefault();
     if (!subject.trim()) return;
 
     setSavingSession(true);
     try {
-      const res = await api.post('/study', {
+      const payload = {
         date: sessionDate || activeDate,
         subject: subject.trim(),
         resource: resource.trim(),
@@ -186,15 +251,22 @@ export const StudyTracker = ({ selectedDate }) => {
         goalId: selectedGoalId || undefined,
         habitId: selectedHabitId || undefined,
         notes: notes.trim(),
-      });
-      setIsSessionModalOpen(false);
-      setSubject('');
-      setSelectedTopicId('');
-      setResource('');
-      setStartTime('');
-      setEndTime('');
-      setNotes('');
-      if (res.data) setSessions((prev) => [res.data, ...prev]);
+      };
+
+      if (editingSessionId) {
+        const res = await api.put(`/study/${editingSessionId}`, payload);
+        setIsSessionModalOpen(false);
+        setEditingSessionId(null);
+        if (res.data) {
+          setSessions((prev) =>
+            prev.map((s) => (s._id === editingSessionId ? res.data : s))
+          );
+        }
+      } else {
+        const res = await api.post('/study', payload);
+        setIsSessionModalOpen(false);
+        if (res.data) setSessions((prev) => [res.data, ...prev]);
+      }
       fetchData(false);
     } catch (err) {
       console.error('Failed to log study session', err);
@@ -209,7 +281,7 @@ export const StudyTracker = ({ selectedDate }) => {
 
     setSavingTopic(true);
     try {
-      const res = await api.post('/study/topics', {
+      const payload = {
         subject: topicSubject.trim(),
         title: topicTitle.trim(),
         status: topicStatus,
@@ -219,8 +291,22 @@ export const StudyTracker = ({ selectedDate }) => {
         targetDate: topicTargetDate || undefined,
         linkedGoalId: topicGoalId || undefined,
         notes: topicNotes.trim(),
-      });
-      setIsTopicModalOpen(false);
+      };
+
+      if (editingTopicId) {
+        const res = await api.put(`/study/topics/${editingTopicId}`, payload);
+        setIsTopicModalOpen(false);
+        setEditingTopicId(null);
+        if (res.data) {
+          setTopics((prev) =>
+            prev.map((t) => (t._id === editingTopicId ? res.data : t))
+          );
+        }
+      } else {
+        const res = await api.post('/study/topics', payload);
+        setIsTopicModalOpen(false);
+        if (res.data) setTopics((prev) => [res.data, ...prev]);
+      }
       setTopicSubject('');
       setTopicTitle('');
       setTotalChapters(1);
@@ -228,10 +314,9 @@ export const StudyTracker = ({ selectedDate }) => {
       setSubtopicsList([]);
       setNewSubtopicInput('');
       setTopicNotes('');
-      if (res.data) setTopics((prev) => [res.data, ...prev]);
       fetchData(false);
     } catch (err) {
-      console.error('Failed to create study topic', err);
+      console.error('Failed to plan topic', err);
     } finally {
       setSavingTopic(false);
     }
@@ -350,12 +435,7 @@ export const StudyTracker = ({ selectedDate }) => {
               variant="secondary"
               size="md"
               icon={ListTodo}
-              onClick={() => {
-                setTotalChapters(1);
-                setCompletedChapters(0);
-                setSubtopicsList([]);
-                setIsTopicModalOpen(true);
-              }}
+              onClick={openCreateTopicModal}
             >
               Plan Topic / Chapter
             </Button>
@@ -363,10 +443,7 @@ export const StudyTracker = ({ selectedDate }) => {
               variant="gradient"
               size="md"
               icon={Plus}
-              onClick={() => {
-                setSessionDate(activeDate);
-                setIsSessionModalOpen(true);
-              }}
+              onClick={openCreateSessionModal}
             >
               Log Session
             </Button>
@@ -406,7 +483,7 @@ export const StudyTracker = ({ selectedDate }) => {
         subtitle="Manage chapter syllabus, monitor remaining progress, and check off sub-topics"
         icon={ListTodo}
         action={
-          <Button variant="outline" size="sm" icon={Plus} onClick={() => setIsTopicModalOpen(true)}>
+          <Button variant="outline" size="sm" icon={Plus} onClick={openCreateTopicModal}>
             Add Chapter / Topic
           </Button>
         }
@@ -565,13 +642,22 @@ export const StudyTracker = ({ selectedDate }) => {
                       </button>
                     </div>
 
-                    <button
-                      onClick={() => setDeleteTopicId(top._id)}
-                      className="p-1 rounded-lg text-secondary hover:text-rose-600 hover:bg-rose-500/10 cursor-pointer"
-                      title="Delete Topic"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => handleEditTopic(top)}
+                        className="p-1 rounded-lg text-secondary hover:text-accent hover:bg-accent/10 transition-colors cursor-pointer"
+                        title="Edit Topic"
+                      >
+                        <Edit2 className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        onClick={() => setDeleteTopicId(top._id)}
+                        className="p-1 rounded-lg text-secondary hover:text-rose-600 hover:bg-rose-500/10 cursor-pointer"
+                        title="Delete Topic"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                   </div>
                 </div>
               );
@@ -597,10 +683,7 @@ export const StudyTracker = ({ selectedDate }) => {
             title="No study sessions logged today"
             description="Log your study session to track duration, completion percentage, and resource materials."
             actionText="Log Study Session"
-            onAction={() => {
-              setSessionDate(activeDate);
-              setIsSessionModalOpen(true);
-            }}
+            onAction={openCreateSessionModal}
           />
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
@@ -609,13 +692,22 @@ export const StudyTracker = ({ selectedDate }) => {
                 key={sess._id}
                 hover
                 action={
-                  <button
-                    onClick={() => setDeleteSessionId(sess._id)}
-                    className="p-1.5 rounded-lg text-secondary hover:text-rose-600 hover:bg-rose-500/10 transition-colors cursor-pointer"
-                    title="Delete Session"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => handleEditSession(sess)}
+                      className="p-1.5 rounded-lg text-secondary hover:text-accent hover:bg-accent/10 transition-colors cursor-pointer"
+                      title="Edit Session"
+                    >
+                      <Edit2 className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => setDeleteSessionId(sess._id)}
+                      className="p-1.5 rounded-lg text-secondary hover:text-rose-600 hover:bg-rose-500/10 transition-colors cursor-pointer"
+                      title="Delete Session"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
                 }
               >
                 <div className="space-y-3.5">
@@ -870,7 +962,7 @@ export const StudyTracker = ({ selectedDate }) => {
               Cancel
             </Button>
             <Button type="submit" variant="primary" loading={savingSession}>
-              Save Session
+              {editingSessionId ? 'Update Session' : 'Save Session'}
             </Button>
           </div>
         </form>
@@ -880,8 +972,8 @@ export const StudyTracker = ({ selectedDate }) => {
       <Modal
         isOpen={isTopicModalOpen}
         onClose={() => setIsTopicModalOpen(false)}
-        title="Plan Chapter / Topic Backlog"
-        subtitle="Organize syllabus, configure chapters, and eliminate study backlogs"
+        title={editingTopicId ? 'Edit Chapter / Topic Plan' : 'Plan Chapter / Topic Backlog'}
+        subtitle={editingTopicId ? 'Update chapter counts, subtopics, and status' : 'Organize syllabus, configure chapters, and eliminate study backlogs'}
       >
         <form onSubmit={handleCreateTopic} className="space-y-4">
           <div>
@@ -1032,7 +1124,7 @@ export const StudyTracker = ({ selectedDate }) => {
               Cancel
             </Button>
             <Button type="submit" variant="primary" loading={savingTopic}>
-              Save Topic
+              {editingTopicId ? 'Update Topic Plan' : 'Save Topic'}
             </Button>
           </div>
         </form>

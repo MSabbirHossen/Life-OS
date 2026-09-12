@@ -19,6 +19,7 @@ import {
   Plus,
   Minus,
   Trash2,
+  Edit2,
   Sparkles,
   Sun,
   Moon,
@@ -54,22 +55,26 @@ export const IslamicTracker = ({ selectedDate }) => {
 
   // Modals State
   const [isVowModalOpen, setIsVowModalOpen] = useState(false);
+  const [editingVowId, setEditingVowId] = useState(null);
   const [vowDescription, setVowDescription] = useState('');
   const [vowTargetDate, setVowTargetDate] = useState('');
 
   const [isHadithModalOpen, setIsHadithModalOpen] = useState(false);
+  const [editingHadithId, setEditingHadithId] = useState(null);
   const [hadithText, setHadithText] = useState('');
   const [hadithNarrator, setHadithNarrator] = useState('');
   const [hadithReference, setHadithReference] = useState('');
   const [hadithReflection, setHadithReflection] = useState('');
 
   const [isQuranModalOpen, setIsQuranModalOpen] = useState(false);
+  const [editingQuranId, setEditingQuranId] = useState(null);
   const [quranSurah, setQuranSurah] = useState('');
   const [quranPages, setQuranPages] = useState(1);
   const [quranAyats, setQuranAyats] = useState('');
 
   const [deleteHadithId, setDeleteHadithId] = useState(null);
   const [deleteVowId, setDeleteVowId] = useState(null);
+  const [deleteQuranId, setDeleteQuranId] = useState(null);
 
   const fetchData = useCallback(async (showLoading = true) => {
     if (showLoading) setLoading(true);
@@ -177,24 +182,55 @@ export const IslamicTracker = ({ selectedDate }) => {
     }
   };
 
+  const openCreateHadithModal = () => {
+    setEditingHadithId(null);
+    setHadithText('');
+    setHadithNarrator('');
+    setHadithReference('');
+    setHadithReflection('');
+    setIsHadithModalOpen(true);
+  };
+
+  const handleEditHadith = (h) => {
+    setEditingHadithId(h._id);
+    setHadithText(h.text || '');
+    setHadithNarrator(h.narrator || '');
+    setHadithReference(h.reference || '');
+    setHadithReflection(h.reflection || '');
+    setIsHadithModalOpen(true);
+  };
+
   const handleCreateHadith = async (e) => {
     e.preventDefault();
     if (!hadithText.trim()) return;
 
     try {
-      const res = await api.post('/islamic/hadith', {
+      const payload = {
         date: activeDate,
         text: hadithText.trim(),
         narrator: hadithNarrator.trim(),
         reference: hadithReference.trim(),
         reflection: hadithReflection.trim(),
-      });
-      setIsHadithModalOpen(false);
+      };
+
+      if (editingHadithId) {
+        const res = await api.put(`/islamic/hadith/${editingHadithId}`, payload);
+        setIsHadithModalOpen(false);
+        setEditingHadithId(null);
+        if (res.data) {
+          setHadiths((prev) =>
+            prev.map((h) => (h._id === editingHadithId ? res.data : h))
+          );
+        }
+      } else {
+        const res = await api.post('/islamic/hadith', payload);
+        setIsHadithModalOpen(false);
+        if (res.data) setHadiths((prev) => [res.data, ...prev]);
+      }
       setHadithText('');
       setHadithNarrator('');
       setHadithReference('');
       setHadithReflection('');
-      if (res.data) setHadiths((prev) => [res.data, ...prev]);
       fetchData(false);
     } catch (err) {
       console.error('Failed to log hadith', err);
@@ -216,22 +252,50 @@ export const IslamicTracker = ({ selectedDate }) => {
     }
   };
 
+  const openCreateVowModal = () => {
+    setEditingVowId(null);
+    setVowDescription('');
+    setVowTargetDate('');
+    setIsVowModalOpen(true);
+  };
+
+  const handleEditVow = (v) => {
+    setEditingVowId(v._id);
+    setVowDescription(v.title || v.description || '');
+    setVowTargetDate(v.targetDate || '');
+    setIsVowModalOpen(true);
+  };
+
   const handleCreateVow = async (e) => {
     e.preventDefault();
     if (!vowDescription.trim()) return;
 
     try {
-      const res = await api.post('/islamic/vows', {
-        description: vowDescription.trim(),
-        targetDate: vowTargetDate || undefined,
-      });
-      setIsVowModalOpen(false);
+      if (editingVowId) {
+        const res = await api.put(`/islamic/vows/${editingVowId}`, {
+          title: vowDescription.trim(),
+          targetDate: vowTargetDate || undefined,
+        });
+        setIsVowModalOpen(false);
+        setEditingVowId(null);
+        if (res.data) {
+          setVows((prev) =>
+            prev.map((v) => (v._id === editingVowId ? res.data : v))
+          );
+        }
+      } else {
+        const res = await api.post('/islamic/vows', {
+          description: vowDescription.trim(),
+          targetDate: vowTargetDate || undefined,
+        });
+        setIsVowModalOpen(false);
+        if (res.data) setVows((prev) => [res.data, ...prev]);
+      }
       setVowDescription('');
       setVowTargetDate('');
-      if (res.data) setVows((prev) => [res.data, ...prev]);
       fetchData(false);
     } catch (err) {
-      console.error('Failed to create vow', err);
+      console.error('Failed to save vow', err);
     }
   };
 
@@ -266,23 +330,67 @@ export const IslamicTracker = ({ selectedDate }) => {
     }
   };
 
+  const openCreateQuranModal = () => {
+    setEditingQuranId(null);
+    setQuranSurah('');
+    setQuranPages(1);
+    setQuranAyats('');
+    setIsQuranModalOpen(true);
+  };
+
+  const handleEditQuran = (q) => {
+    setEditingQuranId(q._id);
+    setQuranSurah(q.surahName || '');
+    setQuranPages(q.pagesRead || 1);
+    setQuranAyats(q.ayatsRead ? q.ayatsRead.toString() : '');
+    setIsQuranModalOpen(true);
+  };
+
   const handleLogQuran = async (e) => {
     e.preventDefault();
     try {
-      const res = await api.post('/islamic/quran', {
+      const payload = {
         date: activeDate,
         surahName: quranSurah.trim(),
         pagesRead: Number(quranPages) || 1,
         ayatsRead: quranAyats ? Number(quranAyats) : undefined,
-      });
-      setIsQuranModalOpen(false);
+      };
+
+      if (editingQuranId) {
+        const res = await api.put(`/islamic/quran/${editingQuranId}`, payload);
+        setIsQuranModalOpen(false);
+        setEditingQuranId(null);
+        if (res.data) {
+          setQuranLogs((prev) =>
+            prev.map((q) => (q._id === editingQuranId ? res.data : q))
+          );
+        }
+      } else {
+        const res = await api.post('/islamic/quran', payload);
+        setIsQuranModalOpen(false);
+        if (res.data) setQuranLogs((prev) => [res.data, ...prev]);
+      }
       setQuranSurah('');
       setQuranPages(1);
       setQuranAyats('');
-      if (res.data) setQuranLogs((prev) => [res.data, ...prev]);
       fetchData(false);
     } catch (err) {
-      console.error('Failed to log Quran recitation', err);
+      console.error('Failed to log Quran', err);
+    }
+  };
+
+  const handleDeleteQuran = async () => {
+    if (!deleteQuranId) return;
+    const targetId = deleteQuranId;
+    setDeleteQuranId(null);
+    setQuranLogs((prev) => prev.filter((q) => q._id !== targetId));
+
+    try {
+      await api.delete(`/islamic/quran/${targetId}`);
+      fetchData(false);
+    } catch (err) {
+      console.error('Failed to delete Quran log', err);
+      fetchData(false);
     }
   };
 
@@ -524,7 +632,7 @@ export const IslamicTracker = ({ selectedDate }) => {
           subtitle="Recitation logs for today"
           icon={BookOpen}
           action={
-            <Button variant="ghost" size="xs" onClick={() => setIsQuranModalOpen(true)}>
+            <Button variant="ghost" size="xs" onClick={openCreateQuranModal}>
               + Log Quran
             </Button>
           }
@@ -536,7 +644,7 @@ export const IslamicTracker = ({ selectedDate }) => {
               {quranLogs.map((q) => (
                 <div
                   key={q._id}
-                  className="p-3 rounded-xl bg-subtle border border-theme flex items-center justify-between"
+                  className="p-3 rounded-xl bg-subtle border border-theme flex items-center justify-between gap-2"
                 >
                   <div>
                     <span className="text-xs font-bold text-primary block">
@@ -546,9 +654,27 @@ export const IslamicTracker = ({ selectedDate }) => {
                       {q.pagesRead} pages {q.ayatsRead ? `· ${q.ayatsRead} ayats` : ''}
                     </span>
                   </div>
-                  <Badge variant="purple" size="xs">
-                    {q.pagesRead} Pages
-                  </Badge>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="purple" size="xs">
+                      {q.pagesRead} Pages
+                    </Badge>
+                    <div className="flex items-center gap-0.5">
+                      <button
+                        onClick={() => handleEditQuran(q)}
+                        className="p-1 rounded-lg text-secondary hover:text-accent hover:bg-accent/10 transition-colors cursor-pointer"
+                        title="Edit Quran Log"
+                      >
+                        <Edit2 className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        onClick={() => setDeleteQuranId(q._id)}
+                        className="p-1 rounded-lg text-secondary hover:text-rose-600 hover:bg-rose-500/10 transition-colors cursor-pointer"
+                        title="Delete Quran Log"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
                 </div>
               ))}
             </div>
@@ -566,7 +692,7 @@ export const IslamicTracker = ({ selectedDate }) => {
         subtitle="Record and reflect on prophetic wisdom"
         icon={Quote}
         action={
-          <Button variant="outline" size="sm" icon={Plus} onClick={() => setIsHadithModalOpen(true)}>
+          <Button variant="outline" size="sm" icon={Plus} onClick={openCreateHadithModal}>
             Log Hadith
           </Button>
         }
@@ -616,13 +742,22 @@ export const IslamicTracker = ({ selectedDate }) => {
 
                 <div className="flex items-center justify-between pt-2 border-t border-theme/50 text-[11px] text-secondary">
                   <span>{formatDisplayDate(h.date)}</span>
-                  <button
-                    onClick={() => setDeleteHadithId(h._id)}
-                    className="p-1 rounded-lg text-secondary hover:text-rose-600 hover:bg-rose-500/10 cursor-pointer"
-                    title="Delete Hadith"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => handleEditHadith(h)}
+                      className="p-1 rounded-lg text-secondary hover:text-accent hover:bg-accent/10 transition-colors cursor-pointer"
+                      title="Edit Hadith"
+                    >
+                      <Edit2 className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      onClick={() => setDeleteHadithId(h._id)}
+                      className="p-1 rounded-lg text-secondary hover:text-rose-600 hover:bg-rose-500/10 cursor-pointer"
+                      title="Delete Hadith"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
@@ -637,7 +772,7 @@ export const IslamicTracker = ({ selectedDate }) => {
         subtitle="Active spiritual promises and obligations"
         icon={ShieldCheck}
         action={
-          <Button variant="outline" size="sm" icon={Plus} onClick={() => setIsVowModalOpen(true)}>
+          <Button variant="outline" size="sm" icon={Plus} onClick={openCreateVowModal}>
             Add Vow
           </Button>
         }
@@ -682,13 +817,22 @@ export const IslamicTracker = ({ selectedDate }) => {
                   </div>
                 </div>
 
-                <button
-                  onClick={() => setDeleteVowId(v._id)}
-                  className="p-1.5 rounded-lg text-secondary hover:text-rose-600 hover:bg-rose-500/10 transition-colors cursor-pointer"
-                  title="Delete Vow"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => handleEditVow(v)}
+                    className="p-1.5 rounded-lg text-secondary hover:text-accent hover:bg-accent/10 transition-colors cursor-pointer"
+                    title="Edit Vow"
+                  >
+                    <Edit2 className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => setDeleteVowId(v._id)}
+                    className="p-1.5 rounded-lg text-secondary hover:text-rose-600 hover:bg-rose-500/10 transition-colors cursor-pointer"
+                    title="Delete Vow"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
             ))}
           </div>
@@ -699,8 +843,8 @@ export const IslamicTracker = ({ selectedDate }) => {
       <Modal
         isOpen={isHadithModalOpen}
         onClose={() => setIsHadithModalOpen(false)}
-        title="Log Hadith & Reflection"
-        subtitle="Record wisdom from the Sunnah"
+        title={editingHadithId ? 'Edit Hadith & Reflection' : 'Log Hadith & Reflection'}
+        subtitle={editingHadithId ? 'Update prophetic wisdom and personal reflections' : 'Record wisdom from the Sunnah'}
       >
         <form onSubmit={handleCreateHadith} className="space-y-4">
           <div>
@@ -802,7 +946,7 @@ export const IslamicTracker = ({ selectedDate }) => {
               Cancel
             </Button>
             <Button type="submit" variant="primary">
-              Save Vow
+              {editingVowId ? 'Update Vow' : 'Save Vow'}
             </Button>
           </div>
         </form>
@@ -812,8 +956,8 @@ export const IslamicTracker = ({ selectedDate }) => {
       <Modal
         isOpen={isQuranModalOpen}
         onClose={() => setIsQuranModalOpen(false)}
-        title="Log Quran Recitation"
-        subtitle={`Record recitation for ${formatDisplayDate(activeDate)}`}
+        title={editingQuranId ? 'Edit Quran Recitation' : 'Log Quran Recitation'}
+        subtitle={editingQuranId ? 'Update recitation pages and surah' : `Record recitation for ${formatDisplayDate(activeDate)}`}
       >
         <form onSubmit={handleLogQuran} className="space-y-4">
           <div>
@@ -864,10 +1008,32 @@ export const IslamicTracker = ({ selectedDate }) => {
               Cancel
             </Button>
             <Button type="submit" variant="primary">
-              Save Recitation
+              {editingQuranId ? 'Update Recitation' : 'Save Recitation'}
             </Button>
           </div>
         </form>
+      </Modal>
+
+      {/* Delete Quran Modal */}
+      <Modal
+        isOpen={!!deleteQuranId}
+        onClose={() => setDeleteQuranId(null)}
+        title="Confirm Deletion"
+        subtitle="This action cannot be undone."
+      >
+        <div className="space-y-4">
+          <p className="text-sm text-secondary">
+            Are you sure you want to delete this Quran recitation log?
+          </p>
+          <div className="flex justify-end gap-3 pt-3 border-t border-subtle">
+            <Button variant="secondary" onClick={() => setDeleteQuranId(null)}>
+              Cancel
+            </Button>
+            <Button variant="danger" onClick={handleDeleteQuran}>
+              Delete
+            </Button>
+          </div>
+        </div>
       </Modal>
 
       {/* Delete Hadith Modal */}

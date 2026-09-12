@@ -19,11 +19,15 @@ const quranLogSchema = new mongoose.Schema(
       min: 0,
     },
     ayatsRead: {
-      type: Number,
+      type: mongoose.Schema.Types.Mixed,
       default: 0,
-      min: 0,
     },
     surah: {
+      type: String,
+      trim: true,
+      default: '',
+    },
+    surahName: {
       type: String,
       trim: true,
       default: '',

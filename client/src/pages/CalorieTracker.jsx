@@ -14,6 +14,7 @@ import {
   Plus,
   Minus,
   Trash2,
+  Edit2,
   Droplets,
   Flame,
   PieChart as PieChartIcon,
@@ -45,6 +46,7 @@ export const CalorieTracker = ({ selectedDate }) => {
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingMealId, setEditingMealId] = useState(null);
   const [deleteId, setDeleteId] = useState(null);
 
   // Form & Autocomplete State
@@ -132,6 +134,7 @@ export const CalorieTracker = ({ selectedDate }) => {
   };
 
   const openCreateModal = (mealType = 'Breakfast') => {
+    setEditingMealId(null);
     setFormMealType(mealType);
     setFormDate(activeDate);
     setItemName('');
@@ -141,6 +144,36 @@ export const CalorieTracker = ({ selectedDate }) => {
     setProteinPerUnit(5);
     setCarbsPerUnit(10);
     setFatPerUnit(2);
+    setSelectedFoodItem(null);
+    setShowSuggestions(false);
+    setIsModalOpen(true);
+  };
+
+  const handleEditMeal = (meal) => {
+    setEditingMealId(meal._id);
+    setFormMealType(meal.mealType || 'Breakfast');
+    setFormDate(meal.date || activeDate);
+    if (meal.items && meal.items.length > 0) {
+      const first = meal.items[0];
+      setItemName(first.name || '');
+      setQuantity(first.quantity || 1);
+      const u = first.unit || 'piece';
+      setUnit(u);
+      const isPer100 = u === 'gram' || u === 'g' || u === 'ml';
+      const factor = isPer100 ? (first.quantity || 100) / 100 : (first.quantity || 1);
+      setCalPerUnit(first.calories ? Math.round(first.calories / factor) : 100);
+      setProteinPerUnit(first.protein ? Math.round((first.protein / factor) * 10) / 10 : 5);
+      setCarbsPerUnit(first.carbs ? Math.round((first.carbs / factor) * 10) / 10 : 10);
+      setFatPerUnit(first.fat ? Math.round((first.fat / factor) * 10) / 10 : 2);
+    } else {
+      setItemName('');
+      setQuantity(1);
+      setUnit('piece');
+      setCalPerUnit(100);
+      setProteinPerUnit(5);
+      setCarbsPerUnit(10);
+      setFatPerUnit(2);
+    }
     setSelectedFoodItem(null);
     setShowSuggestions(false);
     setIsModalOpen(true);
@@ -196,22 +229,25 @@ export const CalorieTracker = ({ selectedDate }) => {
     };
 
     try {
-      const res = await api.post('/meals', payload);
-      setIsModalOpen(false);
-      if (res.data) {
-        setMeals((prev) => [res.data, ...prev]);
-        setSummary((prev) => ({
-          ...prev,
-          caloriesConsumed: (prev.caloriesConsumed || 0) + liveItemCalories,
-          totalProtein: (prev.totalProtein || 0) + liveItemProtein,
-          totalCarbs: (prev.totalCarbs || 0) + liveItemCarbs,
-          totalFat: (prev.totalFat || 0) + liveItemFat,
-          remainingCalories: Math.max(0, (prev.dailyCalorieGoal || 2000) - ((prev.caloriesConsumed || 0) + liveItemCalories)),
-        }));
+      if (editingMealId) {
+        const res = await api.put(`/meals/${editingMealId}`, payload);
+        setIsModalOpen(false);
+        setEditingMealId(null);
+        if (res.data) {
+          setMeals((prev) =>
+            prev.map((m) => (m._id === editingMealId ? res.data : m))
+          );
+        }
+      } else {
+        const res = await api.post('/meals', payload);
+        setIsModalOpen(false);
+        if (res.data) {
+          setMeals((prev) => [res.data, ...prev]);
+        }
       }
       fetchData(false);
     } catch (err) {
-      console.error('Failed to log meal', err);
+      console.error('Failed to save meal', err);
     } finally {
       setSaving(false);
     }
@@ -446,13 +482,22 @@ export const CalorieTracker = ({ selectedDate }) => {
                   key={meal._id}
                   hover
                   action={
-                    <button
-                      onClick={() => setDeleteId(meal._id)}
-                      className="p-1.5 rounded-lg text-secondary hover:text-rose-600 hover:bg-rose-500/10 transition-colors cursor-pointer"
-                      title="Delete Meal"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => handleEditMeal(meal)}
+                        className="p-1.5 rounded-lg text-secondary hover:text-accent hover:bg-accent/10 transition-colors cursor-pointer"
+                        title="Edit Meal"
+                      >
+                        <Edit2 className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => setDeleteId(meal._id)}
+                        className="p-1.5 rounded-lg text-secondary hover:text-rose-600 hover:bg-rose-500/10 transition-colors cursor-pointer"
+                        title="Delete Meal"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   }
                 >
                   <div className="space-y-3">
@@ -489,12 +534,13 @@ export const CalorieTracker = ({ selectedDate }) => {
         </div>
       </div>
 
-      {/* Log Meal Modal */}
+      {/* Log / Edit Meal Modal */}
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        title="Log Meal & Food Items"
-        subtitle="Search nutritional profiles and calculate exact calories for portions"
+        title={editingMealId ? 'Edit Meal' : 'Log Food / Meal'}
+        subtitle={editingMealId ? 'Update food items, portion size, and nutritional profile' : 'Smart autocomplete with accurate piece/gram conversions'}
+        maxWidth="max-w-xl"
       >
         <form onSubmit={handleAddMeal} className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -681,7 +727,7 @@ export const CalorieTracker = ({ selectedDate }) => {
               Cancel
             </Button>
             <Button type="submit" variant="primary" loading={saving}>
-              Save Meal
+              {editingMealId ? 'Update Meal' : 'Save Meal'}
             </Button>
           </div>
         </form>

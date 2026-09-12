@@ -178,6 +178,36 @@ export const getFinanceSummary = async (req, res) => {
   }
 };
 
+export const updateTransaction = async (req, res) => {
+  try {
+    const { date, type, title, amount, currency, category, paymentMethod, notes } = req.body;
+
+    const tx = await Transaction.findOne({ _id: req.params.id, userId: req.user._id });
+    if (!tx) return res.status(404).json({ message: 'Transaction not found' });
+
+    if (date !== undefined) tx.date = date;
+    if (type !== undefined) tx.type = type;
+    const txTitle = title !== undefined ? title : req.body.description;
+    if (txTitle !== undefined) tx.title = txTitle.trim();
+    if (amount !== undefined) {
+      const numAmount = Number(amount);
+      if (isNaN(numAmount) || numAmount <= 0) {
+        return res.status(400).json({ message: 'Amount must be a positive number' });
+      }
+      tx.amount = numAmount;
+    }
+    if (currency !== undefined) tx.currency = currency;
+    if (category !== undefined) tx.category = category.trim();
+    if (paymentMethod !== undefined) tx.paymentMethod = paymentMethod;
+    if (notes !== undefined) tx.notes = notes.trim();
+
+    await tx.save();
+    res.json(tx);
+  } catch (error) {
+    res.status(500).json({ message: error.message || 'Failed to update transaction' });
+  }
+};
+
 export const deleteTransaction = async (req, res) => {
   try {
     const tx = await Transaction.findOneAndDelete({ _id: req.params.id, userId: req.user._id });
@@ -187,3 +217,4 @@ export const deleteTransaction = async (req, res) => {
     res.status(500).json({ message: error.message || 'Failed to delete transaction' });
   }
 };
+

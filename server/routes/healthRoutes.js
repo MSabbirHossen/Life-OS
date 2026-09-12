@@ -3,13 +3,17 @@ import {
   searchFoodItems,
   getMeals,
   createMeal,
+  updateMeal,
   deleteMeal,
   searchWorkoutTypes,
   getWorkouts,
   createWorkout,
+  updateWorkout,
   deleteWorkout,
   getBodyMetrics,
   createBodyMetric,
+  updateBodyMetric,
+  deleteBodyMetric,
   getWaterLog,
   logWater,
   getHealthSummary,
@@ -27,14 +31,15 @@ router.get('/workout-types/search', searchWorkoutTypes);
 
 // Meals
 router.route('/meals').get(getMeals).post(createMeal);
-router.delete('/meals/:id', deleteMeal);
+router.route('/meals/:id').put(updateMeal).delete(deleteMeal);
 
 // Workouts
 router.route('/workouts').get(getWorkouts).post(createWorkout);
-router.delete('/workouts/:id', deleteWorkout);
+router.route('/workouts/:id').put(updateWorkout).delete(deleteWorkout);
 
 // Body Metrics
 router.route('/body-metrics').get(getBodyMetrics).post(createBodyMetric);
+router.route('/body-metrics/:id').put(updateBodyMetric).delete(deleteBodyMetric);
 
 // Water Log
 router.route('/water').get(getWaterLog).post(logWater);

@@ -13,6 +13,7 @@ import {
   Wallet,
   Plus,
   Trash2,
+  Edit2,
   TrendingUp,
   TrendingDown,
   ArrowUpRight,
@@ -59,6 +60,7 @@ export const FinanceTracker = ({ selectedDate }) => {
   // Modals State
   const [isTransactionModalOpen, setIsTransactionModalOpen] = useState(false);
   const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
+  const [editingTransactionId, setEditingTransactionId] = useState(null);
   const [deleteId, setDeleteId] = useState(null);
 
   // Transaction Form State
@@ -115,6 +117,7 @@ export const FinanceTracker = ({ selectedDate }) => {
   }, [fetchFinanceData, selectedDate]);
 
   const openTransactionModal = (type = 'expense') => {
+    setEditingTransactionId(null);
     setFormType(type);
     setFormDate(selectedDate || getFormattedDate());
     setTitle('');
@@ -124,6 +127,20 @@ export const FinanceTracker = ({ selectedDate }) => {
     setSubCategory('Breakfast');
     setPaymentMethod('Debit Card');
     setNotes('');
+    setIsTransactionModalOpen(true);
+  };
+
+  const handleEditTransaction = (tx) => {
+    setEditingTransactionId(tx._id);
+    setFormType(tx.type || 'expense');
+    setFormDate(tx.date || getFormattedDate());
+    setTitle(tx.title || '');
+    setAmount(tx.amount !== undefined ? tx.amount.toString() : '');
+    setCurrency(tx.currency || 'SAR');
+    setCategory(tx.category || 'Food & Dining');
+    setSubCategory(tx.subCategory || '');
+    setPaymentMethod(tx.paymentMethod || 'Debit Card');
+    setNotes(tx.notes || '');
     setIsTransactionModalOpen(true);
   };
 
@@ -146,7 +163,7 @@ export const FinanceTracker = ({ selectedDate }) => {
 
     setSavingTx(true);
     try {
-      const res = await api.post('/finance/transactions', {
+      const payload = {
         date: formDate,
         type: formType,
         title: title.trim() || (subCategory ? `${category} (${subCategory})` : category),
@@ -156,9 +173,21 @@ export const FinanceTracker = ({ selectedDate }) => {
         subCategory: subCategory || undefined,
         paymentMethod,
         notes: notes.trim(),
-      });
-      setIsTransactionModalOpen(false);
-      if (res.data) setTransactions((prev) => [res.data, ...prev]);
+      };
+
+      if (editingTransactionId) {
+        const res = await api.put(`/finance/transactions/${editingTransactionId}`, payload);
+        setIsTransactionModalOpen(false);
+        if (res.data) {
+          setTransactions((prev) =>
+            prev.map((t) => (t._id === editingTransactionId ? res.data : t))
+          );
+        }
+      } else {
+        const res = await api.post('/finance/transactions', payload);
+        setIsTransactionModalOpen(false);
+        if (res.data) setTransactions((prev) => [res.data, ...prev]);
+      }
       fetchFinanceData(false);
     } catch (err) {
       console.error('Failed to log transaction', err);
@@ -414,13 +443,22 @@ export const FinanceTracker = ({ selectedDate }) => {
                         {tx.amount.toFixed(2)} {tx.currency || 'SAR'}
                       </td>
                       <td className="py-3 px-3 text-right whitespace-nowrap">
-                        <button
-                          onClick={() => setDeleteId(tx._id)}
-                          className="p-1.5 rounded-lg text-secondary hover:text-rose-600 hover:bg-rose-500/10 transition-colors cursor-pointer"
-                          title="Delete Transaction"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                        <div className="flex items-center justify-end gap-1">
+                          <button
+                            onClick={() => handleEditTransaction(tx)}
+                            className="p-1.5 rounded-lg text-secondary hover:text-accent hover:bg-accent/10 transition-colors cursor-pointer"
+                            title="Edit Transaction"
+                          >
+                            <Edit2 className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => setDeleteId(tx._id)}
+                            className="p-1.5 rounded-lg text-secondary hover:text-rose-600 hover:bg-rose-500/10 transition-colors cursor-pointer"
+                            title="Delete Transaction"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );
@@ -435,8 +473,8 @@ export const FinanceTracker = ({ selectedDate }) => {
       <Modal
         isOpen={isTransactionModalOpen}
         onClose={() => setIsTransactionModalOpen(false)}
-        title={formType === 'income' ? 'Log Income' : 'Log Expense'}
-        subtitle="Record income or expense transaction"
+        title={editingTransactionId ? 'Edit Transaction' : formType === 'income' ? 'Log Income' : 'Log Expense'}
+        subtitle={editingTransactionId ? 'Update financial entry details' : 'Record income or expense transaction'}
       >
         <form onSubmit={handleCreateTransaction} className="space-y-4">
           <div>
@@ -573,7 +611,7 @@ export const FinanceTracker = ({ selectedDate }) => {
               Cancel
             </Button>
             <Button type="submit" variant="primary" loading={savingTx}>
-              Save Transaction
+              {editingTransactionId ? 'Update Transaction' : 'Save Transaction'}
             </Button>
           </div>
         </form>

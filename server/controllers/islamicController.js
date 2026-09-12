@@ -126,7 +126,7 @@ export const getHadithLogs = async (req, res) => {
 
 export const createHadithLog = async (req, res) => {
   try {
-    const { date, text, narrator, reference, reflection } = req.body;
+    const { date, text, narrator, reference, bookRef, reflection } = req.body;
     if (!text?.trim()) return res.status(400).json({ message: 'Hadith text is required' });
 
     const hadith = await HadithLog.create({
@@ -134,13 +134,33 @@ export const createHadithLog = async (req, res) => {
       date: date || new Date().toISOString().split('T')[0],
       text: text.trim(),
       narrator: narrator?.trim() || '',
-      reference: reference?.trim() || '',
+      reference: (reference !== undefined ? reference : bookRef)?.trim() || '',
       reflection: reflection?.trim() || '',
     });
 
     res.status(201).json(hadith);
   } catch (error) {
     res.status(500).json({ message: error.message || 'Failed to log hadith' });
+  }
+};
+
+export const updateHadithLog = async (req, res) => {
+  try {
+    const hadith = await HadithLog.findOne({ _id: req.params.id, userId: req.user._id });
+    if (!hadith) return res.status(404).json({ message: 'Hadith log not found' });
+
+    const { date, text, narrator, reference, bookRef, reflection } = req.body;
+    if (date) hadith.date = date;
+    if (text) hadith.text = text.trim();
+    if (narrator !== undefined) hadith.narrator = narrator.trim();
+    const ref = reference !== undefined ? reference : bookRef;
+    if (ref !== undefined) hadith.reference = ref.trim();
+    if (reflection !== undefined) hadith.reflection = reflection.trim();
+
+    await hadith.save();
+    res.json(hadith);
+  } catch (error) {
+    res.status(500).json({ message: error.message || 'Failed to update hadith' });
   }
 };
 
@@ -191,7 +211,13 @@ export const updateVow = async (req, res) => {
     const vow = await SalahVow.findOne({ _id: req.params.id, userId: req.user._id });
     if (!vow) return res.status(404).json({ message: 'Vow not found' });
 
-    const { isCompleted, status } = req.body;
+    const { title, description, targetDate, relatedSalah, notes, isCompleted, status } = req.body;
+    const vowTitle = title?.trim() || description?.trim();
+    if (vowTitle) vow.title = vowTitle;
+    if (targetDate !== undefined) vow.targetDate = targetDate;
+    if (relatedSalah !== undefined) vow.relatedSalah = relatedSalah;
+    if (notes !== undefined) vow.notes = notes.trim();
+
     if (isCompleted !== undefined) {
       vow.status = isCompleted ? 'Completed' : 'Active';
     } else if (status) {
@@ -232,20 +258,56 @@ export const getQuranLogs = async (req, res) => {
 
 export const logQuran = async (req, res) => {
   try {
-    const { date, surahName, pagesRead, ayatsRead } = req.body;
+    const { date, surahName, surah, pagesRead, ayatsRead, notes } = req.body;
     if (!date) return res.status(400).json({ message: 'Date is required' });
 
+    const name = (surahName !== undefined ? surahName : surah)?.trim() || '';
     const log = await QuranLog.create({
       userId: req.user._id,
       date,
-      surahName: surahName?.trim() || '',
+      surah: name,
+      surahName: name,
       pagesRead: Number(pagesRead) || 1,
-      ayatsRead: ayatsRead ? Number(ayatsRead) : undefined,
+      ayatsRead: ayatsRead !== undefined ? ayatsRead : 0,
+      notes: notes?.trim() || '',
     });
 
     res.status(201).json(log);
   } catch (error) {
     res.status(500).json({ message: error.message || 'Failed to log Quran' });
+  }
+};
+
+export const updateQuranLog = async (req, res) => {
+  try {
+    const log = await QuranLog.findOne({ _id: req.params.id, userId: req.user._id });
+    if (!log) return res.status(404).json({ message: 'Quran log not found' });
+
+    const { date, surahName, surah, pagesRead, ayatsRead, notes } = req.body;
+    if (date) log.date = date;
+    const name = (surahName !== undefined ? surahName : surah);
+    if (name !== undefined) {
+      log.surah = name.trim();
+      log.surahName = name.trim();
+    }
+    if (pagesRead !== undefined) log.pagesRead = Number(pagesRead) || 1;
+    if (ayatsRead !== undefined) log.ayatsRead = ayatsRead;
+    if (notes !== undefined) log.notes = notes.trim();
+
+    await log.save();
+    res.json(log);
+  } catch (error) {
+    res.status(500).json({ message: error.message || 'Failed to update Quran log' });
+  }
+};
+
+export const deleteQuranLog = async (req, res) => {
+  try {
+    const log = await QuranLog.findOneAndDelete({ _id: req.params.id, userId: req.user._id });
+    if (!log) return res.status(404).json({ message: 'Quran log not found' });
+    res.json({ message: 'Quran log deleted successfully', id: req.params.id });
+  } catch (error) {
+    res.status(500).json({ message: error.message || 'Failed to delete Quran log' });
   }
 };
 

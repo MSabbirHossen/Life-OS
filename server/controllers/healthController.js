@@ -141,6 +141,103 @@ export const createMeal = async (req, res) => {
   }
 };
 
+export const updateMeal = async (req, res) => {
+  try {
+    const meal = await Meal.findOne({ _id: req.params.id, userId: req.user._id });
+    if (!meal) return res.status(404).json({ message: 'Meal not found' });
+
+    const { date, mealType, items } = req.body;
+    if (date) meal.date = date;
+    if (mealType) meal.mealType = mealType;
+
+    if (items && Array.isArray(items) && items.length > 0) {
+      let calculatedTotalCalories = 0;
+      let calculatedTotalProtein = 0;
+      let calculatedTotalCarbs = 0;
+      let calculatedTotalFat = 0;
+
+      const processedItems = await Promise.all(
+        items.map(async (item) => {
+          const itemUnit = item.unit || 'piece';
+          const qty = Number(item.quantity) || 1;
+          const isGramOrMl = itemUnit === 'gram' || itemUnit === 'ml';
+
+          let calPerUnit = Number(item.caloriesPerUnit) || 0;
+          let pPerUnit = Number(item.proteinPerUnit) || 0;
+          let cPerUnit = Number(item.carbsPerUnit) || 0;
+          let fPerUnit = Number(item.fatPerUnit) || 0;
+
+          if (item.name?.trim()) {
+            const trimmedName = item.name.trim();
+            let foodDoc = await FoodItem.findOne({ userId: req.user._id, name: trimmedName });
+
+            if (calPerUnit > 0) {
+              if (foodDoc) {
+                foodDoc.caloriesPerUnit = calPerUnit;
+                foodDoc.proteinPerUnit = pPerUnit;
+                foodDoc.carbsPerUnit = cPerUnit;
+                foodDoc.fatPerUnit = fPerUnit;
+                foodDoc.unitType = itemUnit;
+                await foodDoc.save();
+              }
+            } else if (foodDoc) {
+              calPerUnit = foodDoc.caloriesPerUnit;
+              pPerUnit = foodDoc.proteinPerUnit || 0;
+              cPerUnit = foodDoc.carbsPerUnit || 0;
+              fPerUnit = foodDoc.fatPerUnit || 0;
+            }
+          }
+
+          const nutrients = calculateFoodNutrients({
+            foodItem: {
+              caloriesPer100g: isGramOrMl ? calPerUnit : undefined,
+              proteinPer100g: isGramOrMl ? pPerUnit : undefined,
+              carbsPer100g: isGramOrMl ? cPerUnit : undefined,
+              fatPer100g: isGramOrMl ? fPerUnit : undefined,
+              caloriesPerPiece: !isGramOrMl ? calPerUnit : undefined,
+              proteinPerPiece: !isGramOrMl ? pPerUnit : undefined,
+              carbsPerPiece: !isGramOrMl ? cPerUnit : undefined,
+              fatPerPiece: !isGramOrMl ? fPerUnit : undefined,
+            },
+            quantity: qty,
+            unit: itemUnit,
+            customCalories: item.calories,
+            customProtein: item.protein,
+            customCarbs: item.carbs,
+            customFat: item.fat,
+          });
+
+          calculatedTotalCalories += nutrients.calories;
+          calculatedTotalProtein += nutrients.protein;
+          calculatedTotalCarbs += nutrients.carbs;
+          calculatedTotalFat += nutrients.fat;
+
+          return {
+            name: item.name.trim(),
+            quantity: qty,
+            unit: itemUnit,
+            calories: nutrients.calories,
+            protein: nutrients.protein,
+            carbs: nutrients.carbs,
+            fat: nutrients.fat,
+          };
+        })
+      );
+
+      meal.items = processedItems;
+      meal.totalCalories = Math.round(calculatedTotalCalories);
+      meal.totalProtein = Math.round(calculatedTotalProtein * 10) / 10;
+      meal.totalCarbs = Math.round(calculatedTotalCarbs * 10) / 10;
+      meal.totalFat = Math.round(calculatedTotalFat * 10) / 10;
+    }
+
+    await meal.save();
+    res.json(meal);
+  } catch (error) {
+    res.status(500).json({ message: error.message || 'Failed to update meal' });
+  }
+};
+
 export const deleteMeal = async (req, res) => {
   try {
     const meal = await Meal.findOneAndDelete({ _id: req.params.id, userId: req.user._id });
@@ -270,6 +367,46 @@ export const createWorkout = async (req, res) => {
     res.status(201).json(workout);
   } catch (error) {
     res.status(500).json({ message: error.message || 'Failed to log workout' });
+  }
+};
+
+export const updateWorkout = async (req, res) => {
+  try {
+    const workout = await Workout.findOne({ _id: req.params.id, userId: req.user._id });
+    if (!workout) return res.status(404).json({ message: 'Workout not found' });
+
+    const {
+      date,
+      name,
+      title,
+      trackingType,
+      sets,
+      reps,
+      weight,
+      durationMinutes,
+      caloriesBurned,
+      target,
+      notes,
+    } = req.body;
+
+    if (date) workout.date = date;
+    const exerciseName = (name || title || workout.name || '').trim();
+    if (exerciseName) workout.name = exerciseName;
+    if (target) workout.target = target;
+    if (trackingType) workout.trackingType = trackingType;
+    if (sets !== undefined) workout.sets = Number(sets) || 0;
+    if (reps !== undefined) workout.reps = Number(reps) || 0;
+    if (weight !== undefined) workout.weight = Number(weight) || 0;
+    if (durationMinutes !== undefined) workout.durationMinutes = Number(durationMinutes) || 0;
+    if (caloriesBurned !== undefined && Number(caloriesBurned) > 0) {
+      workout.caloriesBurned = Number(caloriesBurned);
+    }
+    if (notes !== undefined) workout.notes = notes.trim();
+
+    await workout.save();
+    res.json(workout);
+  } catch (error) {
+    res.status(500).json({ message: error.message || 'Failed to update workout' });
   }
 };
 
@@ -498,6 +635,36 @@ export const createBodyMetric = async (req, res) => {
     res.status(201).json(metric);
   } catch (error) {
     res.status(500).json({ message: error.message || 'Failed to save body metric' });
+  }
+};
+
+export const updateBodyMetric = async (req, res) => {
+  try {
+    const metric = await BodyMetric.findOne({ _id: req.params.id, userId: req.user._id });
+    if (!metric) return res.status(404).json({ message: 'Body metric not found' });
+
+    const { date, weightKg, waistCm, chestCm, armCm, notes } = req.body;
+    if (date) metric.date = date;
+    if (weightKg !== undefined) metric.weightKg = weightKg ? Number(weightKg) : undefined;
+    if (waistCm !== undefined) metric.waistCm = waistCm ? Number(waistCm) : undefined;
+    if (chestCm !== undefined) metric.chestCm = chestCm ? Number(chestCm) : undefined;
+    if (armCm !== undefined) metric.armCm = armCm ? Number(armCm) : undefined;
+    if (notes !== undefined) metric.notes = notes.trim();
+
+    await metric.save();
+    res.json(metric);
+  } catch (error) {
+    res.status(500).json({ message: error.message || 'Failed to update body metric' });
+  }
+};
+
+export const deleteBodyMetric = async (req, res) => {
+  try {
+    const metric = await BodyMetric.findOneAndDelete({ _id: req.params.id, userId: req.user._id });
+    if (!metric) return res.status(404).json({ message: 'Body metric not found' });
+    res.json({ message: 'Body metric deleted successfully', id: req.params.id });
+  } catch (error) {
+    res.status(500).json({ message: error.message || 'Failed to delete body metric' });
   }
 };
 

@@ -14,6 +14,7 @@ import {
   Flame,
   CheckCircle2,
   Trash2,
+  Edit2,
   Calendar,
   Layers,
   Sparkles,
@@ -30,6 +31,7 @@ export const HabitsTracker = ({ selectedDate }) => {
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingHabitId, setEditingHabitId] = useState(null);
   const [deleteId, setDeleteId] = useState(null);
 
   // Form State
@@ -111,10 +113,21 @@ export const HabitsTracker = ({ selectedDate }) => {
   };
 
   const handleOpenCreateModal = () => {
+    setEditingHabitId(null);
     setName('');
     setDescription('');
     setCategory('Productivity');
     setTargetFrequency('daily');
+    setCreateError('');
+    setIsModalOpen(true);
+  };
+
+  const handleEditHabit = (habit) => {
+    setEditingHabitId(habit._id);
+    setName(habit.name || '');
+    setDescription(habit.description || '');
+    setCategory(habit.category || 'Productivity');
+    setTargetFrequency(habit.targetFrequency || 'daily');
     setCreateError('');
     setIsModalOpen(true);
   };
@@ -129,24 +142,37 @@ export const HabitsTracker = ({ selectedDate }) => {
     setSaving(true);
     setCreateError('');
     try {
-      const res = await api.post('/habits', {
+      const payload = {
         name: name.trim(),
         category,
         targetFrequency,
         description: description.trim(),
-      });
-      setIsModalOpen(false);
-      setName('');
-      setDescription('');
-      setCreateError('');
-      // Optimistically append new habit
-      if (res.data) {
-        setHabits((prev) => [...prev, { ...res.data, completedToday: false, streak: 0 }]);
+      };
+
+      if (editingHabitId) {
+        const res = await api.put(`/habits/${editingHabitId}`, payload);
+        setIsModalOpen(false);
+        setEditingHabitId(null);
+        setName('');
+        setDescription('');
+        if (res.data) {
+          setHabits((prev) =>
+            prev.map((h) => (h._id === editingHabitId ? { ...h, ...res.data } : h))
+          );
+        }
+      } else {
+        const res = await api.post('/habits', payload);
+        setIsModalOpen(false);
+        setName('');
+        setDescription('');
+        if (res.data) {
+          setHabits((prev) => [...prev, { ...res.data, completedToday: false, streak: 0 }]);
+        }
       }
       fetchData(false);
     } catch (err) {
-      console.error('Failed to create habit', err);
-      setCreateError(err.response?.data?.message || err.message || 'Failed to create habit');
+      console.error('Failed to save habit', err);
+      setCreateError(err.response?.data?.message || err.message || 'Failed to save habit');
     } finally {
       setSaving(false);
     }
@@ -244,13 +270,22 @@ export const HabitsTracker = ({ selectedDate }) => {
                     isDone ? 'border-emerald-500/40 bg-emerald-500/5' : ''
                   }`}
                   action={
-                    <button
-                      onClick={() => setDeleteId(habit._id)}
-                      className="p-1.5 rounded-lg text-secondary hover:text-rose-600 hover:bg-rose-500/10 transition-colors cursor-pointer"
-                      title="Delete Habit"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => handleEditHabit(habit)}
+                        className="p-1.5 rounded-lg text-secondary hover:text-accent hover:bg-accent/10 transition-colors cursor-pointer"
+                        title="Edit Habit"
+                      >
+                        <Edit2 className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => setDeleteId(habit._id)}
+                        className="p-1.5 rounded-lg text-secondary hover:text-rose-600 hover:bg-rose-500/10 transition-colors cursor-pointer"
+                        title="Delete Habit"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   }
                 >
                   <div className="flex items-start gap-4">
@@ -346,12 +381,12 @@ export const HabitsTracker = ({ selectedDate }) => {
         </div>
       </Card>
 
-      {/* Create Habit Modal */}
+      {/* Habit Creator / Editor Modal */}
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        title="Create New Habit"
-        subtitle="Establish a recurring positive habit"
+        title={editingHabitId ? 'Edit Habit' : 'Build New Habit'}
+        subtitle={editingHabitId ? 'Update your daily discipline routine' : 'Define your daily discipline routine and trigger'}
       >
         <form onSubmit={handleCreateHabit} className="space-y-4">
           {createError && (
@@ -424,7 +459,7 @@ export const HabitsTracker = ({ selectedDate }) => {
               Cancel
             </Button>
             <Button type="submit" variant="primary" loading={saving}>
-              Create Habit
+              {editingHabitId ? 'Update Habit' : 'Create Habit'}
             </Button>
           </div>
         </form>

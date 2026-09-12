@@ -7,6 +7,7 @@ import {
   updateQada,
   getHadithLogs,
   createHadithLog,
+  updateHadithLog,
   deleteHadithLog,
   getVows,
   createVow,
@@ -14,6 +15,8 @@ import {
   deleteVow,
   getQuranLogs,
   logQuran,
+  updateQuranLog,
+  deleteQuranLog,
   getAdhkarLog,
   logAdhkar,
 } from '../controllers/islamicController.js';
@@ -32,7 +35,7 @@ router.route('/qada').get(getQadaLogs).post(updateQada);
 
 // Hadiths
 router.route('/hadith').get(getHadithLogs).post(createHadithLog);
-router.route('/hadith/:id').delete(deleteHadithLog);
+router.route('/hadith/:id').put(updateHadithLog).delete(deleteHadithLog);
 
 // Vows
 router.route('/vows').get(getVows).post(createVow);
@@ -40,6 +43,7 @@ router.route('/vows/:id').put(updateVow).delete(deleteVow);
 
 // Quran & Adhkar
 router.route('/quran').get(getQuranLogs).post(logQuran);
+router.route('/quran/:id').put(updateQuranLog).delete(deleteQuranLog);
 router.route('/adhkar').get(getAdhkarLog).post(logAdhkar);
 
 export default router;

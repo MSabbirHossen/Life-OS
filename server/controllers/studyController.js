@@ -25,8 +25,9 @@ export const getStudySessions = async (req, res) => {
 
 export const createStudySession = async (req, res) => {
   try {
-    const { date, subject, resource, durationMinutes, startTime, endTime, topicId, progressPercent, goalId, habitId, notes } = req.body;
-    if (!date || !durationMinutes) {
+    const { date, subject, resource, durationMinutes, duration, startTime, endTime, topicId, progressPercent, goalId, habitId, notes } = req.body;
+    const finalDuration = durationMinutes !== undefined ? durationMinutes : duration;
+    if (!date || !finalDuration) {
       return res.status(400).json({ message: 'Date and duration are required' });
     }
 
@@ -51,7 +52,7 @@ export const createStudySession = async (req, res) => {
       date,
       subject: finalSubject,
       resource: resource?.trim() || '',
-      durationMinutes: Number(durationMinutes),
+      durationMinutes: Number(finalDuration),
       startTime: startTime || '',
       endTime: endTime || '',
       topicId: topicId || undefined,
@@ -82,6 +83,34 @@ export const getSubjects = async (req, res) => {
     res.json(combined);
   } catch (error) {
     res.status(500).json({ message: error.message || 'Failed to fetch subjects' });
+  }
+};
+
+export const updateStudySession = async (req, res) => {
+  try {
+    const session = await StudySession.findOne({ _id: req.params.id, userId: req.user._id });
+    if (!session) return res.status(404).json({ message: 'Study session not found' });
+
+    const { date, subject, resource, durationMinutes, duration, startTime, endTime, topicId, progressPercent, goalId, habitId, notes } = req.body;
+
+    if (date) session.date = date;
+    if (subject) session.subject = subject.trim();
+    if (resource !== undefined) session.resource = resource.trim();
+    const finalDuration = durationMinutes !== undefined ? durationMinutes : duration;
+    if (finalDuration !== undefined) session.durationMinutes = Number(finalDuration);
+    if (startTime !== undefined) session.startTime = startTime;
+    if (endTime !== undefined) session.endTime = endTime;
+    if (topicId !== undefined) session.topicId = topicId || undefined;
+    if (progressPercent !== undefined) session.progressPercent = Number(progressPercent) || 0;
+    if (goalId !== undefined) session.goalId = goalId || undefined;
+    if (habitId !== undefined) session.habitId = habitId || undefined;
+    if (notes !== undefined) session.notes = notes.trim();
+
+    await session.save();
+    const populated = await StudySession.findById(session._id).populate('topicId', 'title subject completedChapters totalChapters status');
+    res.json(populated);
+  } catch (error) {
+    res.status(500).json({ message: error.message || 'Failed to update study session' });
   }
 };
 

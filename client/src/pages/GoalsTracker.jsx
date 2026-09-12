@@ -35,6 +35,7 @@ export const GoalsTracker = () => {
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingGoalId, setEditingGoalId] = useState(null);
   const [deleteId, setDeleteId] = useState(null);
 
   // Form State
@@ -67,12 +68,42 @@ export const GoalsTracker = () => {
     fetchData();
   }, []);
 
+  const openCreateModal = () => {
+    setEditingGoalId(null);
+    setTitle('');
+    setType('short_term');
+    setCategory('Career');
+    setTargetDate('');
+    setTargetCompletions(30);
+    setDescription('');
+    setLinkedHabits([]);
+    setHabitSearch('');
+    setIsModalOpen(true);
+  };
+
+  const handleEditGoal = (goal) => {
+    setEditingGoalId(goal._id);
+    setTitle(goal.title || '');
+    setType(goal.type || 'short_term');
+    setCategory(goal.category || 'Career');
+    setTargetDate(goal.targetDate || '');
+    setTargetCompletions(goal.targetCompletions || 30);
+    setDescription(goal.description || '');
+    setLinkedHabits(
+      Array.isArray(goal.linkedHabitIds)
+        ? goal.linkedHabitIds.map((h) => (typeof h === 'object' && h._id ? h._id : h))
+        : []
+    );
+    setHabitSearch('');
+    setIsModalOpen(true);
+  };
+
   const handleCreateGoal = async (e) => {
     e.preventDefault();
     if (!title.trim()) return;
 
     try {
-      await api.post('/goals', {
+      const payload = {
         title: title.trim(),
         type,
         category,
@@ -80,8 +111,16 @@ export const GoalsTracker = () => {
         targetCompletions: Number(targetCompletions) || 30,
         description: description.trim(),
         linkedHabits,
-      });
+      };
+
+      if (editingGoalId) {
+        await api.put(`/goals/${editingGoalId}`, payload);
+      } else {
+        await api.post('/goals', payload);
+      }
+
       setIsModalOpen(false);
+      setEditingGoalId(null);
       setTitle('');
       setDescription('');
       setTargetDate('');
@@ -90,7 +129,7 @@ export const GoalsTracker = () => {
       setHabitSearch('');
       fetchData();
     } catch (err) {
-      console.error('Failed to create goal', err);
+      console.error('Failed to save goal', err);
     }
   };
 
@@ -210,7 +249,7 @@ export const GoalsTracker = () => {
             title="No goals found"
             description="Create your first goal and link daily habits to measure your trajectory."
             actionText="Create Goal"
-            onAction={() => setIsModalOpen(true)}
+            onAction={openCreateModal}
           />
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
@@ -220,13 +259,22 @@ export const GoalsTracker = () => {
                 hover
                 className="flex flex-col justify-between"
                 action={
-                  <button
-                    onClick={() => setDeleteId(goal._id)}
-                    className="p-1.5 rounded-lg text-secondary hover:text-rose-600 hover:bg-rose-500/10 transition-colors cursor-pointer"
-                    title="Delete Goal"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => handleEditGoal(goal)}
+                      className="p-1.5 rounded-lg text-secondary hover:text-accent hover:bg-accent/10 transition-colors cursor-pointer"
+                      title="Edit Goal"
+                    >
+                      <Edit2 className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => setDeleteId(goal._id)}
+                      className="p-1.5 rounded-lg text-secondary hover:text-rose-600 hover:bg-rose-500/10 transition-colors cursor-pointer"
+                      title="Delete Goal"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
                 }
               >
                 <div className="space-y-4">
@@ -317,12 +365,12 @@ export const GoalsTracker = () => {
         )}
       </div>
 
-      {/* Goal Creator Modal */}
+      {/* Goal Creator / Editor Modal */}
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        title="Create Vision Goal"
-        subtitle="Set clear targets and link daily habits to auto-track progress"
+        title={editingGoalId ? 'Edit Vision Goal' : 'Create Vision Goal'}
+        subtitle={editingGoalId ? 'Update targets and linked habits' : 'Set clear targets and link daily habits to auto-track progress'}
         maxWidth="max-w-xl"
       >
         <form onSubmit={handleCreateGoal} className="space-y-4">
@@ -479,12 +527,12 @@ export const GoalsTracker = () => {
             )}
           </div>
 
-          <div className="flex justify-end gap-3 pt-3 border-t border-subtle">
+          <div className="flex justify-end gap-3 pt-3 border-subtle border-t">
             <Button variant="secondary" onClick={() => setIsModalOpen(false)}>
               Cancel
             </Button>
             <Button type="submit" variant="primary">
-              Create Goal
+              {editingGoalId ? 'Update Goal' : 'Create Goal'}
             </Button>
           </div>
         </form>
