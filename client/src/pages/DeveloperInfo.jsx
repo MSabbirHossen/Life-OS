@@ -25,12 +25,12 @@ export const SOCIAL_LINKS = [
   // Direct Contacts
   {
     name: 'WhatsApp',
-    handle: 'sabb1rhossen',
+    handle: '+966533806052',
     subHandle: 'Direct Chat',
     category: 'Direct Chat',
     role: 'Instant Messaging & Voice',
     description: 'Direct WhatsApp connection for quick project inquiries, instant messaging, and consultations.',
-    link: 'https://wa.me/sabb1rhossen',
+    link: 'https://wa.me/+966533806052',
     color: '#25D366',
     bgBadge: 'bg-[#25D366]/10 text-[#25D366] border-[#25D366]/25',
     actionLabel: 'Chat on WhatsApp',
@@ -235,8 +235,8 @@ export const DeveloperInfo = ({ isCompact = false }) => {
   const getWhatsAppUrl = (text) => {
     const trimmed = text?.trim();
     return trimmed
-      ? `https://wa.me/sabb1rhossen?text=${encodeURIComponent(trimmed)}`
-      : 'https://wa.me/sabb1rhossen';
+      ? `https://wa.me/+966533806052?text=${encodeURIComponent(trimmed)}`
+      : 'https://wa.me/+966533806052';
   };
 
   const handleFeedbackSubmit = (e) => {
@@ -376,13 +376,13 @@ export const DeveloperInfo = ({ isCompact = false }) => {
                   <span>mshossen724@gmail.com</span>
                 </a>
                 <a
-                  href="https://wa.me/sabb1rhossen"
+                  href="https://wa.me/+966533806052"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-subtle hover:bg-surface border border-theme text-primary hover:text-[#25D366] transition-colors"
                 >
                   <MessageCircle className="w-3.5 h-3.5 text-[#25D366]" />
-                  <span>WhatsApp: sabb1rhossen</span>
+                  <span>WhatsApp: +966533806052</span>
                 </a>
                 <a
                   href="https://t.me/sabb1rhossen"
@@ -466,8 +466,8 @@ export const DeveloperInfo = ({ isCompact = false }) => {
                 type="button"
                 onClick={() => setFilterCategory(cat)}
                 className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${filterCategory === cat
-                    ? 'bg-surface text-primary card-shadow'
-                    : 'text-secondary hover:text-primary'
+                  ? 'bg-surface text-primary card-shadow'
+                  : 'text-secondary hover:text-primary'
                   }`}
               >
                 {cat}
