@@ -1,7 +1,35 @@
 import mongoose from 'mongoose';
 import dns from 'dns';
 
+// Try setting reliable public DNS servers for Atlas SRV lookup on Windows
+try {
+  dns.setServers(['8.8.8.8', '1.1.1.1']);
+} catch (e) {}
+
 let cachedConn = null;
+
+const seedDemoUser = async () => {
+  try {
+    const existing = await mongoose.connection.collection('users').findOne({ email: 'demo@lifeos.app' });
+    if (!existing) {
+      const bcrypt = (await import('bcryptjs')).default;
+      const salt = await bcrypt.genSalt(10);
+      const hash = await bcrypt.hash('password123', salt);
+      await mongoose.connection.collection('users').insertOne({
+        name: 'Demo User',
+        email: 'demo@lifeos.app',
+        passwordHash: hash,
+        authProvider: 'email',
+        theme: 'system',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+      console.log('[Life OS] Demo user ready: demo@lifeos.app');
+    }
+  } catch (err) {
+    console.warn('[Life OS] Demo seed notice:', err.message);
+  }
+};
 
 /**
  * Check if the Atlas host is reachable via DNS TXT lookup without hanging the driver.
@@ -16,7 +44,7 @@ const checkAtlasReachable = async (uri) => {
     await Promise.race([
       dns.promises.resolveTxt(host),
       new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('DNS TXT preflight timeout (1500ms)')), 1500)
+        setTimeout(() => reject(new Error('DNS TXT preflight timeout (2000ms)')), 2000)
       ),
     ]);
     return true;
@@ -55,6 +83,7 @@ export const connectDB = async () => {
       } catch (e) {}
 
       cachedConn = conn;
+      await seedDemoUser();
       return conn;
     } catch (primaryError) {
       console.warn(`[MongoDB Primary Connection Failed]: ${primaryError.message}. Switching to fallback...`);
@@ -71,6 +100,7 @@ export const connectDB = async () => {
       const conn = await mongoose.connect(memoryUri);
       console.log(`[MongoDB Connected In-Memory Fallback] Host: ${conn.connection.host} | DB: ${conn.connection.name}`);
       cachedConn = conn;
+      await seedDemoUser();
       return conn;
     } catch (fallbackError) {
       console.error(`[MongoDB Fallback Error]: ${fallbackError.message}`);

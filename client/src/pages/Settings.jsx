@@ -286,7 +286,7 @@ export const Settings = () => {
                 <Badge variant="purple" size="xs">Part-Time Coder</Badge>
               </div>
               <p className="text-xs text-secondary mt-0.5">
-                Creator of Life OS. Connect on LinkedIn, YouTube, Facebook, Instagram, and GitHub.
+                Creator of Life OS. Connect on WhatsApp, Telegram, Email, Portfolio, LinkedIn, YouTube, and GitHub.
               </p>
             </div>
           </div>

@@ -1,1 +1,1 @@
-export { DeveloperInfo, default, SOCIAL_LINKS } from '../pages/DeveloperInfo';
+export { DeveloperInfo, default, SOCIAL_LINKS, DIRECT_CONTACTS, VENTURES } from '../pages/DeveloperInfo';

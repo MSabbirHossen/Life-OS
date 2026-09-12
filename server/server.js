@@ -1,8 +1,17 @@
-import 'dotenv/config';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import dotenv from 'dotenv';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+dotenv.config({ path: path.join(__dirname, '.env') });
+dotenv.config();
+
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
+import mongoose from 'mongoose';
 import { connectDB } from './config/db.js';
 import authRoutes from './routes/authRoutes.js';
 import journalRoutes from './routes/journalRoutes.js';
@@ -49,9 +58,14 @@ const authLimiter = rateLimit({
 
 // Health check endpoint (Public)
 app.get('/api/health', (req, res) => {
+  const states = ['disconnected', 'connected', 'connecting', 'disconnecting'];
+  const dbState = mongoose.connection.readyState;
   res.json({
     status: 'ok',
     message: 'Life OS API Server running',
+    dbState: states[dbState] || dbState,
+    dbHost: mongoose.connection.host || null,
+    dbName: mongoose.connection.name || null,
     environment: process.env.NODE_ENV || 'development',
     timestamp: new Date().toISOString(),
   });
