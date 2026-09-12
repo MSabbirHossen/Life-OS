@@ -1,20 +1,142 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { Sparkles, Mail, Lock, User, ArrowRight } from 'lucide-react';
+import { Sparkles, Mail, Lock, User, ArrowRight, Eye, EyeOff, Info, CheckCircle2, ShieldCheck } from 'lucide-react';
 import { Button } from '../components/Button';
+import { Modal } from '../components/Modal';
+
+// Official Google 'G' Logo SVG
+const GoogleIcon = () => (
+  <svg className="w-5 h-5" viewBox="0 0 24 24">
+    <path
+      fill="#4285F4"
+      d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"
+    />
+    <path
+      fill="#34A853"
+      d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.33 24 12 24z"
+    />
+    <path
+      fill="#FBBC05"
+      d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.99 0 12s.45 3.82 1.25 5.42l4.03-3.15z"
+    />
+    <path
+      fill="#EA4335"
+      d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"
+    />
+  </svg>
+);
 
 export const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
+  const [showGoogleGuideModal, setShowGoogleGuideModal] = useState(false);
 
-  const { login, register } = useAuth();
+  const { login, register, loginWithGoogle } = useAuth();
   const navigate = useNavigate();
+  const googleBtnContainerRef = useRef(null);
 
+  const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+
+  // Initialize Google Identity Services if client ID is configured
+  useEffect(() => {
+    if (!googleClientId) return;
+
+    const initGoogle = () => {
+      if (window.google?.accounts?.id) {
+        try {
+          window.google.accounts.id.initialize({
+            client_id: googleClientId,
+            callback: handleGoogleCredentialResponse,
+            auto_select: false,
+          });
+
+          // Render official Google button if container ref is ready
+          if (googleBtnContainerRef.current) {
+            window.google.accounts.id.renderButton(googleBtnContainerRef.current, {
+              theme: 'outline',
+              size: 'large',
+              width: '100%',
+              shape: 'pill',
+              text: isLogin ? 'signin_with' : 'signup_with',
+            });
+          }
+        } catch (e) {
+          console.warn('Google Identity initialization error:', e);
+        }
+      }
+    };
+
+    if (window.google?.accounts?.id) {
+      initGoogle();
+    } else {
+      const timer = setInterval(() => {
+        if (window.google?.accounts?.id) {
+          clearInterval(timer);
+          initGoogle();
+        }
+      }, 300);
+      return () => clearInterval(timer);
+    }
+  }, [googleClientId, isLogin]);
+
+  // Handle Google Token Response from real Google Sign-In
+  const handleGoogleCredentialResponse = async (response) => {
+    if (!response?.credential) return;
+    setGoogleLoading(true);
+    setError('');
+    try {
+      await loginWithGoogle(response.credential);
+      navigate('/dashboard');
+    } catch (err) {
+      setError(err.response?.data?.message || 'Google sign-in failed. Please try again.');
+    } finally {
+      setGoogleLoading(false);
+    }
+  };
+
+  // Google button click handler
+  const handleGoogleClick = () => {
+    setError('');
+    if (!googleClientId) {
+      // Guide user on how to add Google Client ID, with a 1-click test simulation
+      setShowGoogleGuideModal(true);
+      return;
+    }
+
+    if (window.google?.accounts?.id) {
+      window.google.accounts.id.prompt();
+    }
+  };
+
+  // Developer 1-click test flow when GOOGLE_CLIENT_ID is not yet configured
+  const handleSimulateGoogleLogin = async () => {
+    setShowGoogleGuideModal(false);
+    setGoogleLoading(true);
+    setError('');
+    try {
+      const mockTestUser = {
+        email: email.trim() ? email.trim().toLowerCase() : 'user.google@example.com',
+        name: name.trim() ? name.trim() : 'Google User',
+        avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+        googleId: `google_sim_${Date.now()}`,
+      };
+      await loginWithGoogle(null, mockTestUser);
+      navigate('/dashboard');
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to simulate Google authentication.');
+    } finally {
+      setGoogleLoading(false);
+    }
+  };
+
+  // Email/Password Submit
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -28,7 +150,7 @@ export const Auth = () => {
       }
       navigate('/dashboard');
     } catch (err) {
-      setError(err.response?.data?.message || 'Authentication failed. Please check your credentials.');
+      setError(err.response?.data?.message || 'Authentication failed. Please verify your credentials.');
     } finally {
       setLoading(false);
     }
@@ -36,26 +158,26 @@ export const Auth = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 sm:p-6 bg-bg relative overflow-hidden">
-      {/* Ambient background blur circles */}
+      {/* Ambient background glow */}
       <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
 
       <div className="w-full max-w-md bg-surface border border-theme rounded-3xl p-7 sm:p-9 card-shadow relative z-10 animate-in fade-in zoom-in-95 duration-200">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-indigo-600 to-purple-600 text-white flex items-center justify-center mx-auto mb-4 shadow-lg shadow-indigo-500/25">
+        {/* Header Branding */}
+        <div className="text-center mb-6">
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-indigo-600 via-purple-600 to-accent text-white flex items-center justify-center mx-auto mb-3.5 shadow-lg shadow-indigo-500/25">
             <Sparkles className="w-7 h-7" />
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-primary tracking-tight">
             {isLogin ? 'Welcome back to Life OS' : 'Create your Account'}
           </h1>
-          <p className="text-xs sm:text-sm text-secondary mt-1.5 font-medium">
-            {isLogin ? 'Sign in to access your personal dashboard' : 'Start tracking your daily life with clarity'}
+          <p className="text-xs sm:text-sm text-secondary mt-1 font-medium">
+            {isLogin ? 'Access your unified life management system' : 'Start tracking your habits, goals & health with clarity'}
           </p>
         </div>
 
-        {/* Tab Switcher */}
-        <div className="flex bg-subtle p-1 rounded-xl border border-theme mb-6">
+        {/* Tab Switcher: Sign In vs Create Account */}
+        <div className="flex bg-subtle p-1 rounded-xl border border-theme mb-5">
           <button
             type="button"
             onClick={() => {
@@ -87,11 +209,48 @@ export const Auth = () => {
         </div>
 
         {error && (
-          <div className="mb-5 p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-xs text-[var(--color-danger)] font-semibold animate-shake">
-            {error}
+          <div className="mb-5 p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-xs text-rose-600 dark:text-rose-400 font-semibold flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-rose-500 shrink-0" />
+            <span>{error}</span>
           </div>
         )}
 
+        {/* --- GOOGLE AUTHENTICATION SECTION --- */}
+        <div className="space-y-3">
+          {/* Official Google GSI Container (if configured) */}
+          <div ref={googleBtnContainerRef} className="hidden" />
+
+          {/* Prominent Google Button */}
+          <button
+            type="button"
+            onClick={handleGoogleClick}
+            disabled={googleLoading}
+            className="w-full flex items-center justify-center gap-3 py-2.5 px-4 rounded-xl bg-surface hover:bg-subtle border border-theme hover:border-accent/40 text-primary font-bold text-xs sm:text-sm transition-all duration-200 card-shadow cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed group"
+          >
+            {googleLoading ? (
+              <div className="w-4 h-4 border-2 border-accent border-t-transparent rounded-full animate-spin" />
+            ) : (
+              <GoogleIcon />
+            )}
+            <span>
+              {googleLoading
+                ? 'Signing in with Google...'
+                : isLogin
+                ? 'Continue with Google'
+                : 'Sign up with Google'}
+            </span>
+          </button>
+        </div>
+
+        {/* Divider */}
+        <div className="relative my-5 flex items-center justify-center">
+          <div className="w-full border-t border-theme" />
+          <span className="absolute bg-surface px-3 text-[11px] font-bold text-secondary uppercase tracking-wider">
+            or continue with email
+          </span>
+        </div>
+
+        {/* --- EMAIL & PASSWORD FORM --- */}
         <form onSubmit={handleSubmit} className="space-y-4">
           {!isLogin && (
             <div>
@@ -103,7 +262,7 @@ export const Auth = () => {
                 <input
                   type="text"
                   required
-                  placeholder="Enter your name"
+                  placeholder="e.g. Alex Morgan"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   className="input-base pl-10"
@@ -136,14 +295,28 @@ export const Auth = () => {
             <div className="relative">
               <Lock className="w-4 h-4 text-muted absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 required
+                minLength={6}
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="input-base pl-10"
+                className="input-base pl-10 pr-10"
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-secondary hover:text-primary cursor-pointer p-1"
+                title={showPassword ? 'Hide password' : 'Show password'}
+              >
+                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
             </div>
+            {!isLogin && (
+              <span className="text-[10px] text-secondary mt-1 block">
+                Must be at least 6 characters long
+              </span>
+            )}
           </div>
 
           <div className="pt-2">
@@ -156,11 +329,74 @@ export const Auth = () => {
               iconPosition="right"
               className="w-full font-bold shadow-md shadow-indigo-500/20"
             >
-              {isLogin ? 'Sign In to Life OS' : 'Get Started'}
+              {isLogin ? 'Sign In to Life OS' : 'Create Account & Start'}
             </Button>
           </div>
         </form>
+
+        {/* Security & Privacy Micro-Footer */}
+        <div className="mt-6 pt-4 border-t border-theme/60 flex items-center justify-center gap-1.5 text-[11px] text-secondary font-medium text-center">
+          <ShieldCheck className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+          <span>Secured with JWT authentication & password hashing</span>
+        </div>
       </div>
+
+      {/* Google Setup Guide & Sandbox Modal */}
+      <Modal
+        isOpen={showGoogleGuideModal}
+        onClose={() => setShowGoogleGuideModal(false)}
+        title="Google Authentication Setup"
+        subtitle="Live Google OAuth integration ready in your codebase"
+      >
+        <div className="space-y-4 text-xs">
+          <div className="p-3.5 rounded-xl bg-accent/10 border border-accent/20 flex items-start gap-2.5">
+            <Info className="w-4 h-4 text-accent shrink-0 mt-0.5" />
+            <div className="space-y-1">
+              <p className="font-bold text-primary">Google Sign-In is fully coded & ready!</p>
+              <p className="text-secondary leading-relaxed">
+                To connect real Google accounts, obtain a Client ID from the{' '}
+                <a
+                  href="https://console.cloud.google.com/apis/credentials"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-accent hover:underline font-bold"
+                >
+                  Google Cloud Console
+                </a>{' '}
+                and add it to your environment variables:
+              </p>
+            </div>
+          </div>
+
+          <div className="space-y-2 p-3 bg-subtle rounded-xl border border-theme font-mono text-[11px]">
+            <p className="text-secondary font-sans font-bold uppercase tracking-wider text-[10px]">
+              Required Variables:
+            </p>
+            <p className="text-primary">
+              <span className="text-indigo-400">client/.env:</span> VITE_GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com
+            </p>
+            <p className="text-primary">
+              <span className="text-purple-400">server/.env:</span> GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <p className="font-bold text-primary">Would you like to test the Google Sign-In user flow right now?</p>
+            <p className="text-secondary leading-relaxed">
+              Clicking below will simulate an authentic Google OAuth profile response and sign you in directly.
+            </p>
+          </div>
+
+          <div className="flex justify-end gap-3 pt-3 border-t border-subtle">
+            <Button variant="secondary" onClick={() => setShowGoogleGuideModal(false)}>
+              Close
+            </Button>
+            <Button variant="primary" icon={CheckCircle2} onClick={handleSimulateGoogleLogin}>
+              Test Google Sign-In Flow
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };

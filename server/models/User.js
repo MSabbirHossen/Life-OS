@@ -17,7 +17,21 @@ const userSchema = new mongoose.Schema(
     },
     passwordHash: {
       type: String,
-      required: [true, 'Password is required'],
+      required: false,
+    },
+    authProvider: {
+      type: String,
+      enum: ['email', 'google'],
+      default: 'email',
+    },
+    googleId: {
+      type: String,
+      sparse: true,
+      index: true,
+    },
+    avatar: {
+      type: String,
+      default: '',
     },
     timezone: {
       type: String,
@@ -48,13 +62,13 @@ const userSchema = new mongoose.Schema(
 
 // Method to match entered password with hashed password
 userSchema.methods.matchPassword = async function (enteredPassword) {
+  if (!this.passwordHash) return false;
   return await bcrypt.compare(enteredPassword, this.passwordHash);
 };
 
 // Pre-save hook to hash password before saving
-userSchema.pre('save', async function (next) {
-  if (!this.isModified('passwordHash')) {
-    next();
+userSchema.pre('save', async function () {
+  if (!this.passwordHash || !this.isModified('passwordHash')) {
     return;
   }
   const salt = await bcrypt.genSalt(10);

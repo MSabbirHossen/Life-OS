@@ -44,6 +44,14 @@ export const AuthProvider = ({ children }) => {
     return res.data;
   };
 
+  const loginWithGoogle = async (credential, testUser = null) => {
+    const res = await api.post('/auth/google', { credential, testUser });
+    const { token, ...userData } = res.data;
+    localStorage.setItem('lifeos_token', token);
+    setUser(userData);
+    return res.data;
+  };
+
   const logout = () => {
     localStorage.removeItem('lifeos_token');
     setUser(null);
@@ -56,7 +64,17 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout, updateUser }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        loading,
+        login,
+        register,
+        loginWithGoogle,
+        logout,
+        updateUser,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
@@ -69,3 +87,5 @@ export const useAuth = () => {
   }
   return context;
 };
+
+export default AuthContext;
