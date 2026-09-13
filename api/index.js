@@ -1,17 +1,15 @@
+import mongoose from 'mongoose';
 import app from '../server/server.js';
 import { connectDB } from '../server/config/db.js';
 
-let isConnected = false;
-
 export default async function handler(req, res) {
   try {
-    if (!isConnected) {
+    if (mongoose.connection.readyState !== 1) {
       await connectDB();
-      isConnected = true;
     }
   } catch (err) {
     console.error('[Vercel Serverless DB Error]:', err.message);
-    // Don't crash entirely; let health checks or unauthenticated routes attempt to respond
+    // Continue so health check or unauthenticated routes can still respond
   }
 
   return app(req, res);
