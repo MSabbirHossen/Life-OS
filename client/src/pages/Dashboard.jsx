@@ -194,7 +194,7 @@ export const Dashboard = ({ selectedDate }) => {
         onClick={(e) => {
           if (!e.target.closest('button')) navigate('/islamic');
         }}
-        className="p-4 rounded-2xl bg-surface border border-theme card-shadow card-hover cursor-pointer"
+        className="p-4 sm:p-5 rounded-2xl bg-surface/95 dark:bg-surface/90 backdrop-blur-sm border border-theme card-shadow transition-all duration-300 hover:shadow-lg hover:shadow-black/5 dark:hover:shadow-black/20 hover:border-theme-strong hover:-translate-y-0.5 cursor-pointer"
       >
         <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
           <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate('/islamic')}>

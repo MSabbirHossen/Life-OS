@@ -521,7 +521,7 @@ export const HabitsTracker = ({ selectedDate }) => {
                       <CheckCircle2 className="w-5 h-5" />
                     </button>
 
-                    <div className="min-w-0 flex-1 space-y-1.5 pr-14">
+                    <div className="min-w-0 flex-1 space-y-1.5">
                       <div className="flex items-center justify-between gap-2 flex-wrap">
                         <h4
                           className={`text-sm font-bold truncate transition-colors duration-150 ${
