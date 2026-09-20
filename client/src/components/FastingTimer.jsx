@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Card } from './Card';
 import { Button } from './Button';
 import { Badge } from './Badge';
+import { useLanguage } from '../context/LanguageContext';
 import {
   Clock,
   Play,
@@ -28,18 +29,19 @@ import {
   subscribeFastingUpdates,
 } from '../utils/fastingService';
 
-const FASTING_PROTOCOLS = [
-  { id: '16:8', label: '16:8 Standard', fastHours: 16, eatHours: 8, desc: 'Most popular circadian window' },
-  { id: '18:6', label: '18:6 Extended', fastHours: 18, eatHours: 6, desc: 'Deep autophagy & metabolic focus' },
-  { id: '20:4', label: '20:4 Warrior', fastHours: 20, eatHours: 4, desc: 'Advanced intermittent window' },
-  { id: '14:10', label: '14:10 Gentle', fastHours: 14, eatHours: 10, desc: 'Beginner-friendly balance' },
-  { id: '12:12', label: '12:12 Circadian', fastHours: 12, eatHours: 12, desc: 'Natural day/night balance' },
-  { id: '24:0', label: '24:0 OMAD', fastHours: 24, eatHours: 0, desc: 'One meal a day full cycle' },
-  { id: 'custom', label: 'Custom Window', fastHours: 16, eatHours: 8, desc: 'Tailored hours' },
-];
-
 export const FastingTimer = ({ compact = false }) => {
+  const { t } = useLanguage();
   const navigate = useNavigate();
+
+  const FASTING_PROTOCOLS = [
+    { id: '16:8', label: t('fasting.protocolStandard'), fastHours: 16, eatHours: 8 },
+    { id: '18:6', label: t('fasting.protocolExtended'), fastHours: 18, eatHours: 6 },
+    { id: '20:4', label: t('fasting.protocolWarrior'), fastHours: 20, eatHours: 4 },
+    { id: '12:12', label: t('fasting.protocolCircadian'), fastHours: 12, eatHours: 12 },
+    { id: '24:0', label: t('fasting.protocolOMAD'), fastHours: 24, eatHours: 0 },
+    { id: 'custom', label: t('fasting.protocolCustom'), fastHours: 16, eatHours: 8 },
+  ];
+
   const [selectedProtocolId, setSelectedProtocolId] = useState('16:8');
   const [customHours, setCustomHours] = useState(16);
   const [showSettings, setShowSettings] = useState(false);
@@ -291,20 +293,20 @@ export const FastingTimer = ({ compact = false }) => {
   return (
     <Card
       hover
-      title="Intermittent Fasting"
-      subtitle="Circadian rhythm & dynamic metabolic fasting windows"
+      title={t('fasting.title')}
+      subtitle={t('fasting.subtitle')}
       icon={Clock}
       badge={
         <div className="flex items-center gap-2">
           {fastingStats.streak > 0 && (
             <Badge variant="amber" size="xs">
               <span className="flex items-center gap-1">
-                <Flame className="w-3 h-3 text-amber-500 fill-amber-500" /> {fastingStats.streak}d Streak
+                <Flame className="w-3 h-3 text-amber-500 fill-amber-500" /> {fastingStats.streak} {t('streakWidget.daysStreak')}
               </span>
             </Badge>
           )}
           <Badge variant={fastingState.isActive ? 'purple' : 'neutral'} size="xs">
-            {fastingState.isActive ? `Active Fast (${activeTargetHours}h)` : 'Resting'}
+            {fastingState.isActive ? `${t('fasting.fastingInProgress')} (${activeTargetHours}h)` : t('common.status')}
           </Badge>
           <button
             type="button"

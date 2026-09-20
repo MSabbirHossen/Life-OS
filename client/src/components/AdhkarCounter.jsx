@@ -3,17 +3,20 @@ import { Card } from './Card';
 import { Button } from './Button';
 import { Badge } from './Badge';
 import { RotateCcw, Sparkles, Check, Heart, Plus } from 'lucide-react';
-
-const DHIKR_PRESETS = [
-  { text: 'SubhanAllah', arabic: 'سُبْحَانَ اللَّهِ', meaning: 'Glory be to Allah', target: 33 },
-  { text: 'Alhamdulillah', arabic: 'الْحَمْدُ لِلَّهِ', meaning: 'Praise be to Allah', target: 33 },
-  { text: 'Allahu Akbar', arabic: 'اللَّهُ أَكْبَرُ', meaning: 'Allah is the Greatest', target: 34 },
-  { text: 'Astaghfirullah', arabic: 'أَسْتَغْفِرُ اللَّهَ', meaning: 'I seek forgiveness from Allah', target: 100 },
-  { text: 'La ilaha illallah', arabic: 'لَا إِلَٰهَ إِلَّا اللَّهُ', meaning: 'There is no god but Allah', target: 100 },
-  { text: 'Salawat on Prophet ﷺ', arabic: 'اللَّهُمَّ صَلِّ عَلَى مُحَمَّدٍ', meaning: 'Peace & blessings upon Muhammad', target: 100 },
-];
+import { useLanguage } from '../context/LanguageContext';
 
 export const AdhkarCounter = () => {
+  const { t } = useLanguage();
+
+  const DHIKR_PRESETS = [
+    { text: t('adhkar.subhanAllah'), arabic: 'سُبْحَانَ اللَّهِ', meaning: t('adhkar.subhanAllahMeaning'), target: 33 },
+    { text: t('adhkar.alhamdulillah'), arabic: 'الْحَمْدُ لِلَّهِ', meaning: t('adhkar.alhamdulillahMeaning'), target: 33 },
+    { text: t('adhkar.allahuAkbar'), arabic: 'اللَّهُ أَكْبَرُ', meaning: t('adhkar.allahuAkbarMeaning'), target: 34 },
+    { text: t('adhkar.astaghfirullah'), arabic: 'أَسْتَغْفِرُ اللَّهَ', meaning: t('adhkar.astaghfirullahMeaning'), target: 100 },
+    { text: t('adhkar.laIlahaIllallah'), arabic: 'لَا إِلَٰهَ إِلَّا اللَّهُ', meaning: t('adhkar.laIlahaIllallahMeaning'), target: 100 },
+    { text: t('adhkar.salawat'), arabic: 'اللَّهُمَّ صَلِّ عَلَى مُحَمَّدٍ', meaning: t('adhkar.salawatMeaning'), target: 100 },
+  ];
+
   const [selectedDhikr, setSelectedDhikr] = useState(DHIKR_PRESETS[0]);
   const [count, setCount] = useState(0);
   const [totalLaps, setTotalLaps] = useState(0);
@@ -43,13 +46,11 @@ export const AdhkarCounter = () => {
     setTotalLaps(0);
   };
 
-  const progressPercent = Math.round((count / selectedDhikr.target) * 100);
-
   return (
     <Card
       hover
-      title="Digital Tasbih & Adhkar"
-      subtitle="Interactive remembrance counter & target tracking"
+      title={t('adhkar.title')}
+      subtitle={t('adhkar.subtitle')}
       icon={Sparkles}
       badge={<Badge variant="success" size="xs">Deen</Badge>}
     >
@@ -62,7 +63,7 @@ export const AdhkarCounter = () => {
               type="button"
               onClick={() => handleSelectDhikr(d)}
               className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer border ${
-                selectedDhikr.text === d.text
+                selectedDhikr.arabic === d.arabic
                   ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 shadow-sm'
                   : 'bg-subtle text-secondary border-theme hover:text-primary hover:bg-subtle/80'
               }`}
@@ -99,7 +100,7 @@ export const AdhkarCounter = () => {
             <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 mt-0.5 uppercase tracking-wider">
               / {selectedDhikr.target}
             </span>
-            <span className="text-[9px] font-medium text-secondary mt-1">Tap to Count</span>
+            <span className="text-[9px] font-medium text-secondary mt-1">{t('adhkar.tapToCount')}</span>
           </button>
         </div>
 
@@ -107,10 +108,10 @@ export const AdhkarCounter = () => {
         <div className="flex items-center justify-between px-2 pt-1 text-xs">
           <div className="flex items-center gap-2">
             <Badge variant="neutral" size="xs">
-              Laps: {totalLaps}
+              {t('adhkar.laps')}: {totalLaps}
             </Badge>
             <span className="text-secondary font-semibold">
-              Total: {totalLaps * selectedDhikr.target + count}
+              {t('common.total')}: {totalLaps * selectedDhikr.target + count}
             </span>
           </div>
           <button
@@ -119,7 +120,7 @@ export const AdhkarCounter = () => {
             className="p-1.5 text-secondary hover:text-rose-500 hover:bg-rose-500/10 rounded-lg transition-colors flex items-center gap-1 text-xs font-bold cursor-pointer"
             title="Reset counter"
           >
-            <RotateCcw className="w-3.5 h-3.5" /> Reset
+            <RotateCcw className="w-3.5 h-3.5" /> {t('adhkar.reset')}
           </button>
         </div>
       </div>

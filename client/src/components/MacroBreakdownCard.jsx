@@ -13,6 +13,7 @@ import {
   ArrowRight,
 } from 'lucide-react';
 import { computeMacroProgress } from '../utils/calorieCalculator';
+import { useLanguage } from '../context/LanguageContext';
 
 export const MacroBreakdownCard = ({
   summary = {},
@@ -20,6 +21,7 @@ export const MacroBreakdownCard = ({
   onOpenCalculator,
   onOpenDocs,
 }) => {
+  const { t } = useLanguage();
   const progress = computeMacroProgress({
     caloriesConsumed: summary.caloriesConsumed || 0,
     calorieBudget: summary.dailyCalorieGoal || 2000,
@@ -32,8 +34,8 @@ export const MacroBreakdownCard = ({
   return (
     <Card
       hover
-      title="Macronutrient Budget & Intake Breakdown"
-      subtitle="Real-time tracking of macros taken vs. yet to take"
+      title={t('macroCard.title')}
+      subtitle={t('macroCard.subtitle')}
       icon={PieChartIcon}
       badge={
         <div className="flex items-center gap-1.5 flex-wrap">
@@ -45,7 +47,7 @@ export const MacroBreakdownCard = ({
             className="text-secondary hover:text-primary cursor-pointer text-[11px]"
             title="Read Official Macro & Calorie Science Documentation"
           >
-            Science Docs
+            {t('macroCard.scienceDocs')}
           </Button>
           <Button
             variant="outline"
@@ -54,7 +56,7 @@ export const MacroBreakdownCard = ({
             onClick={onOpenCalculator}
             className="font-bold text-[11px] cursor-pointer"
           >
-            Recalculate
+            {t('macroCard.recalculate')}
           </Button>
         </div>
       }

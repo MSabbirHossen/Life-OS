@@ -4,6 +4,7 @@ import { Button } from './Button';
 import { Badge } from './Badge';
 import { Sparkles, Shuffle, Smile, Zap, Heart, CheckCircle2, Save, BookOpen } from 'lucide-react';
 import api from '../utils/api';
+import { useLanguage } from '../context/LanguageContext';
 
 const GUIDED_QUESTIONS = [
   { question: "What is one small victory you achieved today that you are proud of?", category: "Gratitude" },
@@ -38,16 +39,18 @@ const GUIDED_QUESTIONS = [
   { question: "If today was a chapter in your autobiography, what would its title be?", category: "Growth" },
 ];
 
-const MOODS = [
-  { label: 'Great', emoji: '😊', value: 'great', color: 'border-emerald-500 bg-emerald-500/10 text-emerald-500' },
-  { label: 'Energized', emoji: '⚡', value: 'energized', color: 'border-amber-500 bg-amber-500/10 text-amber-500' },
-  { label: 'Peaceful', emoji: '🧘', value: 'peaceful', color: 'border-indigo-500 bg-indigo-500/10 text-indigo-500' },
-  { label: 'Neutral', emoji: '😐', value: 'neutral', color: 'border-zinc-500 bg-zinc-500/10 text-zinc-500' },
-  { label: 'Tired', emoji: '🥱', value: 'tired', color: 'border-purple-500 bg-purple-500/10 text-purple-500' },
-  { label: 'Low', emoji: '😔', value: 'low', color: 'border-rose-500 bg-rose-500/10 text-rose-500' },
-];
-
 export const GuidedReflectionModal = ({ isOpen, onClose, selectedDate, onSaveSuccess }) => {
+  const { t } = useLanguage();
+
+  const MOODS = [
+    { label: t('reflection.moodGreat'), emoji: '😊', value: 'great', color: 'border-emerald-500 bg-emerald-500/10 text-emerald-500' },
+    { label: t('reflection.moodEnergized'), emoji: '⚡', value: 'energized', color: 'border-amber-500 bg-amber-500/10 text-amber-500' },
+    { label: t('reflection.moodPeaceful'), emoji: '🧘', value: 'peaceful', color: 'border-indigo-500 bg-indigo-500/10 text-indigo-500' },
+    { label: t('reflection.moodNeutral'), emoji: '😐', value: 'neutral', color: 'border-zinc-500 bg-zinc-500/10 text-zinc-500' },
+    { label: t('reflection.moodTired'), emoji: '🥱', value: 'tired', color: 'border-purple-500 bg-purple-500/10 text-purple-500' },
+    { label: t('reflection.moodLow'), emoji: '😔', value: 'low', color: 'border-rose-500 bg-rose-500/10 text-rose-500' },
+  ];
+
   const [currentPrompt, setCurrentPrompt] = useState(GUIDED_QUESTIONS[0]);
   const [mood, setMood] = useState('great');
   const [promptAnswer, setPromptAnswer] = useState('');
@@ -115,7 +118,7 @@ export const GuidedReflectionModal = ({ isOpen, onClose, selectedDate, onSaveSuc
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Daily Guided Reflection" maxWidth="2xl">
+    <Modal isOpen={isOpen} onClose={onClose} title={t('reflection.guidedReflection')} maxWidth="2xl">
       <form onSubmit={handleSubmit} className="space-y-5 pb-1">
         {/* Random Prompt Box */}
         <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-indigo-500/10 via-purple-500/5 to-indigo-500/5 border border-indigo-500/25 shadow-xs relative transition-all">
@@ -129,7 +132,7 @@ export const GuidedReflectionModal = ({ isOpen, onClose, selectedDate, onSaveSuc
               className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold text-secondary hover:text-primary bg-surface/60 hover:bg-surface border border-theme/60 transition-all cursor-pointer active:scale-95 shadow-xs"
               title="Shuffle another self-growth question"
             >
-              <Shuffle className="w-3.5 h-3.5 text-accent" /> Shuffle
+              <Shuffle className="w-3.5 h-3.5 text-accent" /> {t('reflection.shufflePrompt')}
             </button>
           </div>
           
@@ -150,7 +153,7 @@ export const GuidedReflectionModal = ({ isOpen, onClose, selectedDate, onSaveSuc
         <div>
           <div className="flex items-center justify-between mb-2">
             <label className="block text-xs font-bold text-secondary uppercase tracking-wider">
-              Today's Emotional Mood
+              {t('reflection.mood')}
             </label>
             <span className="text-[11px] font-medium text-secondary capitalize">
               Selected: <span className="font-bold text-primary">{mood}</span>
@@ -184,7 +187,7 @@ export const GuidedReflectionModal = ({ isOpen, onClose, selectedDate, onSaveSuc
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
-              <span>✨</span> Today's Highlights & Wins
+              <span>✨</span> {t('reflection.wins')}
             </label>
             <textarea
               value={highlights}
@@ -196,7 +199,7 @@ export const GuidedReflectionModal = ({ isOpen, onClose, selectedDate, onSaveSuc
           </div>
           <div>
             <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
-              <span>🙏</span> Gratitude & Blessings
+              <span>🙏</span> {t('reflection.gratitude')}
             </label>
             <textarea
               value={gratitude}
@@ -211,7 +214,7 @@ export const GuidedReflectionModal = ({ isOpen, onClose, selectedDate, onSaveSuc
         {/* Next Day Notes */}
         <div>
           <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
-            <span>🎯</span> Tomorrow's Priority & Notes
+            <span>🎯</span> {t('reflection.tomorrowPlan')}
           </label>
           <input
             type="text"
@@ -225,7 +228,7 @@ export const GuidedReflectionModal = ({ isOpen, onClose, selectedDate, onSaveSuc
         {/* Actions */}
         <div className="flex items-center justify-end gap-3 pt-4 border-t border-theme/60 mt-2">
           <Button variant="ghost" size="md" type="button" onClick={onClose}>
-            Cancel
+            {t('common.cancel')}
           </Button>
           <Button
             variant="gradient"
@@ -234,7 +237,7 @@ export const GuidedReflectionModal = ({ isOpen, onClose, selectedDate, onSaveSuc
             icon={Save}
             loading={saving}
           >
-            Save Guided Reflection
+            {t('reflection.saveReflection')}
           </Button>
         </div>
       </form>
