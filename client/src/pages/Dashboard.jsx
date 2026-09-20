@@ -279,8 +279,8 @@ export const Dashboard = ({ selectedDate }) => {
           <Card
             hover
             onClick={() => navigate('/calories')}
-            title="Daily Calorie & Energy Balance Engine"
-            subtitle="Live synthesis of food intake vs workout expenditure"
+            title={t('dashboard.energyEngineTitle')}
+            subtitle={t('dashboard.liveEnergySynthesis')}
             icon={Activity}
             badge={
               <Badge variant={isDeficit ? 'success' : 'danger'} size="xs">
@@ -289,7 +289,7 @@ export const Dashboard = ({ selectedDate }) => {
             }
             action={
               <Button variant="ghost" size="xs" onClick={() => navigate('/calories')}>
-                Meal Logger <ArrowRight className="w-3 h-3 ml-1" />
+                {t('nav.calories')} <ArrowRight className="w-3 h-3 ml-1" />
               </Button>
             }
           >
@@ -298,7 +298,7 @@ export const Dashboard = ({ selectedDate }) => {
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/20">
                   <span className="text-[11px] font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider block">
-                    Total Intake
+                    {t('dashboard.caloriesToday')}
                   </span>
                   <span className="text-2xl font-black text-primary mt-1 block">
                     {calorieIntake} <span className="text-xs font-semibold text-secondary">kcal</span>
@@ -307,7 +307,7 @@ export const Dashboard = ({ selectedDate }) => {
 
                 <div className="p-3.5 rounded-2xl bg-rose-500/10 border border-rose-500/20">
                   <span className="text-[11px] font-bold text-rose-600 dark:text-rose-400 uppercase tracking-wider block">
-                    Total Burned
+                    {t('dashboard.burnedToday')}
                   </span>
                   <span className="text-2xl font-black text-primary mt-1 block">
                     {calorieBurned} <span className="text-xs font-semibold text-secondary">kcal</span>
@@ -316,7 +316,7 @@ export const Dashboard = ({ selectedDate }) => {
 
                 <div className={`p-3.5 rounded-2xl border ${isDeficit ? 'bg-emerald-500/10 border-emerald-500/20' : 'bg-purple-500/10 border-purple-500/20'}`}>
                   <span className="text-[11px] font-bold uppercase tracking-wider block text-secondary">
-                    Net Balance
+                    {t('calories.energyBalance')}
                   </span>
                   <span className={`text-2xl font-black mt-1 block ${isDeficit ? 'text-emerald-600 dark:text-emerald-400' : 'text-purple-600 dark:text-purple-400'}`}>
                     {netCalories} <span className="text-xs font-semibold text-secondary">/ {calorieGoal} kcal</span>
@@ -327,7 +327,7 @@ export const Dashboard = ({ selectedDate }) => {
               {/* Visual Multi-Segment Bar Meter */}
               <div className="space-y-1.5 pt-1">
                 <div className="flex items-center justify-between text-xs font-bold">
-                  <span className="text-secondary">Intake ({calorieIntake}) - Burned ({calorieBurned})</span>
+                  <span className="text-secondary">{t('dashboard.caloriesToday')} ({calorieIntake}) - {t('dashboard.burnedToday')} ({calorieBurned})</span>
                   <span className={isDeficit ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}>
                     {remainingCalories > 0 ? `${remainingCalories} kcal Remaining` : `${Math.abs(remainingCalories)} kcal Over Target`}
                   </span>
@@ -359,24 +359,24 @@ export const Dashboard = ({ selectedDate }) => {
             <Card
               hover
               onClick={() => navigate('/finance')}
-              title="Finance Snapshot"
-              subtitle="Expenses & Cashflow"
+              title={t('dashboard.financeSnapshot')}
+              subtitle={t('dashboard.expensesCashflow')}
               icon={Wallet}
               action={
                 <Button variant="ghost" size="xs" onClick={() => navigate('/finance')}>
-                  Ledger <ArrowRight className="w-3 h-3 ml-1" />
+                  {t('nav.finance')} <ArrowRight className="w-3 h-3 ml-1" />
                 </Button>
               }
             >
               <div className="space-y-3 pt-1">
                 <div className="p-3 rounded-xl bg-subtle border border-theme flex items-center justify-between">
-                  <span className="text-xs font-bold text-secondary">Today's Expenses</span>
+                  <span className="text-xs font-bold text-secondary">{t('finance.todaysExpenses')}</span>
                   <span className="text-lg font-black text-[var(--color-danger)]">
                     {(summary.finance?.expensesToday || 0).toFixed(2)} {currentCurrency}
                   </span>
                 </div>
                 <div className="p-3 rounded-xl bg-subtle border border-theme flex items-center justify-between">
-                  <span className="text-xs font-bold text-secondary">Month to Date</span>
+                  <span className="text-xs font-bold text-secondary">{t('finance.monthToDate')}</span>
                   <span className="text-base font-extrabold text-primary">
                     {(summary.finance?.expensesMonth || 0).toFixed(2)} {currentCurrency}
                   </span>
@@ -389,19 +389,19 @@ export const Dashboard = ({ selectedDate }) => {
           <Card
             hover
             onClick={() => navigate('/time-tracker')}
-            title="Today's Time Allocation"
-            subtitle="Logged blocks categorized across deep work, study, deen, & rest"
+            title={t('dashboard.timeAllocation')}
+            subtitle={t('dashboard.timeBlocksSummary')}
             icon={Clock}
             action={
               <Button variant="ghost" size="xs" onClick={() => navigate('/time-tracker')}>
-                Timeline <ArrowRight className="w-3 h-3 ml-1" />
+                {t('nav.focus')} <ArrowRight className="w-3 h-3 ml-1" />
               </Button>
             }
           >
             {timeChartData.length === 0 ? (
               <div className="h-44 flex flex-col items-center justify-center text-xs text-secondary italic bg-subtle/50 rounded-xl border border-dashed border-theme mt-2">
                 <Clock className="w-8 h-8 text-muted mb-2 stroke-1" />
-                No time blocks recorded for this date.
+                {t('time.noLogs')}
               </div>
             ) : (
               <div className="h-56 w-full mt-2">
@@ -444,13 +444,13 @@ export const Dashboard = ({ selectedDate }) => {
           <Card
             hover
             onClick={() => navigate('/journal')}
-            title="Daily Guided Reflection"
-            subtitle="Prompt of the Day"
+            title={t('reflection.guidedReflection')}
+            subtitle={t('dashboard.promptOfDay')}
             icon={BookOpen}
-            badge={<Badge variant="primary" size="xs">Journal</Badge>}
+            badge={<Badge variant="primary" size="xs">{t('nav.reflection')}</Badge>}
             action={
               <Button variant="ghost" size="xs" onClick={() => navigate('/journal')}>
-                Journal <ArrowRight className="w-3 h-3 ml-1" />
+                {t('nav.reflection')} <ArrowRight className="w-3 h-3 ml-1" />
               </Button>
             }
           >
@@ -474,7 +474,7 @@ export const Dashboard = ({ selectedDate }) => {
                   icon={Plus}
                   onClick={() => setIsReflectionModalOpen(true)}
                 >
-                  Answer Prompt
+                  {t('reflection.saveReflection')}
                 </Button>
               )}
             </div>
@@ -484,13 +484,13 @@ export const Dashboard = ({ selectedDate }) => {
           <Card
             hover
             onClick={() => navigate('/islamic')}
-            title="Spiritual Anchor"
-            subtitle="Daily Islamic Wisdom"
+            title={t('dashboard.spiritualAnchor')}
+            subtitle={t('dashboard.dailyIslamicWisdom')}
             icon={Compass}
-            badge={<Badge variant="success" size="xs">Deen</Badge>}
+            badge={<Badge variant="success" size="xs">{t('nav.islamic')}</Badge>}
             action={
               <Button variant="ghost" size="xs" onClick={() => navigate('/islamic')}>
-                Islamic Tracker <ArrowRight className="w-3 h-3 ml-1" />
+                {t('nav.islamic')} <ArrowRight className="w-3 h-3 ml-1" />
               </Button>
             }
           >
@@ -508,7 +508,7 @@ export const Dashboard = ({ selectedDate }) => {
           </Card>
 
           {/* Quick Actions Card */}
-          <Card hover title="Quick Cockpit Actions" icon={Sparkles}>
+          <Card hover title={t('dashboard.quickActions')} icon={Sparkles}>
             <div className="space-y-2 mt-2">
               <Button
                 variant="secondary"
@@ -517,7 +517,7 @@ export const Dashboard = ({ selectedDate }) => {
                 icon={Plus}
                 onClick={() => navigate('/calories')}
               >
-                Log Meal & Water
+                {t('dashboard.logMealWater')}
               </Button>
               <Button
                 variant="secondary"
@@ -526,7 +526,7 @@ export const Dashboard = ({ selectedDate }) => {
                 icon={Dumbbell}
                 onClick={() => navigate('/fitness')}
               >
-                Log Workout
+                {t('dashboard.logWorkout')}
               </Button>
               <Button
                 variant="secondary"
@@ -535,7 +535,7 @@ export const Dashboard = ({ selectedDate }) => {
                 icon={Compass}
                 onClick={() => navigate('/qada-matrix')}
               >
-                Open Qada Matrix
+                {t('dashboard.openQadaMatrix')}
               </Button>
               <Button
                 variant="secondary"
@@ -544,7 +544,7 @@ export const Dashboard = ({ selectedDate }) => {
                 icon={Wallet}
                 onClick={() => navigate('/finance')}
               >
-                Transfer / Expense
+                {t('dashboard.transferExpense')}
               </Button>
             </div>
           </Card>

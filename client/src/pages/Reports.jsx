@@ -137,23 +137,23 @@ export const Reports = () => {
       {/* Top Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-5">
         <StatCard
-          title="Total Reviews"
+          title={t('reports.totalReviews')}
           value={reviews.length}
-          subtitle="Saved retrospectives"
+          subtitle={t('reports.savedRetrospectives')}
           icon={FileText}
           color="indigo"
         />
         <StatCard
-          title="Weekly Reviews"
+          title={t('reports.weeklyReviews')}
           value={reviews.filter((r) => r.type === 'weekly').length}
-          subtitle="7-day cycle checks"
+          subtitle={t('reports.cycleChecks7')}
           icon={Calendar}
           color="emerald"
         />
         <StatCard
-          title="Monthly Reviews"
+          title={t('reports.monthlyReviews')}
           value={reviews.filter((r) => r.type === 'monthly').length}
-          subtitle="30-day deep dives"
+          subtitle={t('reports.deepDives30')}
           icon={Layers}
           color="purple"
         />
@@ -162,8 +162,8 @@ export const Reports = () => {
       {/* Reviews List */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-bold text-primary tracking-tight">Retrospective Archive</h2>
-          <span className="text-xs font-semibold text-secondary">{reviews.length} reviews</span>
+          <h2 className="text-lg font-bold text-primary tracking-tight">{t('reports.retrospectiveArchive')}</h2>
+          <span className="text-xs font-semibold text-secondary">{reviews.length} {t('reports.reviewsCount')}</span>
         </div>
 
         {loading ? (
@@ -173,9 +173,9 @@ export const Reports = () => {
         ) : reviews.length === 0 ? (
           <EmptyState
             icon={FileText}
-            title="No retrospectives recorded yet"
-            description="Perform a weekly or monthly review to synthesize progress and identify areas of improvement."
-            actionText="Write Retrospective"
+            title={t('reports.noReviewsYet')}
+            description={t('reports.noReviewsDesc')}
+            actionText={t('reports.writeRetrospective')}
             onAction={() => setIsModalOpen(true)}
           />
         ) : (
@@ -189,7 +189,7 @@ export const Reports = () => {
                     <button
                       onClick={() => setDeleteId(rev._id)}
                       className="p-1.5 rounded-lg bg-surface/90 dark:bg-surface/90 backdrop-blur-xs border border-theme/60 text-secondary hover:text-rose-600 hover:border-rose-500/40 hover:bg-rose-500/10 shadow-xs transition-all cursor-pointer"
-                      title="Delete Review"
+                      title={t('common.delete')}
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
@@ -199,7 +199,7 @@ export const Reports = () => {
                 <div className="space-y-4 pb-2">
                   <div className="flex items-center justify-between gap-2">
                     <Badge variant={rev.type === 'monthly' ? 'purple' : 'primary'} size="sm" dot>
-                      {rev.type === 'monthly' ? 'Monthly Review' : 'Weekly Review'}
+                      {rev.type === 'monthly' ? t('reports.monthlyReview') : t('reports.weeklyReview')}
                     </Badge>
                     <span className="text-xs font-bold text-secondary">
                       {rev.startDate ? `${formatDisplayDate(rev.startDate)} — ` : ''}
@@ -211,7 +211,7 @@ export const Reports = () => {
                   {rev.whatWentWell && (
                     <div className="space-y-1">
                       <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
-                        <CheckCircle2 className="w-3.5 h-3.5" /> What Went Well
+                        <CheckCircle2 className="w-3.5 h-3.5" /> {t('reports.whatWentWellTitle')}
                       </span>
                       <p className="text-xs text-primary font-medium leading-relaxed bg-subtle p-2.5 rounded-xl border border-theme">
                         {rev.whatWentWell}
@@ -222,7 +222,7 @@ export const Reports = () => {
                   {rev.whatDidntGoWell && (
                     <div className="space-y-1">
                       <span className="text-xs font-bold text-[var(--color-danger)] flex items-center gap-1">
-                        <AlertCircle className="w-3.5 h-3.5" /> What Didn't Go Well
+                        <AlertCircle className="w-3.5 h-3.5" /> {t('reports.whatDidntGoWellTitle')}
                       </span>
                       <p className="text-xs text-primary font-medium leading-relaxed bg-subtle p-2.5 rounded-xl border border-theme">
                         {rev.whatDidntGoWell}
@@ -233,7 +233,7 @@ export const Reports = () => {
                   {rev.howToImprove && (
                     <div className="space-y-1">
                       <span className="text-xs font-bold text-accent flex items-center gap-1">
-                        <Sparkles className="w-3.5 h-3.5" /> How to Improve Next Cycle
+                        <Sparkles className="w-3.5 h-3.5" /> {t('reports.howToImproveTitle')}
                       </span>
                       <p className="text-xs text-primary font-medium leading-relaxed bg-subtle p-2.5 rounded-xl border border-theme">
                         {rev.howToImprove}
@@ -244,7 +244,7 @@ export const Reports = () => {
                   {rev.actionItems && (
                     <div className="pt-2 border-t border-subtle">
                       <span className="text-[11px] font-bold text-secondary uppercase tracking-wider block mb-1">
-                        Action Items
+                        {t('reports.actionItems')}
                       </span>
                       <p className="text-xs text-secondary font-medium">{rev.actionItems}</p>
                     </div>
@@ -260,34 +260,34 @@ export const Reports = () => {
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        title="New Retrospective Review"
-        subtitle="Reflect and extract continuous improvements"
+        title={t('reports.newReview')}
+        subtitle={t('reports.newReviewSubtitle')}
         maxWidth="max-w-xl"
       >
         <form onSubmit={handleCreateReview} className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
               <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5">
-                Review Cycle
+                {t('reports.reviewCycle')}
               </label>
               <select
                 value={type}
                 onChange={(e) => setType(e.target.value)}
                 className="select-base"
               >
-                <option value="weekly">Weekly</option>
-                <option value="monthly">Monthly</option>
+                <option value="weekly">{t('reports.weekly')}</option>
+                <option value="monthly">{t('reports.monthly')}</option>
               </select>
             </div>
 
             <DateInput
-              label="Start Date"
+              label={t('reports.startDate')}
               value={startDate}
               onChange={setStartDate}
             />
 
             <DateInput
-              label="End Date"
+              label={t('reports.endDate')}
               value={endDate}
               onChange={setEndDate}
             />
@@ -295,12 +295,12 @@ export const Reports = () => {
 
           <div>
             <label className="block text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider mb-1.5">
-              1. What Went Well?
+              1. {t('reports.whatWentWell')}
             </label>
             <textarea
               rows={2}
               required
-              placeholder="Key achievements, completed habits, good routines..."
+              placeholder={t('reports.whatWentWellPlaceholder')}
               value={whatWentWell}
               onChange={(e) => setWhatWentWell(e.target.value)}
               className="textarea-base"
@@ -309,12 +309,12 @@ export const Reports = () => {
 
           <div>
             <label className="block text-xs font-bold text-[var(--color-danger)] uppercase tracking-wider mb-1.5">
-              2. What Didn't Go Well?
+              2. {t('reports.whatDidntGoWell')}
             </label>
             <textarea
               rows={2}
               required
-              placeholder="Obstacles, missed goals, distractions..."
+              placeholder={t('reports.whatDidntGoWellPlaceholder')}
               value={whatDidntGoWell}
               onChange={(e) => setWhatDidntGoWell(e.target.value)}
               className="textarea-base"
@@ -323,12 +323,12 @@ export const Reports = () => {
 
           <div>
             <label className="block text-xs font-bold text-accent uppercase tracking-wider mb-1.5">
-              3. How to Improve?
+              3. {t('reports.howToImprove')}
             </label>
             <textarea
               rows={2}
               required
-              placeholder="Concrete adjustments for the next cycle..."
+              placeholder={t('reports.howToImprovePlaceholder')}
               value={howToImprove}
               onChange={(e) => setHowToImprove(e.target.value)}
               className="textarea-base"
@@ -337,11 +337,11 @@ export const Reports = () => {
 
           <div>
             <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5">
-              Action Items (Optional)
+              {t('reports.actionItems')} ({t('common.optional')})
             </label>
             <input
               type="text"
-              placeholder="e.g. Schedule gym 3x, sleep by 11pm"
+              placeholder={t('reports.actionItemsPlaceholder')}
               value={actionItems}
               onChange={(e) => setActionItems(e.target.value)}
               className="input-base"
@@ -350,10 +350,10 @@ export const Reports = () => {
 
           <div className="flex justify-end gap-3 pt-3 border-t border-subtle">
             <Button variant="secondary" onClick={() => setIsModalOpen(false)}>
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button type="submit" variant="primary">
-              Save Retrospective
+              {t('reports.saveReview')}
             </Button>
           </div>
         </form>
@@ -363,19 +363,19 @@ export const Reports = () => {
       <Modal
         isOpen={!!deleteId}
         onClose={() => setDeleteId(null)}
-        title="Confirm Deletion"
-        subtitle="This action cannot be undone."
+        title={t('common.confirmDeleteTitle')}
+        subtitle={t('common.confirmDeleteDesc')}
       >
         <div className="space-y-4">
           <p className="text-sm text-secondary">
-            Are you sure you want to delete this retrospective? It will be permanently removed.
+            {t('reports.deleteReviewDesc')}
           </p>
           <div className="flex justify-end gap-3 pt-3 border-t border-subtle">
             <Button variant="secondary" onClick={() => setDeleteId(null)}>
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button variant="danger" onClick={handleDeleteReview}>
-              Delete
+              {t('common.delete')}
             </Button>
           </div>
         </div>

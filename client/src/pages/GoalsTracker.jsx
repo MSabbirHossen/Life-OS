@@ -248,9 +248,9 @@ export const GoalsTracker = () => {
         ) : filteredGoals.length === 0 ? (
           <EmptyState
             icon={Target}
-            title="No goals found"
-            description="Create your first goal and link daily habits to measure your trajectory."
-            actionText="Create Goal"
+            title={t('goals.noGoalsFound')}
+            description={t('goals.noGoalsDesc')}
+            actionText={t('goals.addGoal')}
             onAction={openCreateModal}
           />
         ) : (
@@ -264,14 +264,14 @@ export const GoalsTracker = () => {
                     <button
                       onClick={() => handleEditGoal(goal)}
                       className="p-1.5 rounded-lg bg-surface/90 dark:bg-surface/90 backdrop-blur-xs border border-theme/60 text-secondary hover:text-accent hover:border-accent/40 hover:bg-accent/10 shadow-xs transition-all cursor-pointer"
-                      title="Edit Goal"
+                      title={t('common.edit')}
                     >
                       <Edit2 className="w-3.5 h-3.5" />
                     </button>
                     <button
                       onClick={() => setDeleteId(goal._id)}
                       className="p-1.5 rounded-lg bg-surface/90 dark:bg-surface/90 backdrop-blur-xs border border-theme/60 text-secondary hover:text-rose-600 hover:border-rose-500/40 hover:bg-rose-500/10 shadow-xs transition-all cursor-pointer"
-                      title="Delete Goal"
+                      title={t('common.delete')}
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
@@ -281,7 +281,7 @@ export const GoalsTracker = () => {
                 <div className="space-y-4 pb-2">
                   <div className="flex items-center justify-between gap-2">
                     <Badge variant={goal.type?.includes('long') ? 'purple' : 'primary'} size="xs" dot>
-                      {goal.type?.includes('long') ? 'Long-Term' : 'Short-Term'}
+                      {goal.type?.includes('long') ? t('goals.longTerm') : t('goals.shortTerm')}
                     </Badge>
                     <Badge variant="neutral" size="xs">
                       {goal.category}
@@ -301,7 +301,7 @@ export const GoalsTracker = () => {
                     <div className="flex items-center justify-between text-xs font-bold">
                       <span className="text-secondary flex items-center gap-1.5">
                         <TrendingUp className="w-3.5 h-3.5 text-accent" />
-                        Overall Progress
+                        {t('goals.overallProgress')}
                       </span>
                       <span className="text-accent font-extrabold">{goal.progressPercent || 0}%</span>
                     </div>
@@ -313,8 +313,8 @@ export const GoalsTracker = () => {
                     </div>
                     {goal.targetCompletions && (
                       <div className="flex items-center justify-between text-[11px] text-secondary font-medium">
-                        <span>Habit Consistency:</span>
-                        <span>{goal.totalCompletedCount || 0} / {goal.targetCompletions || 30} days</span>
+                        <span>{t('goals.habitConsistency')}</span>
+                        <span>{goal.totalCompletedCount || 0} / {goal.targetCompletions || 30} {t('common.days')}</span>
                       </div>
                     )}
                   </div>
@@ -325,10 +325,10 @@ export const GoalsTracker = () => {
                       <div className="flex items-center justify-between text-[11px] font-bold">
                         <span className="text-secondary flex items-center gap-1">
                           <CheckCircle2 className="w-3 h-3 text-emerald-500" />
-                          Today's Linked Habits
+                          {t('goals.todaysLinkedHabits')}
                         </span>
                         <span className={goal.todayLinkedHabitsCompleted >= goal.todayLinkedHabitsTotal ? 'text-emerald-500' : 'text-primary'}>
-                          {goal.todayLinkedHabitsCompleted || 0} / {goal.todayLinkedHabitsTotal || goal.linkedHabitIds.length} done
+                          {goal.todayLinkedHabitsCompleted || 0} / {goal.todayLinkedHabitsTotal || goal.linkedHabitIds.length} {t('goals.done')}
                         </span>
                       </div>
                       <div className="flex flex-wrap gap-1.5 pt-0.5">
@@ -345,7 +345,7 @@ export const GoalsTracker = () => {
                               }`}
                             >
                               {isDoneToday && <Check className="w-2.5 h-2.5 text-emerald-500" />}
-                              {h.name || 'Habit'}
+                              {h.name || t('goals.habit')}
                             </span>
                           );
                         })}
@@ -356,7 +356,7 @@ export const GoalsTracker = () => {
                   {goal.targetDate && (
                     <div className="flex items-center gap-1.5 text-xs text-secondary font-medium pt-2 border-t border-subtle">
                       <Calendar className="w-3.5 h-3.5 text-muted shrink-0" />
-                      <span>Target: {goal.targetDate}</span>
+                      <span>{t('goals.targetDate')}: {goal.targetDate}</span>
                     </div>
                   )}
                 </div>
@@ -370,14 +370,14 @@ export const GoalsTracker = () => {
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        title={editingGoalId ? 'Edit Vision Goal' : 'Create Vision Goal'}
+        title={editingGoalId ? `${t('common.edit')} ${t('goals.title')}` : t('goals.addGoal')}
         subtitle={editingGoalId ? 'Update targets and linked habits' : 'Set clear targets and link daily habits to auto-track progress'}
         maxWidth="max-w-xl"
       >
         <form onSubmit={handleCreateGoal} className="space-y-4">
           <div>
             <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5">
-              Goal Title
+              {t('common.appName')} - {t('goals.title')}
             </label>
             <input
               type="text"
@@ -392,21 +392,21 @@ export const GoalsTracker = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5">
-                Horizon Type
+                {t('goals.horizonType')}
               </label>
               <select
                 value={type}
                 onChange={(e) => setType(e.target.value)}
                 className="select-base"
               >
-                <option value="short_term">Short-Term (1-3 months)</option>
-                <option value="long_term">Long-Term (6-12+ months)</option>
+                <option value="short_term">{t('goals.shortTerm')}</option>
+                <option value="long_term">{t('goals.longTerm')}</option>
               </select>
             </div>
 
             <div>
               <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5">
-                Category
+                {t('common.category')}
               </label>
               <select
                 value={category}
@@ -424,14 +424,15 @@ export const GoalsTracker = () => {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <DateInput
-              label="Target Deadline (Optional)"
+              label={t('goals.targetDate')}
               value={targetDate}
               onChange={setTargetDate}
+              required
             />
 
             <div>
               <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5">
-                Target Days to Accomplish
+                {t('goals.targetDays')}
               </label>
               <input
                 type="number"
@@ -447,40 +448,39 @@ export const GoalsTracker = () => {
 
           <div>
             <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5">
-              Description / Action Plan
+              {t('common.notes')} ({t('common.optional')})
             </label>
             <textarea
               rows={2}
-              placeholder="What concrete steps will get you to this milestone?"
+              placeholder="Why this goal matters and strategic approach..."
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               className="textarea-base"
             />
           </div>
 
-          {/* Enhanced Linked Habits Selector */}
-          <div>
-            <div className="flex items-center justify-between mb-1.5">
-              <label className="block text-xs font-bold text-secondary uppercase tracking-wider">
-                Link Daily Habits ({linkedHabits.length} selected)
+          {/* Connected Habits Section */}
+          <div className="pt-2 border-t border-subtle">
+            <div className="flex items-center justify-between mb-2">
+              <label className="text-xs font-bold text-secondary uppercase tracking-wider flex items-center gap-1.5">
+                <Link2 className="w-3.5 h-3.5 text-accent" /> {t('goals.linkHabits')}
               </label>
-              <span className="text-[11px] text-accent font-semibold">
-                Auto-advances goal progress
+              <span className="text-[11px] text-muted">
+                {selectedHabitIds.length} {t('goals.linkedHabitsCount')}
               </span>
             </div>
 
-            {availableHabits.length === 0 ? (
-              <div className="p-3 text-center text-xs text-secondary italic bg-subtle rounded-xl border border-theme">
-                No active habits found. Create a habit in /habits first to link it to this goal.
-              </div>
+            {habits.length === 0 ? (
+              <p className="text-xs text-muted italic">
+                {t('goals.noHabitsToLink')}
+              </p>
             ) : (
               <div className="space-y-2">
-                {/* Search Bar for Habits */}
                 <div className="relative">
-                  <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-secondary" />
+                  <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-muted" />
                   <input
                     type="text"
-                    placeholder="Search habits to link..."
+                    placeholder="Search habits to connect..."
                     value={habitSearch}
                     onChange={(e) => setHabitSearch(e.target.value)}
                     className="input-base pl-8 py-1.5 text-xs"
@@ -530,10 +530,10 @@ export const GoalsTracker = () => {
 
           <div className="flex justify-end gap-3 pt-3 border-subtle border-t">
             <Button variant="secondary" onClick={() => setIsModalOpen(false)}>
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button type="submit" variant="primary">
-              {editingGoalId ? 'Update Goal' : 'Create Goal'}
+              {editingGoalId ? t('common.update') : t('common.create')}
             </Button>
           </div>
         </form>
@@ -543,19 +543,19 @@ export const GoalsTracker = () => {
       <Modal
         isOpen={!!deleteId}
         onClose={() => setDeleteId(null)}
-        title="Confirm Deletion"
-        subtitle="This action cannot be undone."
+        title={t('common.confirmDeleteTitle')}
+        subtitle={t('common.confirmDeleteDesc')}
       >
         <div className="space-y-4">
           <p className="text-sm text-secondary">
-            Are you sure you want to delete this goal milestone?
+            {t('goals.deleteGoalDesc')}
           </p>
           <div className="flex justify-end gap-3 pt-3 border-t border-subtle">
             <Button variant="secondary" onClick={() => setDeleteId(null)}>
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button variant="danger" onClick={handleDeleteGoal}>
-              Delete
+              {t('common.delete')}
             </Button>
           </div>
         </div>

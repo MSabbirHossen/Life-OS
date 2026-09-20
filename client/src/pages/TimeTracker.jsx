@@ -216,32 +216,32 @@ export const TimeTracker = ({ selectedDate }) => {
           color="indigo"
         />
         <StatCard
-          title="Top Category"
+          title={t('time.topCategory')}
           value={
             Object.entries(summary.byCategory || {}).sort((a, b) => b[1] - a[1])[0]?.[0] || 'None'
           }
-          subtitle="Highest logged focus"
+          subtitle={t('time.highestLoggedFocus')}
           icon={Layers}
           color="purple"
         />
         <StatCard
-          title="Productive Hours"
+          title={t('time.productiveHours')}
           value={`${Math.floor(((summary.byCategory?.Work || 0) + (summary.byCategory?.Study || 0)) / 60)}h ${((summary.byCategory?.Work || 0) + (summary.byCategory?.Study || 0)) % 60}m`}
-          subtitle="Work + Study time"
+          subtitle={t('time.workStudyTime')}
           icon={Sparkles}
           color="emerald"
         />
         <StatCard
-          title="Health & Deen"
+          title={t('time.healthAndDeen')}
           value={`${Math.floor(((summary.byCategory?.Fitness || 0) + (summary.byCategory?.Islamic || 0)) / 60)}h ${((summary.byCategory?.Fitness || 0) + (summary.byCategory?.Islamic || 0)) % 60}m`}
-          subtitle="Fitness + Deen time"
+          subtitle={t('time.fitnessDeenTime')}
           icon={Clock}
           color="cyan"
         />
       </div>
 
       {/* Category Breakdown Chips */}
-      <Card title="Category Breakdown" subtitle="Time allocation by category">
+      <Card title={t('time.categoryBreakdown')} subtitle={t('time.timeAllocationCategory')}>
         <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3 mt-2">
           {CATEGORIES.map((cat) => {
             const mins = summary.byCategory?.[cat] || 0;
@@ -267,7 +267,7 @@ export const TimeTracker = ({ selectedDate }) => {
       {/* Time Logs Timeline */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-bold text-primary tracking-tight">Logged Time Blocks</h2>
+          <h2 className="text-lg font-bold text-primary tracking-tight">{t('time.todaysLogs')}</h2>
           <span className="text-xs font-semibold text-secondary">{logs.length} blocks</span>
         </div>
 
@@ -278,9 +278,9 @@ export const TimeTracker = ({ selectedDate }) => {
         ) : logs.length === 0 ? (
           <EmptyState
             icon={Clock}
-            title="No time logs recorded today"
-            description="Start by logging your first time block (e.g. Deep Work, Study, Workout)."
-            actionText="Log Time Block"
+            title={t('time.noTimeLogsToday')}
+            description={t('time.noTimeLogsDesc')}
+            actionText={t('time.startTimer')}
             onAction={openCreateModal}
           />
         ) : (
@@ -294,14 +294,14 @@ export const TimeTracker = ({ selectedDate }) => {
                     <button
                       onClick={() => openEditModal(log)}
                       className="p-1.5 rounded-lg bg-surface/90 dark:bg-surface/90 backdrop-blur-xs border border-theme/60 text-secondary hover:text-accent hover:border-accent/40 hover:bg-accent/10 shadow-xs transition-all cursor-pointer"
-                      title="Edit Log"
+                      title={t('time.editLog')}
                     >
                       <Edit2 className="w-3.5 h-3.5" />
                     </button>
                     <button
                       onClick={() => setDeleteId(log._id)}
                       className="p-1.5 rounded-lg bg-surface/90 dark:bg-surface/90 backdrop-blur-xs border border-theme/60 text-secondary hover:text-rose-600 hover:border-rose-500/40 hover:bg-rose-500/10 shadow-xs transition-all cursor-pointer"
-                      title="Delete Log"
+                      title={t('time.deleteLog')}
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
@@ -335,7 +335,7 @@ export const TimeTracker = ({ selectedDate }) => {
 
                   {log.isOverlap && (
                     <div className="flex items-center gap-1.5 text-[11px] font-bold text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2 py-1 rounded-lg">
-                      <AlertTriangle className="w-3.5 h-3.5 shrink-0" /> Overlaps another block
+                      <AlertTriangle className="w-3.5 h-3.5 shrink-0" /> {t('time.overlapsBlock')}
                     </div>
                   )}
                 </div>
@@ -349,18 +349,18 @@ export const TimeTracker = ({ selectedDate }) => {
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        title={editingLog ? 'Edit Time Block' : 'Log Time Block'}
+        title={editingLog ? `${t('common.edit')} ${t('time.title')}` : `${t('common.add')} ${t('time.title')}`}
         subtitle={`Schedule task for ${formatDisplayDate(formDate)}`}
       >
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="relative">
             <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5">
-              Task Title / Activity Name
+              {t('time.taskName')}
             </label>
             <input
               type="text"
               required
-              placeholder="e.g. Backend API Refactoring, System Design Study"
+              placeholder={t('time.taskPlaceholder')}
               value={title}
               onChange={(e) => {
                 setTitle(e.target.value);
@@ -390,7 +390,7 @@ export const TimeTracker = ({ selectedDate }) => {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <DateInput
-              label="Date"
+              label={t('common.date')}
               value={formDate}
               onChange={setFormDate}
               required
@@ -398,7 +398,7 @@ export const TimeTracker = ({ selectedDate }) => {
 
             <div>
               <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5">
-                Category
+                {t('common.category')}
               </label>
               <select
                 value={category}
@@ -417,7 +417,7 @@ export const TimeTracker = ({ selectedDate }) => {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5">
-                Start Time
+                {t('time.startTime')}
               </label>
               <input
                 type="time"
@@ -431,14 +431,14 @@ export const TimeTracker = ({ selectedDate }) => {
             <div>
               <div className="flex items-center justify-between mb-1.5">
                 <label className="text-xs font-bold text-secondary uppercase tracking-wider">
-                  End Time
+                  {t('time.endTime')}
                 </label>
                 <button
                   type="button"
                   onClick={handleSetEndTimeToNow}
                   className="text-[11px] font-bold text-accent hover:underline flex items-center gap-1 cursor-pointer"
                 >
-                  <Zap className="w-3 h-3" /> Set to Now
+                  <Zap className="w-3 h-3" /> {t('time.setToNow')}
                 </button>
               </div>
               <input
@@ -452,19 +452,19 @@ export const TimeTracker = ({ selectedDate }) => {
           </div>
 
           <div className="p-3 bg-subtle rounded-2xl border border-theme flex items-center justify-between">
-            <span className="text-xs font-bold text-secondary">Automatic Computed Duration</span>
+            <span className="text-xs font-bold text-secondary">{t('time.computedDuration')}</span>
             <span className="text-sm font-extrabold text-accent">
-              {Math.floor(liveDuration / 60)}h {liveDuration % 60}m ({liveDuration} mins)
+              {Math.floor(liveDuration / 60)}h {liveDuration % 60}m ({liveDuration} {t('common.minutes')})
             </span>
           </div>
 
           <div>
             <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5">
-              Notes (Optional)
+              {t('common.notes')} ({t('common.optional')})
             </label>
             <input
               type="text"
-              placeholder="Key achievements or notes during this block..."
+              placeholder={t('time.notesPlaceholder')}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               className="input-base"
@@ -473,10 +473,10 @@ export const TimeTracker = ({ selectedDate }) => {
 
           <div className="flex justify-end gap-3 pt-3 border-t border-subtle">
             <Button variant="secondary" onClick={() => setIsModalOpen(false)}>
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button type="submit" variant="primary" loading={saving}>
-              {editingLog ? 'Update Block' : 'Save Time Block'}
+              {editingLog ? t('common.update') : t('common.save')}
             </Button>
           </div>
         </form>
@@ -486,19 +486,19 @@ export const TimeTracker = ({ selectedDate }) => {
       <Modal
         isOpen={!!deleteId}
         onClose={() => setDeleteId(null)}
-        title="Confirm Deletion"
-        subtitle="This action cannot be undone."
+        title={t('common.confirmDeleteTitle')}
+        subtitle={t('common.confirmDeleteDesc')}
       >
         <div className="space-y-4">
           <p className="text-sm text-secondary">
-            Are you sure you want to delete this time block? It will be permanently removed.
+            {t('time.deleteTimeDesc')}
           </p>
           <div className="flex justify-end gap-3 pt-3 border-t border-subtle">
             <Button variant="secondary" onClick={() => setDeleteId(null)}>
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button variant="danger" onClick={handleDelete}>
-              Delete
+              {t('common.delete')}
             </Button>
           </div>
         </div>

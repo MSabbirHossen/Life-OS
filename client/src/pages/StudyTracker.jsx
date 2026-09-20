@@ -785,12 +785,12 @@ export const StudyTracker = ({ selectedDate }) => {
       <Modal
         isOpen={isSessionModalOpen}
         onClose={() => setIsSessionModalOpen(false)}
-        title="Log Study Session"
-        subtitle={`Record focus session for ${formatDisplayDate(sessionDate || activeDate)}`}
+        title={editingSessionId ? t('study.updateSession') : t('study.logSession')}
+        subtitle={`${t('study.logSessionSubtitle')} ${formatDisplayDate(sessionDate || activeDate)}`}
       >
         <form onSubmit={handleCreateSession} className="space-y-4">
           <DateInput
-            label="Session Date"
+            label={t('study.sessionDate')}
             value={sessionDate}
             onChange={setSessionDate}
             required
@@ -798,12 +798,12 @@ export const StudyTracker = ({ selectedDate }) => {
 
           <div>
             <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5">
-              Subject / Topic
+              {t('study.subjectTopic')}
             </label>
             <input
               type="text"
               required
-              placeholder="e.g. System Design, Algorithms, Physics"
+              placeholder={t('study.subjectPlaceholder')}
               value={subject}
               onChange={(e) => setSubject(e.target.value)}
               className="input-base"
@@ -820,17 +820,17 @@ export const StudyTracker = ({ selectedDate }) => {
           {topics.length > 0 && (
             <div>
               <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5">
-                Attach to Planned Topic (Optional)
+                {t('study.attachTopic')}
               </label>
               <select
                 value={selectedTopicId}
                 onChange={(e) => handleTopicSelectionInSession(e.target.value)}
                 className="select-base"
               >
-                <option value="">None (Independent Study)</option>
-                {topics.map((t) => (
-                  <option key={t._id} value={t._id}>
-                    [{t.subject}] {t.title} ({t.completedChapters || 0}/{t.totalChapters || 1} ch)
+                <option value="">{t('study.noneIndependent')}</option>
+                {topics.map((tItem) => (
+                  <option key={tItem._id} value={tItem._id}>
+                    [{tItem.subject}] {tItem.title} ({tItem.completedChapters || 0}/{tItem.totalChapters || 1} ch)
                   </option>
                 ))}
               </select>
@@ -842,14 +842,14 @@ export const StudyTracker = ({ selectedDate }) => {
             <div>
               <div className="flex items-center justify-between mb-1.5">
                 <label className="text-xs font-bold text-secondary uppercase tracking-wider">
-                  Start Time
+                  {t('study.startTime')}
                 </label>
                 <button
                   type="button"
                   onClick={handleSetStartNow}
                   className="inline-flex items-center gap-1 text-[11px] font-bold text-accent hover:text-accent-hover transition-colors"
                 >
-                  <Play className="w-3 h-3" /> Start Now
+                  <Play className="w-3 h-3" /> {t('study.startNow')}
                 </button>
               </div>
               <input
@@ -863,14 +863,14 @@ export const StudyTracker = ({ selectedDate }) => {
             <div>
               <div className="flex items-center justify-between mb-1.5">
                 <label className="text-xs font-bold text-secondary uppercase tracking-wider">
-                  End Time
+                  {t('study.endTime')}
                 </label>
                 <button
                   type="button"
                   onClick={handleSetEndNow}
                   className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600 dark:text-emerald-400 hover:opacity-80 transition-colors"
                 >
-                  <Square className="w-3 h-3" /> End Now
+                  <Square className="w-3 h-3" /> {t('study.endNow')}
                 </button>
               </div>
               <input
@@ -884,11 +884,11 @@ export const StudyTracker = ({ selectedDate }) => {
 
           <div>
             <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5">
-              Resource Link / Material URL
+              {t('study.resourceLink')}
             </label>
             <input
               type="text"
-              placeholder="e.g. https://coursera.org/learn/react, docs.nestjs.com"
+              placeholder={t('study.resourcePlaceholder')}
               value={resource}
               onChange={(e) => setResource(e.target.value)}
               className="input-base"
@@ -898,7 +898,7 @@ export const StudyTracker = ({ selectedDate }) => {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5">
-                Duration (Minutes)
+                {t('study.durationMinutes')}
               </label>
               <input
                 type="number"
@@ -913,7 +913,7 @@ export const StudyTracker = ({ selectedDate }) => {
 
             <div>
               <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5">
-                Progress ({progressPercent}%)
+                {t('study.progress')} ({progressPercent}%)
               </label>
               <input
                 type="range"
@@ -930,14 +930,14 @@ export const StudyTracker = ({ selectedDate }) => {
           {goals.length > 0 && (
             <div>
               <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5">
-                Link to Goal (Optional)
+                {t('study.linkToGoal')}
               </label>
               <select
                 value={selectedGoalId}
                 onChange={(e) => setSelectedGoalId(e.target.value)}
                 className="select-base"
               >
-                <option value="">None (Independent Study)</option>
+                <option value="">{t('study.noneIndependent')}</option>
                 {goals.map((g) => (
                   <option key={g._id} value={g._id}>
                     {g.title}
@@ -949,11 +949,11 @@ export const StudyTracker = ({ selectedDate }) => {
 
           <div>
             <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5">
-              Notes & Key Takeaways (Optional)
+              {t('study.takeaways')}
             </label>
             <textarea
               rows={2}
-              placeholder="What core ideas did you learn?"
+              placeholder={t('study.takeawaysPlaceholder')}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               className="textarea-base"
@@ -962,10 +962,10 @@ export const StudyTracker = ({ selectedDate }) => {
 
           <div className="flex justify-end gap-3 pt-3 border-t border-subtle">
             <Button variant="secondary" onClick={() => setIsSessionModalOpen(false)}>
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button type="submit" variant="primary" loading={savingSession}>
-              {editingSessionId ? 'Update Session' : 'Save Session'}
+              {editingSessionId ? t('study.updateSession') : t('study.saveSession')}
             </Button>
           </div>
         </form>
@@ -975,18 +975,18 @@ export const StudyTracker = ({ selectedDate }) => {
       <Modal
         isOpen={isTopicModalOpen}
         onClose={() => setIsTopicModalOpen(false)}
-        title={editingTopicId ? 'Edit Chapter / Topic Plan' : 'Plan Chapter / Topic Backlog'}
-        subtitle={editingTopicId ? 'Update chapter counts, subtopics, and status' : 'Organize syllabus, configure chapters, and eliminate study backlogs'}
+        title={editingTopicId ? t('study.editTopicPlan') : t('study.planTopicBacklog')}
+        subtitle={editingTopicId ? t('study.editTopicSubtitle') : t('study.planTopicSubtitle')}
       >
         <form onSubmit={handleCreateTopic} className="space-y-4">
           <div>
             <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5">
-              Subject Name
+              {t('study.subjectName')}
             </label>
             <input
               type="text"
               required
-              placeholder="e.g. Distributed Systems, Calculus"
+              placeholder={t('study.subjectPlaceholder')}
               value={topicSubject}
               onChange={(e) => setTopicSubject(e.target.value)}
               className="input-base"
@@ -1001,12 +1001,12 @@ export const StudyTracker = ({ selectedDate }) => {
 
           <div>
             <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5">
-              Topic / Syllabus Title
+              {t('study.topicTitle')}
             </label>
             <input
               type="text"
               required
-              placeholder="e.g. System Design: Scalability, Consensus & Caching"
+              placeholder={t('study.topicPlaceholder')}
               value={topicTitle}
               onChange={(e) => setTopicTitle(e.target.value)}
               className="input-base"
@@ -1017,7 +1017,7 @@ export const StudyTracker = ({ selectedDate }) => {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5">
-                Total Chapters Count
+                {t('study.totalChapters')}
               </label>
               <input
                 type="number"
@@ -1032,7 +1032,7 @@ export const StudyTracker = ({ selectedDate }) => {
 
             <div>
               <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5">
-                Already Completed Chapters
+                {t('study.completedChapters')}
               </label>
               <input
                 type="number"
@@ -1049,12 +1049,12 @@ export const StudyTracker = ({ selectedDate }) => {
           {/* Sub-topics Input Builder */}
           <div>
             <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5">
-              Sub-topics / Sections Checklist (Optional)
+              {t('study.subtopicsChecklist')}
             </label>
             <div className="flex gap-2">
               <input
                 type="text"
-                placeholder="e.g. 1. Master-Worker Architecture"
+                placeholder={t('study.subtopicPlaceholder')}
                 value={newSubtopicInput}
                 onChange={(e) => setNewSubtopicInput(e.target.value)}
                 onKeyDown={(e) => {
@@ -1066,7 +1066,7 @@ export const StudyTracker = ({ selectedDate }) => {
                 className="input-base flex-1"
               />
               <Button type="button" variant="secondary" size="sm" onClick={handleAddSubtopicToDraft}>
-                Add Sub-topic
+                {t('study.addSubtopic')}
               </Button>
             </div>
 
@@ -1091,21 +1091,21 @@ export const StudyTracker = ({ selectedDate }) => {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5">
-                Initial Status
+                {t('study.initialStatus')}
               </label>
               <select
                 value={topicStatus}
                 onChange={(e) => setTopicStatus(e.target.value)}
                 className="select-base"
               >
-                <option value="backlog">Backlog</option>
-                <option value="in_progress">In Progress</option>
-                <option value="completed">Completed</option>
+                <option value="backlog">{t('study.backlog')}</option>
+                <option value="in_progress">{t('study.inProgress')}</option>
+                <option value="completed">{t('study.completed')}</option>
               </select>
             </div>
 
             <DateInput
-              label="Target Date"
+              label={t('study.targetDate')}
               value={topicTargetDate}
               onChange={setTopicTargetDate}
             />
@@ -1113,7 +1113,7 @@ export const StudyTracker = ({ selectedDate }) => {
 
           <div>
             <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5">
-              Notes (Optional)
+              {t('common.notes')} ({t('common.optional')})
             </label>
             <input
               type="text"
@@ -1126,10 +1126,10 @@ export const StudyTracker = ({ selectedDate }) => {
 
           <div className="flex justify-end gap-3 pt-3 border-t border-subtle">
             <Button variant="secondary" onClick={() => setIsTopicModalOpen(false)}>
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button type="submit" variant="primary" loading={savingTopic}>
-              {editingTopicId ? 'Update Topic Plan' : 'Save Topic'}
+              {editingTopicId ? t('study.updateTopic') : t('study.saveTopic')}
             </Button>
           </div>
         </form>
@@ -1139,19 +1139,19 @@ export const StudyTracker = ({ selectedDate }) => {
       <Modal
         isOpen={!!deleteSessionId}
         onClose={() => setDeleteSessionId(null)}
-        title="Confirm Deletion"
-        subtitle="This action cannot be undone."
+        title={t('common.confirmDeleteTitle')}
+        subtitle={t('common.confirmDeleteDesc')}
       >
         <div className="space-y-4">
           <p className="text-sm text-secondary">
-            Are you sure you want to delete this study session? It will be permanently removed.
+            {t('study.deleteSessionDesc')}
           </p>
           <div className="flex justify-end gap-3 pt-3 border-t border-subtle">
             <Button variant="secondary" onClick={() => setDeleteSessionId(null)}>
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button variant="danger" onClick={handleDeleteSession}>
-              Delete
+              {t('common.delete')}
             </Button>
           </div>
         </div>
@@ -1161,19 +1161,19 @@ export const StudyTracker = ({ selectedDate }) => {
       <Modal
         isOpen={!!deleteTopicId}
         onClose={() => setDeleteTopicId(null)}
-        title="Confirm Deletion"
-        subtitle="This action cannot be undone."
+        title={t('common.confirmDeleteTitle')}
+        subtitle={t('common.confirmDeleteDesc')}
       >
         <div className="space-y-4">
           <p className="text-sm text-secondary">
-            Are you sure you want to delete this planned chapter topic?
+            {t('study.deleteTopicDesc')}
           </p>
           <div className="flex justify-end gap-3 pt-3 border-t border-subtle">
             <Button variant="secondary" onClick={() => setDeleteTopicId(null)}>
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button variant="danger" onClick={handleDeleteTopic}>
-              Delete
+              {t('common.delete')}
             </Button>
           </div>
         </div>

@@ -354,30 +354,30 @@ export const QadaMatrix = () => {
       {/* Top Stat Strip */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
         <StatCard
-          title="Total Qada Owed"
+          title={t('qada.totalQadaOwed')}
           value={totalOwedAll}
-          subtitle="Lifetime missed prayers logged"
+          subtitle={t('qada.lifetimeMissedLogged')}
           icon={AlertCircle}
           color="rose"
         />
         <StatCard
-          title="Prayers Made Up"
+          title={t('qada.prayersMadeUp')}
           value={totalCompletedAll}
-          subtitle="Completed Qada prayers"
+          subtitle={t('qada.completedQadaPrayers')}
           icon={CheckCircle2}
           color="emerald"
         />
         <StatCard
-          title="Remaining Debt"
+          title={t('qada.remainingDebt')}
           value={totalRemainingAll}
-          subtitle="Remaining to fulfill"
+          subtitle={t('qada.totalRemaining')}
           icon={Clock}
           color="amber"
         />
         <StatCard
-          title="Fulfillment Progress"
+          title={t('qada.clearanceProgress')}
           value={`${overallProgressPercent}%`}
-          subtitle="Overall make-up trajectory"
+          subtitle={t('qada.qadaCompletionRatio')}
           icon={Compass}
           color="indigo"
         />
@@ -622,14 +622,15 @@ export const QadaMatrix = () => {
       </Card>
 
       {/* Edit Baseline Modal */}
+      {/* Edit Baseline Modal */}
       {editPrayer && (() => {
         const editCalcDays = calculateDays(qadaStartDate, qadaEndDate);
         return (
           <Modal
             isOpen={true}
             onClose={() => setEditPrayer(null)}
-            title={`Edit ${editPrayer} Qada Baseline`}
-            subtitle="Update lifetime missed prayers count or calculate from dates"
+            title={`${t('common.edit')} ${editPrayer} ${t('qada.editQadaBaseline')}`}
+            subtitle={t('qada.editQadaSubtitle')}
             maxWidth="md"
           >
             <form onSubmit={handleSaveEdit} className="space-y-4">
@@ -638,18 +639,15 @@ export const QadaMatrix = () => {
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold text-primary flex items-center gap-1.5">
                     <Calculator className="w-4 h-4 text-emerald-500" />
-                    Calculate from Qada Date Range
+                    {t('qada.calcFromRange')}
                   </span>
-                  <Badge variant="neutral" size="xs">Date Helper</Badge>
+                  <Badge variant="neutral" size="xs">{t('qada.dateHelper')}</Badge>
                 </div>
-                {/* <p className="text-[11px] text-secondary">
-                  Enter the start and end dates when prayers were missed to automatically calculate total owed days.
-                </p> */}
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <DateInput
                     id="qada-start-date"
-                    label="Start Date"
+                    label={t('qada.startDate')}
                     value={qadaStartDate}
                     onChange={(val) => {
                       setQadaStartDate(val);
@@ -659,7 +657,7 @@ export const QadaMatrix = () => {
                   />
                   <DateInput
                     id="qada-end-date"
-                    label="End Date"
+                    label={t('qada.endDate')}
                     value={qadaEndDate}
                     onChange={(val) => {
                       setQadaEndDate(val);
@@ -671,7 +669,7 @@ export const QadaMatrix = () => {
 
                 {/* Quick Presets */}
                 <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
-                  <span className="text-[10px] text-secondary font-bold uppercase tracking-wider">Quick Presets:</span>
+                  <span className="text-[10px] text-secondary font-bold uppercase tracking-wider">{t('qada.quickPresets')}</span>
                   {[
                     { label: '3 Months', months: 3 },
                     { label: '6 Months', months: 6 },
@@ -693,14 +691,14 @@ export const QadaMatrix = () => {
                 {editCalcDays > 0 && (
                   <div className="flex items-center justify-between text-xs p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
                     <span className="text-secondary text-[11px]">
-                      Calculated: <strong className="text-emerald-600 dark:text-emerald-400 font-extrabold">{editCalcDays} days</strong> ({formatDuration(editCalcDays)})
+                      {t('qada.calcSummary')}: <strong className="text-emerald-600 dark:text-emerald-400 font-extrabold">{editCalcDays} {t('qada.days')}</strong> ({formatDuration(editCalcDays)})
                     </span>
                     <button
                       type="button"
                       onClick={() => setTotalOwedInput(editCalcDays)}
                       className="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-emerald-500 text-white hover:bg-emerald-600 transition-colors cursor-pointer shadow-xs"
                     >
-                      Use {editCalcDays} Prayers
+                      {t('qada.usePrayers').replace('{count}', editCalcDays)}
                     </button>
                   </div>
                 )}
@@ -708,7 +706,7 @@ export const QadaMatrix = () => {
 
               <div>
                 <label className="block text-xs font-bold text-secondary mb-1">
-                  Total Owed (Lifetime Missed)
+                  {t('qada.totalOwed')}
                 </label>
                 <input
                   type="number"
@@ -720,13 +718,13 @@ export const QadaMatrix = () => {
                   required
                 />
                 <span className="text-[11px] text-secondary mt-1 block">
-                  Total {editPrayer} prayers required to be made up.
+                  {t('qada.totalOwedDesc')}
                 </span>
               </div>
 
               <div>
                 <label className="block text-xs font-bold text-secondary mb-1">
-                  Total Already Completed (Made-up)
+                  {t('qada.totalCompleted')}
                 </label>
                 <input
                   type="number"
@@ -747,19 +745,19 @@ export const QadaMatrix = () => {
                     onChange={(e) => setApplyToAllPrayers(e.target.checked)}
                     className="rounded border-theme text-emerald-500 focus:ring-emerald-500 cursor-pointer"
                   />
-                  <span>Apply this Total Owed ({totalOwedInput || 0}) to all 6 prayers</span>
+                  <span>{t('qada.applyToAllPrayers')} ({totalOwedInput || 0})</span>
                 </label>
                 <p className="text-[11px] text-secondary ml-5 mt-0.5">
-                  Synchronizes Fajr, Dhuhr, Asr, Maghrib, Isha, and Witr to the same baseline debt.
+                  {t('qada.applyToAllDesc')}
                 </p>
               </div>
 
               <div className="flex justify-end gap-2 pt-3 border-t border-theme">
                 <Button variant="ghost" size="md" type="button" onClick={() => setEditPrayer(null)}>
-                  Cancel
+                  {t('common.cancel')}
                 </Button>
                 <Button variant="primary" size="md" type="submit" loading={savingEdit}>
-                  Save Baseline
+                  {t('qada.saveBaseline')}
                 </Button>
               </div>
             </form>
@@ -791,8 +789,8 @@ export const QadaMatrix = () => {
           <Modal
             isOpen={true}
             onClose={() => setIsCalculatorOpen(false)}
-            title="Lifetime Qada Calculator"
-            subtitle="Calculate missed prayers based on the dates of obligation until regular observance"
+            title={t('qada.lifetimeQadaCalc')}
+            subtitle={t('qada.lifetimeQadaSubtitle')}
             maxWidth="lg"
           >
             <form onSubmit={handleApplyCalculator} className="space-y-4">
@@ -800,9 +798,9 @@ export const QadaMatrix = () => {
               <div className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-xs text-secondary flex items-start gap-2.5">
                 <Compass className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
                 <div>
-                  <p className="font-bold text-primary">Islamic Fiqh Method for Qada-e-Umri:</p>
+                  <p className="font-bold text-primary">{t('qada.fiqhMethodTitle')}</p>
                   <p className="mt-1 text-[11px] leading-relaxed">
-                    Set the <strong>Start Date</strong> when prayers became obligatory upon reaching puberty (Bulugh), or when prayers stopped being offered, and the <strong>End Date</strong> when regular daily prayers resumed.
+                    {t('qada.fiqhMethodDesc')}
                   </p>
                 </div>
               </div>
@@ -811,14 +809,14 @@ export const QadaMatrix = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <DateInput
                   id="calc-start-date"
-                  label="Start Date"
+                  label={t('qada.startDate')}
                   value={calcStartDate}
                   onChange={setCalcStartDate}
                   required
                 />
                 <DateInput
                   id="calc-end-date"
-                  label="End Date"
+                  label={t('qada.endDate')}
                   value={calcEndDate}
                   onChange={setCalcEndDate}
                   required
@@ -827,7 +825,7 @@ export const QadaMatrix = () => {
 
               {/* Quick Duration Shortcuts */}
               <div className="flex items-center gap-1.5 flex-wrap">
-                <span className="text-[10px] text-secondary font-bold uppercase tracking-wider">Quick Duration:</span>
+                <span className="text-[10px] text-secondary font-bold uppercase tracking-wider">{t('qada.quickDuration')}</span>
                 {[
                   { label: '6 Months', months: 6 },
                   { label: '1 Year', months: 12 },
@@ -851,9 +849,9 @@ export const QadaMatrix = () => {
               <div>
                 <div className="flex items-center justify-between mb-1">
                   <label className="text-xs font-bold text-secondary">
-                    Excused Days to Deduct (Optional)
+                    {t('qada.excusedDays')}
                   </label>
-                  <span className="text-[10px] text-secondary">e.g. Haiz days, illness, or travel</span>
+                  <span className="text-[10px] text-secondary">{t('qada.excusedDaysDesc')}</span>
                 </div>
                 <input
                   type="number"
@@ -871,7 +869,7 @@ export const QadaMatrix = () => {
                 <div className="p-4 rounded-2xl bg-subtle border border-theme space-y-3">
                   <div className="flex items-center justify-between flex-wrap gap-2">
                     <span className="text-xs font-bold text-secondary uppercase tracking-wider">
-                      Calculation Summary
+                      {t('qada.calcSummary')}
                     </span>
                     <Badge variant="success" size="xs">
                       {formatDuration(netDays)}
@@ -880,31 +878,31 @@ export const QadaMatrix = () => {
 
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                     <div className="p-3 rounded-xl bg-surface border border-theme">
-                      <span className="text-[11px] text-secondary block font-medium">Calendar Duration</span>
-                      <span className="text-base font-extrabold text-primary">{rawDays} days</span>
+                      <span className="text-[11px] text-secondary block font-medium">{t('qada.calendarDuration')}</span>
+                      <span className="text-base font-extrabold text-primary">{rawDays} {t('qada.days')}</span>
                     </div>
                     <div className="p-3 rounded-xl bg-surface border border-theme">
-                      <span className="text-[11px] text-secondary block font-medium">Net Days Owed</span>
-                      <span className="text-base font-extrabold text-emerald-600 dark:text-emerald-400">{netDays} days</span>
+                      <span className="text-[11px] text-secondary block font-medium">{t('qada.netDaysOwed')}</span>
+                      <span className="text-base font-extrabold text-emerald-600 dark:text-emerald-400">{netDays} {t('qada.days')}</span>
                     </div>
                     <div className="p-3 rounded-xl bg-surface border border-theme col-span-2 sm:col-span-1">
-                      <span className="text-[11px] text-secondary block font-medium">Owed Per Prayer</span>
-                      <span className="text-base font-extrabold text-accent">{netDays} prayers</span>
+                      <span className="text-[11px] text-secondary block font-medium">{t('qada.owedPerPrayer')}</span>
+                      <span className="text-base font-extrabold text-accent">{netDays} {t('qada.prayers')}</span>
                     </div>
                   </div>
 
                   <div className="flex items-center justify-between pt-2 border-t border-theme text-xs">
                     <span className="text-secondary font-medium">
-                      Total Across Selected Prayers ({calcSelectedPrayers.length}):
+                      {t('qada.totalAcrossSelected')} ({calcSelectedPrayers.length}):
                     </span>
                     <span className="text-base font-black text-rose-600 dark:text-rose-400">
-                      {totalAllPrayers.toLocaleString()} prayers
+                      {totalAllPrayers.toLocaleString()} {t('qada.prayers')}
                     </span>
                   </div>
                 </div>
               ) : (
                 <div className="py-6 text-center text-xs text-secondary italic bg-subtle/50 rounded-xl border border-dashed border-theme">
-                  Select valid Start and End dates above to preview your calculated Qada totals.
+                  {t('qada.selectDatesPrompt')}
                 </div>
               )}
 
@@ -912,14 +910,14 @@ export const QadaMatrix = () => {
               <div className="space-y-2 pt-1">
                 <div className="flex items-center justify-between">
                   <label className="text-xs font-bold text-secondary">
-                    Apply Calculated Days to Selected Prayers:
+                    {t('qada.applyToSelected')}
                   </label>
                   <button
                     type="button"
                     onClick={toggleAllPrayers}
                     className="text-[11px] font-bold text-accent hover:underline cursor-pointer"
                   >
-                    {calcSelectedPrayers.length === ALL_PRAYERS.length ? 'Deselect All' : 'Select All (6 Prayers)'}
+                    {calcSelectedPrayers.length === ALL_PRAYERS.length ? t('qada.deselectAll') : t('qada.selectAll')}
                   </button>
                 </div>
 
@@ -942,7 +940,7 @@ export const QadaMatrix = () => {
                         />
                         <span className="text-xs">{p}</span>
                         {p === 'Witr' && (
-                          <Badge variant="purple" size="xs" className="ml-auto text-[9px]">Wajib</Badge>
+                          <Badge variant="purple" size="xs" className="ml-auto text-[9px]">{t('qada.wajib')}</Badge>
                         )}
                       </label>
                     );
@@ -953,7 +951,7 @@ export const QadaMatrix = () => {
               {/* Actions */}
               <div className="flex justify-end gap-2 pt-3 border-t border-theme">
                 <Button variant="ghost" size="md" type="button" onClick={() => setIsCalculatorOpen(false)}>
-                  Cancel
+                  {t('common.cancel')}
                 </Button>
                 <Button
                   variant="primary"
@@ -963,7 +961,7 @@ export const QadaMatrix = () => {
                   disabled={netDays <= 0 || calcSelectedPrayers.length === 0}
                   icon={CheckCircle2}
                 >
-                  Apply {netDays > 0 ? `${netDays} Days` : ''} to Selected Prayers
+                  {t('qada.applyDaysToSelected')}
                 </Button>
               </div>
             </form>
@@ -978,13 +976,13 @@ export const QadaMatrix = () => {
           setIsVowModalOpen(false);
           setEditingVowId(null);
         }}
-        title={editingVowId ? 'Edit Spiritual Vow (Nazr / Niyyah)' : 'Record New Spiritual Vow (Nazr / Niyyah)'}
+        title={editingVowId ? t('qada.editSpiritualVow') : t('qada.recordNewVow')}
         maxWidth="md"
       >
         <form onSubmit={handleSaveVow} className="space-y-4">
           <div>
             <label className="block text-xs font-bold text-secondary mb-1">
-              Vow Description / Resolution *
+              {t('qada.vowDescriptionReq')}
             </label>
             <input
               type="text"
@@ -997,20 +995,20 @@ export const QadaMatrix = () => {
           </div>
           <div className="grid grid-cols-2 gap-3">
             <DateInput
-              label="Target Date"
+              label={t('common.target')}
               value={vowTargetDate}
               onChange={setVowTargetDate}
             />
             <div>
               <label className="block text-xs font-bold text-secondary mb-1">
-                Related Salah
+                {t('qada.relatedSalah')}
               </label>
               <select
                 value={vowRelatedSalah}
                 onChange={(e) => setVowRelatedSalah(e.target.value)}
                 className="select-base"
               >
-                <option value="All">All Prayers</option>
+                <option value="All">{t('qada.allPrayers')}</option>
                 {ALL_PRAYERS.map((p) => (
                   <option key={p} value={p}>
                     {p}
@@ -1021,12 +1019,12 @@ export const QadaMatrix = () => {
           </div>
           <div>
             <label className="block text-xs font-bold text-secondary mb-1">
-              Personal Notes / Intention
+              {t('qada.vowNotes')}
             </label>
             <textarea
               value={vowNotes}
               onChange={(e) => setVowNotes(e.target.value)}
-              placeholder="Specific conditions or spiritual motivation..."
+              placeholder={t('qada.vowNotesPlaceholder')}
               className="textarea-base min-h-[60px]"
             />
           </div>
@@ -1040,10 +1038,10 @@ export const QadaMatrix = () => {
                 setEditingVowId(null);
               }}
             >
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button variant="gradient" size="md" type="submit" loading={savingVow}>
-              {editingVowId ? 'Update Vow' : 'Record Vow'}
+              {editingVowId ? t('islamic.updateVow') : t('islamic.saveVow')}
             </Button>
           </div>
         </form>

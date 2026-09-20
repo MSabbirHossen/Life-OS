@@ -1043,8 +1043,8 @@ export const FitnessTracker = ({ selectedDate }) => {
       <Modal
         isOpen={isWorkoutModalOpen}
         onClose={() => setIsWorkoutModalOpen(false)}
-        title={editingWorkoutId ? 'Edit Workout Log' : 'Log Exercise / Workout'}
-        subtitle={editingWorkoutId ? 'Update exercises, sets, reps, and energy burn' : 'Smart autocomplete with auto-deduced sets, reps, weight, duration, and MET calorie burns'}
+        title={editingWorkoutId ? t('fitness.editWorkout') : t('fitness.logWorkout')}
+        subtitle={editingWorkoutId ? t('fitness.editWorkoutSubtitle') : t('fitness.logWorkoutSubtitle')}
         maxWidth="max-w-2xl"
       >
         <form onSubmit={handleWorkoutSubmit} className="space-y-4">
@@ -1064,7 +1064,7 @@ export const FitnessTracker = ({ selectedDate }) => {
                   : 'text-secondary hover:text-primary'
               }`}
             >
-              <span>🏋️</span> Sets & Reps (Strength)
+              <span>🏋️</span> {t('fitness.setsAndReps')}
             </button>
             <button
               type="button"
@@ -1079,7 +1079,7 @@ export const FitnessTracker = ({ selectedDate }) => {
                   : 'text-secondary hover:text-primary'
               }`}
             >
-              <span>⏱️</span> Time & Duration (Cardio/Sports)
+              <span>⏱️</span> {t('fitness.timeAndDuration')}
             </button>
           </div>
 
@@ -1087,22 +1087,22 @@ export const FitnessTracker = ({ selectedDate }) => {
           <div className="space-y-3">
             <div>
               <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5">
-                Target Category
+                {t('fitness.targetCategory')}
               </label>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                {TARGET_TYPES.map((t) => {
-                  const conf = TARGET_CONFIG[t] || { icon: '🎯', label: t, color: 'indigo' };
-                  const isSelected = wTarget === t;
+                {TARGET_TYPES.map((tCat) => {
+                  const conf = TARGET_CONFIG[tCat] || { icon: '🎯', label: tCat, color: 'indigo' };
+                  const isSelected = wTarget === tCat;
                   return (
                     <button
                       type="button"
-                      key={t}
+                      key={tCat}
                       onClick={() => {
-                        setWTarget(t);
-                        if ((t === 'Cardio' || t === 'Sports' || t === 'Flexibility') && wTrackingType === 'sets_reps') {
+                        setWTarget(tCat);
+                        if ((tCat === 'Cardio' || tCat === 'Sports' || tCat === 'Flexibility') && wTrackingType === 'sets_reps') {
                           setWTrackingType('duration');
                           if (!wDuration) setWDuration(30);
-                        } else if (t === 'Muscle' && wTrackingType === 'duration') {
+                        } else if (tCat === 'Muscle' && wTrackingType === 'duration') {
                           setWTrackingType('sets_reps');
                           if (!wSets) setWSets(3);
                           if (!wReps) setWReps(10);
@@ -1115,7 +1115,7 @@ export const FitnessTracker = ({ selectedDate }) => {
                       }`}
                     >
                       <span className="text-base">{conf.icon}</span>
-                      <span>{t}</span>
+                      <span>{tCat}</span>
                     </button>
                   );
                 })}
@@ -1123,7 +1123,7 @@ export const FitnessTracker = ({ selectedDate }) => {
             </div>
 
             <DateInput
-              label="Workout Date"
+              label={t('fitness.workoutDate')}
               value={wDate}
               onChange={setWDate}
               required
@@ -1134,12 +1134,12 @@ export const FitnessTracker = ({ selectedDate }) => {
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <label className="block text-xs font-bold text-secondary uppercase tracking-wider">
-                Exercise Name (Search server library)
+                {t('fitness.searchServerLib')}
               </label>
               {selectedWorkoutType && (
                 <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1">
                   <CheckCircle2 className="w-3 h-3" />
-                  Auto-deduced from {selectedWorkoutType.source || 'Verified Library'}
+                  {t('fitness.autoDeducedFrom')} {selectedWorkoutType.source || t('fitness.verifiedLibrary')}
                 </span>
               )}
             </div>
@@ -1151,7 +1151,7 @@ export const FitnessTracker = ({ selectedDate }) => {
               <input
                 type="text"
                 required
-                placeholder="Search exercise e.g. Bench Press, Squats, Running, Jump Rope..."
+                placeholder={t('fitness.searchExercisePlaceholder')}
                 value={wName}
                 onChange={(e) => {
                   setWName(e.target.value);
@@ -1186,7 +1186,7 @@ export const FitnessTracker = ({ selectedDate }) => {
             {/* Popular Staples Quick Chips */}
             <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar pt-0.5">
               <span className="text-[10px] font-bold text-secondary uppercase shrink-0 mr-1 flex items-center gap-1">
-                <Sparkles className="w-3 h-3 text-accent" /> Staples:
+                <Sparkles className="w-3 h-3 text-accent" /> {t('calories.staples')}
               </span>
               {POPULAR_WORKOUT_STAPLES.map((staple) => {
                 const isCurrent = selectedWorkoutType?.name === staple.name || wName === staple.name;
@@ -1213,9 +1213,9 @@ export const FitnessTracker = ({ selectedDate }) => {
               <div className="p-2.5 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-start gap-2 text-[11px] text-indigo-700 dark:text-indigo-300">
                 <Sparkles className="w-3.5 h-3.5 text-indigo-500 shrink-0 mt-0.5" />
                 <div>
-                  <span className="font-bold block">New Custom Exercise</span>
+                  <span className="font-bold block">{t('fitness.newCustomExercise')}</span>
                   <span className="text-secondary text-[10px]">
-                    Set your target Sets, Reps / Set, Weight (kg), or Duration below. Life OS will calculate your energy burn and save this exercise to your routine for future logs!
+                    {t('fitness.customExerciseDesc')}
                   </span>
                 </div>
               </div>
@@ -1243,8 +1243,8 @@ export const FitnessTracker = ({ selectedDate }) => {
                       </div>
                       <span className="text-[11px] text-secondary font-medium">
                         {wt.trackingType === 'duration'
-                          ? `⏱️ ${wt.defaultDuration || 30} mins`
-                          : `🏋️ ${wt.defaultSets || 3} sets × ${wt.defaultReps || 10} reps ${wt.defaultWeight ? `@ ${wt.defaultWeight}kg` : ''}`}
+                          ? `⏱️ ${wt.defaultDuration || 30} ${t('common.minutes')}`
+                          : `🏋️ ${wt.defaultSets || 3} ${t('fitness.sets')} × ${wt.defaultReps || 10} ${t('fitness.reps')} ${wt.defaultWeight ? `@ ${wt.defaultWeight}kg` : ''}`}
                         {wt.met ? ` · MET: ${wt.met}` : ''}
                       </span>
                     </div>
@@ -1272,9 +1272,9 @@ export const FitnessTracker = ({ selectedDate }) => {
                   >
                     <span className="flex items-center gap-1.5">
                       <Sparkles className="w-3.5 h-3.5" />
-                      Set custom workout parameters for "{wName}"
+                      {t('fitness.setCustomExercise')} "{wName}"
                     </span>
-                    <Badge variant="primary" size="xs">Custom Item</Badge>
+                    <Badge variant="primary" size="xs">{t('fitness.customBadge')}</Badge>
                   </div>
                 )}
               </div>
@@ -1286,11 +1286,11 @@ export const FitnessTracker = ({ selectedDate }) => {
             <div className="space-y-3 p-4 bg-subtle/50 rounded-2xl border border-theme">
               <div className="flex items-center justify-between">
                 <span className="text-[11px] font-extrabold text-secondary uppercase tracking-wider flex items-center gap-1.5">
-                  <Dumbbell className="w-3.5 h-3.5 text-accent" /> Strength Configuration
+                  <Dumbbell className="w-3.5 h-3.5 text-accent" /> {t('fitness.setsAndReps')}
                 </span>
                 {(!wSets || !wReps) && (
                   <span className="text-[10px] text-amber-600 dark:text-amber-400 font-bold flex items-center gap-1">
-                    <Info className="w-3 h-3" /> Please set sets & reps
+                    <Info className="w-3 h-3" /> {t('fitness.missingSetsOrReps')}
                   </span>
                 )}
               </div>
@@ -1299,7 +1299,7 @@ export const FitnessTracker = ({ selectedDate }) => {
                 {/* Sets */}
                 <div className="p-2.5 rounded-xl bg-surface border border-theme shadow-xs">
                   <label className="block text-[10px] font-bold text-secondary uppercase tracking-wider mb-1">
-                    Sets
+                    {t('fitness.sets')}
                   </label>
                   <input
                     type="number"
@@ -1322,7 +1322,7 @@ export const FitnessTracker = ({ selectedDate }) => {
                             : 'bg-subtle text-secondary hover:text-primary border-theme'
                         }`}
                       >
-                        {s} sets
+                        {s}
                       </button>
                     ))}
                   </div>
@@ -1331,7 +1331,7 @@ export const FitnessTracker = ({ selectedDate }) => {
                 {/* Reps */}
                 <div className="p-2.5 rounded-xl bg-surface border border-theme shadow-xs">
                   <label className="block text-[10px] font-bold text-secondary uppercase tracking-wider mb-1">
-                    Reps / Set
+                    {t('fitness.reps')}
                   </label>
                   <input
                     type="number"
@@ -1363,7 +1363,7 @@ export const FitnessTracker = ({ selectedDate }) => {
                 {/* Weight */}
                 <div className="p-2.5 rounded-xl bg-surface border border-theme shadow-xs">
                   <label className="block text-[10px] font-bold text-secondary uppercase tracking-wider mb-1">
-                    Lifted Weight ({unitSystem === 'metric' ? 'kg' : 'lbs'})
+                    {t('fitness.weight')} ({unitSystem === 'metric' ? 'kg' : 'lbs'})
                   </label>
                   <input
                     type="number"
@@ -1397,7 +1397,7 @@ export const FitnessTracker = ({ selectedDate }) => {
                 <div className="p-2 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-start gap-2 text-[10px] text-amber-700 dark:text-amber-300">
                   <Info className="w-3.5 h-3.5 text-amber-500 shrink-0 mt-0.5" />
                   <span>
-                    <strong>Missing Sets or Reps:</strong> Enter your target Sets and Reps / Set so Life OS can calculate your total volume and energy expenditure.
+                    {t('fitness.missingSetsOrReps')}
                   </span>
                 </div>
               )}
@@ -1406,11 +1406,11 @@ export const FitnessTracker = ({ selectedDate }) => {
             <div className="space-y-3 p-4 bg-subtle/50 rounded-2xl border border-theme">
               <div className="flex items-center justify-between">
                 <span className="text-[11px] font-extrabold text-secondary uppercase tracking-wider flex items-center gap-1.5">
-                  <Timer className="w-3.5 h-3.5 text-rose-500" /> Duration Configuration
+                  <Timer className="w-3.5 h-3.5 text-rose-500" /> {t('fitness.timeAndDuration')}
                 </span>
                 {!wDuration && (
                   <span className="text-[10px] text-amber-600 dark:text-amber-400 font-bold flex items-center gap-1">
-                    <Info className="w-3 h-3" /> Please set duration
+                    <Info className="w-3 h-3" /> {t('fitness.missingDuration')}
                   </span>
                 )}
               </div>
@@ -1418,9 +1418,9 @@ export const FitnessTracker = ({ selectedDate }) => {
               <div className="p-2.5 rounded-xl bg-surface border border-theme shadow-xs">
                 <div className="flex items-center justify-between mb-1">
                   <label className="block text-[10px] font-bold text-secondary uppercase tracking-wider">
-                    Workout Duration
+                    {t('fitness.durationMinutes')}
                   </label>
-                  <span className="text-[9px] text-secondary font-semibold">minutes</span>
+                  <span className="text-[9px] text-secondary font-semibold">{t('common.minutes')}</span>
                 </div>
                 <input
                   type="number"
@@ -1444,7 +1444,7 @@ export const FitnessTracker = ({ selectedDate }) => {
                           : 'bg-subtle text-secondary hover:text-primary border-theme'
                       }`}
                     >
-                      {d} min
+                      {d} {t('common.minutes')}
                     </button>
                   ))}
                 </div>
@@ -1455,7 +1455,7 @@ export const FitnessTracker = ({ selectedDate }) => {
                 <div className="p-2 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-start gap-2 text-[10px] text-amber-700 dark:text-amber-300">
                   <Info className="w-3.5 h-3.5 text-amber-500 shrink-0 mt-0.5" />
                   <span>
-                    <strong>Missing Duration:</strong> Enter your workout Duration in minutes to calculate MET-based calorie burn.
+                    {t('fitness.missingDuration')}
                   </span>
                 </div>
               )}
@@ -1468,19 +1468,19 @@ export const FitnessTracker = ({ selectedDate }) => {
               <div className="flex items-center gap-2">
                 <Flame className="w-4 h-4 text-rose-500" />
                 <span className="text-xs font-bold text-secondary uppercase tracking-wider">
-                  Live Calorie Estimation
+                  {t('fitness.liveCalorieEstimation')}
                 </span>
                 <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-rose-500/10 text-rose-600 dark:text-rose-400 font-extrabold border border-rose-500/20">
                   {wTrackingType === 'sets_reps'
                     ? `${wSets || 0}s × ${wReps || 0}r ${wWeight ? `@ ${wWeight}kg` : ''}`
-                    : `${wDuration || 0} mins`}
+                    : `${wDuration || 0} ${t('common.minutes')}`}
                 </span>
               </div>
               <div className="flex items-baseline gap-1">
                 <span className="text-2xl font-black text-rose-600 dark:text-rose-400 tracking-tight">
                   ~{estimatedCalories}
                 </span>
-                <span className="text-xs font-bold text-secondary">kcal</span>
+                <span className="text-xs font-bold text-secondary">{t('common.calories')}</span>
               </div>
             </div>
 
@@ -1490,7 +1490,7 @@ export const FitnessTracker = ({ selectedDate }) => {
 
             <div>
               <label className="block text-[10px] font-bold text-secondary mb-1">
-                Custom Calorie Override (Leave blank to use calculated ~{estimatedCalories} kcal)
+                {t('fitness.customCalorieOverride')}
               </label>
               <input
                 type="number"
@@ -1504,11 +1504,11 @@ export const FitnessTracker = ({ selectedDate }) => {
 
           <div>
             <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5">
-              Notes (Optional)
+              {t('common.notes')} ({t('common.optional')})
             </label>
             <input
               type="text"
-              placeholder="e.g. Good form, increased resistance, peak heart rate"
+              placeholder={t('fitness.notesPlaceholder')}
               value={wNotes}
               onChange={(e) => setWNotes(e.target.value)}
               className="input-base"
@@ -1517,10 +1517,10 @@ export const FitnessTracker = ({ selectedDate }) => {
 
           <div className="flex justify-end gap-3 pt-3 border-t border-subtle">
             <Button variant="secondary" onClick={() => setIsWorkoutModalOpen(false)}>
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button type="submit" variant="primary" loading={savingWorkout}>
-              {editingWorkoutId ? 'Update Workout' : 'Save Exercise'}
+              {editingWorkoutId ? t('fitness.updateWorkout') : t('fitness.saveExercise')}
             </Button>
           </div>
         </form>
@@ -1530,11 +1530,11 @@ export const FitnessTracker = ({ selectedDate }) => {
       <Modal
         isOpen={isMetricModalOpen}
         onClose={() => setIsMetricModalOpen(false)}
-        title={editingMetricId ? 'Edit Body Measurements' : 'Log Body Measurements'}
+        title={editingMetricId ? t('fitness.editMeasurements') : t('fitness.logMeasurements')}
         subtitle={
           editingMetricId
-            ? 'Update weight, height, body fat %, and body circumferences'
-            : 'Track weight, height, body fat %, and physical dimensions with live multi-metric progress charts'
+            ? t('fitness.editMeasurementsSubtitle')
+            : t('fitness.logMeasurementsSubtitle')
         }
         maxWidth="max-w-2xl"
       >
@@ -1550,7 +1550,7 @@ export const FitnessTracker = ({ selectedDate }) => {
                   : 'text-secondary hover:text-primary'
               }`}
             >
-              <span>⚖️</span> Metric (kg, cm)
+              <span>⚖️</span> {t('fitness.metricUnit')}
             </button>
             <button
               type="button"
@@ -1561,12 +1561,12 @@ export const FitnessTracker = ({ selectedDate }) => {
                   : 'text-secondary hover:text-primary'
               }`}
             >
-              <span>📏</span> Imperial (lbs, in)
+              <span>📏</span> {t('fitness.imperialUnit')}
             </button>
           </div>
 
           <DateInput
-            label="Measurement Date"
+            label={t('fitness.workoutDate')}
             value={mDate}
             onChange={setMDate}
             required
@@ -1576,9 +1576,9 @@ export const FitnessTracker = ({ selectedDate }) => {
           <div className="space-y-3 p-3.5 bg-subtle/50 rounded-2xl border border-theme">
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-extrabold text-secondary uppercase tracking-wider flex items-center gap-1.5">
-                <Scale className="w-3.5 h-3.5 text-accent" /> Core Body Vitals
+                <Scale className="w-3.5 h-3.5 text-accent" /> {t('fitness.coreBodyVitals')}
               </span>
-              <span className="text-[10px] text-accent font-bold">Primary & Essential</span>
+              <span className="text-[10px] text-accent font-bold">{t('fitness.primaryEssential')}</span>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -1586,9 +1586,9 @@ export const FitnessTracker = ({ selectedDate }) => {
               <div className="p-2.5 rounded-xl bg-surface border border-theme shadow-xs">
                 <div className="flex items-center justify-between mb-1">
                   <label className="block text-[10px] font-bold text-secondary uppercase tracking-wider">
-                    Weight ({unitSystem === 'metric' ? 'kg' : 'lbs'})
+                    {t('fitness.weight')} ({unitSystem === 'metric' ? 'kg' : 'lbs'})
                   </label>
-                  <span className="text-[9px] text-accent font-bold">Primary</span>
+                  <span className="text-[9px] text-accent font-bold">{t('fitness.primary')}</span>
                 </div>
                 <div className="flex items-center gap-1">
                   <input
@@ -1624,9 +1624,9 @@ export const FitnessTracker = ({ selectedDate }) => {
               <div className="p-2.5 rounded-xl bg-surface border border-theme shadow-xs">
                 <div className="flex items-center justify-between mb-1">
                   <label className="block text-[10px] font-bold text-secondary uppercase tracking-wider">
-                    Height ({unitSystem === 'metric' ? 'cm' : 'in'})
+                    {t('fitness.height')} ({unitSystem === 'metric' ? 'cm' : 'in'})
                   </label>
-                  <span className="text-[9px] text-secondary font-semibold">Optional</span>
+                  <span className="text-[9px] text-secondary font-semibold">{t('common.optional')}</span>
                 </div>
                 <input
                   type="number"
@@ -1642,9 +1642,9 @@ export const FitnessTracker = ({ selectedDate }) => {
               <div className="p-2.5 rounded-xl bg-surface border border-theme shadow-xs">
                 <div className="flex items-center justify-between mb-1">
                   <label className="block text-[10px] font-bold text-secondary uppercase tracking-wider">
-                    Body Fat %
+                    {t('fitness.bodyFat')}
                   </label>
-                  <span className="text-[9px] text-secondary font-semibold">Optional</span>
+                  <span className="text-[9px] text-secondary font-semibold">{t('common.optional')}</span>
                 </div>
                 <input
                   type="number"
@@ -1664,10 +1664,10 @@ export const FitnessTracker = ({ selectedDate }) => {
           <div className="space-y-3 p-3.5 bg-subtle/50 rounded-2xl border border-theme">
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-extrabold text-secondary uppercase tracking-wider flex items-center gap-1.5">
-                <Activity className="w-3.5 h-3.5 text-indigo-500" /> Upper Body Circumferences
+                <Activity className="w-3.5 h-3.5 text-indigo-500" /> {t('fitness.upperBodyCircumferences')}
               </span>
               <span className="text-[10px] text-secondary font-semibold">
-                Unit: {unitSystem === 'metric' ? 'cm' : 'inches'} (Optional)
+                Unit: {unitSystem === 'metric' ? 'cm' : 'inches'} ({t('common.optional')})
               </span>
             </div>
 
@@ -1675,7 +1675,7 @@ export const FitnessTracker = ({ selectedDate }) => {
               {/* Chest */}
               <div className="p-2 rounded-xl bg-surface border border-theme shadow-xs">
                 <label className="block text-[10px] font-bold text-secondary uppercase tracking-wider mb-1">
-                  Chest
+                  {t('fitness.chest')}
                 </label>
                 <input
                   type="number"
@@ -1690,7 +1690,7 @@ export const FitnessTracker = ({ selectedDate }) => {
               {/* Waist */}
               <div className="p-2 rounded-xl bg-surface border border-theme shadow-xs">
                 <label className="block text-[10px] font-bold text-secondary uppercase tracking-wider mb-1">
-                  Waist
+                  {t('fitness.waist')}
                 </label>
                 <input
                   type="number"
@@ -1705,7 +1705,7 @@ export const FitnessTracker = ({ selectedDate }) => {
               {/* Arms / Biceps */}
               <div className="p-2 rounded-xl bg-surface border border-theme shadow-xs">
                 <label className="block text-[10px] font-bold text-secondary uppercase tracking-wider mb-1">
-                  Arms / Biceps
+                  {t('fitness.arms')}
                 </label>
                 <input
                   type="number"
@@ -1720,7 +1720,7 @@ export const FitnessTracker = ({ selectedDate }) => {
               {/* Shoulders */}
               <div className="p-2 rounded-xl bg-surface border border-theme shadow-xs">
                 <label className="block text-[10px] font-bold text-secondary uppercase tracking-wider mb-1">
-                  Shoulders
+                  {t('fitness.shoulders')}
                 </label>
                 <input
                   type="number"
@@ -1735,7 +1735,7 @@ export const FitnessTracker = ({ selectedDate }) => {
               {/* Neck */}
               <div className="p-2 rounded-xl bg-surface border border-theme shadow-xs sm:col-span-2">
                 <label className="block text-[10px] font-bold text-secondary uppercase tracking-wider mb-1">
-                  Neck
+                  {t('fitness.neck')}
                 </label>
                 <input
                   type="number"
@@ -1753,10 +1753,10 @@ export const FitnessTracker = ({ selectedDate }) => {
           <div className="space-y-3 p-3.5 bg-subtle/50 rounded-2xl border border-theme">
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-extrabold text-secondary uppercase tracking-wider flex items-center gap-1.5">
-                <Zap className="w-3.5 h-3.5 text-teal-500" /> Lower Body Circumferences
+                <Zap className="w-3.5 h-3.5 text-teal-500" /> {t('fitness.lowerBodyCircumferences')}
               </span>
               <span className="text-[10px] text-secondary font-semibold">
-                Unit: {unitSystem === 'metric' ? 'cm' : 'inches'} (Optional)
+                Unit: {unitSystem === 'metric' ? 'cm' : 'inches'} ({t('common.optional')})
               </span>
             </div>
 
@@ -1764,7 +1764,7 @@ export const FitnessTracker = ({ selectedDate }) => {
               {/* Hips */}
               <div className="p-2 rounded-xl bg-surface border border-theme shadow-xs">
                 <label className="block text-[10px] font-bold text-secondary uppercase tracking-wider mb-1">
-                  Hips
+                  {t('fitness.hips')}
                 </label>
                 <input
                   type="number"
@@ -1779,7 +1779,7 @@ export const FitnessTracker = ({ selectedDate }) => {
               {/* Thighs */}
               <div className="p-2 rounded-xl bg-surface border border-theme shadow-xs">
                 <label className="block text-[10px] font-bold text-secondary uppercase tracking-wider mb-1">
-                  Thighs
+                  {t('fitness.thighs')}
                 </label>
                 <input
                   type="number"
@@ -1794,7 +1794,7 @@ export const FitnessTracker = ({ selectedDate }) => {
               {/* Calves */}
               <div className="p-2 rounded-xl bg-surface border border-theme shadow-xs">
                 <label className="block text-[10px] font-bold text-secondary uppercase tracking-wider mb-1">
-                  Calves
+                  {t('fitness.calves')}
                 </label>
                 <input
                   type="number"
@@ -1811,11 +1811,11 @@ export const FitnessTracker = ({ selectedDate }) => {
           {/* Section 4: Notes */}
           <div>
             <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5">
-              Notes (Optional)
+              {t('common.notes')} ({t('common.optional')})
             </label>
             <input
               type="text"
-              placeholder="e.g. Morning weigh-in after fasting, post-workout pump"
+              placeholder={t('fitness.measurementNotesPlaceholder')}
               value={mNotes}
               onChange={(e) => setMNotes(e.target.value)}
               className="input-base text-xs"
@@ -1824,10 +1824,10 @@ export const FitnessTracker = ({ selectedDate }) => {
 
           <div className="flex justify-end gap-3 pt-3 border-t border-subtle">
             <Button variant="secondary" onClick={() => setIsMetricModalOpen(false)}>
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button type="submit" variant="primary" loading={savingMetric}>
-              {editingMetricId ? 'Update Measurements' : 'Save Measurements'}
+              {editingMetricId ? t('fitness.updateMeasurements') : t('fitness.saveMeasurements')}
             </Button>
           </div>
         </form>
@@ -1837,19 +1837,19 @@ export const FitnessTracker = ({ selectedDate }) => {
       <Modal
         isOpen={!!deleteWorkoutId}
         onClose={() => setDeleteWorkoutId(null)}
-        title="Confirm Deletion"
-        subtitle="This action cannot be undone."
+        title={t('common.confirmDeleteTitle')}
+        subtitle={t('common.confirmDeleteDesc')}
       >
         <div className="space-y-4">
           <p className="text-sm text-secondary">
-            Are you sure you want to delete this workout log? It will be permanently removed.
+            {t('fitness.deleteWorkoutDesc')}
           </p>
           <div className="flex justify-end gap-3 pt-3 border-t border-subtle">
             <Button variant="secondary" onClick={() => setDeleteWorkoutId(null)}>
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button variant="danger" onClick={handleDeleteWorkout}>
-              Delete
+              {t('common.delete')}
             </Button>
           </div>
         </div>
@@ -1859,19 +1859,19 @@ export const FitnessTracker = ({ selectedDate }) => {
       <Modal
         isOpen={!!deleteMetricId}
         onClose={() => setDeleteMetricId(null)}
-        title="Confirm Deletion"
-        subtitle="This action cannot be undone."
+        title={t('common.confirmDeleteTitle')}
+        subtitle={t('common.confirmDeleteDesc')}
       >
         <div className="space-y-4">
           <p className="text-sm text-secondary">
-            Are you sure you want to delete this body measurement entry?
+            {t('fitness.deleteMeasurementDesc')}
           </p>
           <div className="flex justify-end gap-3 pt-3 border-t border-subtle">
             <Button variant="secondary" onClick={() => setDeleteMetricId(null)}>
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button variant="danger" onClick={handleDeleteMetric}>
-              Delete
+              {t('common.delete')}
             </Button>
           </div>
         </div>

@@ -774,21 +774,21 @@ export const IslamicTracker = ({ selectedDate }) => {
       {/* Spiritual Vows & Commitments */}
       <Card
         hover
-        title="Spiritual Vows & Commitments"
-        subtitle="Active spiritual promises and obligations"
+        title={t('islamic.spiritualVows')}
+        subtitle={t('islamic.spiritualVowsSubtitle')}
         icon={ShieldCheck}
         action={
           <Button variant="outline" size="sm" icon={Plus} onClick={openCreateVowModal}>
-            Add Vow
+            {t('islamic.addVow')}
           </Button>
         }
       >
         {vows.length === 0 ? (
           <EmptyState
             icon={ShieldCheck}
-            title="No spiritual vows recorded"
-            description="Track any personal spiritual commitments or intentions to fulfill."
-            actionText="Create Vow"
+            title={t('islamic.noVowsRecorded')}
+            description={t('islamic.noVowsDesc')}
+            actionText={t('islamic.createVow')}
             onAction={() => setIsVowModalOpen(true)}
           />
         ) : (
@@ -817,7 +817,7 @@ export const IslamicTracker = ({ selectedDate }) => {
                     </span>
                     {v.targetDate && (
                       <span className="text-[11px] text-secondary block">
-                        Target Date: {formatDisplayDate(v.targetDate)}
+                        {t('common.target')}: {formatDisplayDate(v.targetDate)}
                       </span>
                     )}
                   </div>
@@ -827,14 +827,14 @@ export const IslamicTracker = ({ selectedDate }) => {
                   <button
                     onClick={() => handleEditVow(v)}
                     className="p-1.5 rounded-lg text-secondary hover:text-accent hover:bg-accent/10 transition-colors cursor-pointer"
-                    title="Edit Vow"
+                    title={t('common.edit')}
                   >
                     <Edit2 className="w-4 h-4" />
                   </button>
                   <button
                     onClick={() => setDeleteVowId(v._id)}
                     className="p-1.5 rounded-lg text-secondary hover:text-rose-600 hover:bg-rose-500/10 transition-colors cursor-pointer"
-                    title="Delete Vow"
+                    title={t('common.delete')}
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
@@ -849,13 +849,13 @@ export const IslamicTracker = ({ selectedDate }) => {
       <Modal
         isOpen={isHadithModalOpen}
         onClose={() => setIsHadithModalOpen(false)}
-        title={editingHadithId ? 'Edit Hadith & Reflection' : 'Log Hadith & Reflection'}
-        subtitle={editingHadithId ? 'Update prophetic wisdom and personal reflections' : 'Record wisdom from the Sunnah'}
+        title={editingHadithId ? t('islamic.editHadith') : t('islamic.logHadith')}
+        subtitle={editingHadithId ? t('islamic.editHadithSubtitle') : t('islamic.logHadithSubtitle')}
       >
         <form onSubmit={handleCreateHadith} className="space-y-4">
           <div>
             <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5">
-              Hadith Text
+              {t('islamic.hadithText')}
             </label>
             <textarea
               rows={3}
@@ -870,7 +870,7 @@ export const IslamicTracker = ({ selectedDate }) => {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5">
-                Narrator (Optional)
+                {t('islamic.narrator')}
               </label>
               <input
                 type="text"
@@ -883,7 +883,7 @@ export const IslamicTracker = ({ selectedDate }) => {
 
             <div>
               <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5">
-                Book / Reference (Optional)
+                {t('islamic.bookReference')}
               </label>
               <input
                 type="text"
@@ -897,7 +897,7 @@ export const IslamicTracker = ({ selectedDate }) => {
 
           <div>
             <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5">
-              Personal Reflection & Application
+              {t('islamic.personalReflection')}
             </label>
             <textarea
               rows={2}
@@ -910,10 +910,10 @@ export const IslamicTracker = ({ selectedDate }) => {
 
           <div className="flex justify-end gap-3 pt-3 border-t border-subtle">
             <Button variant="secondary" onClick={() => setIsHadithModalOpen(false)}>
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button type="submit" variant="primary">
-              Save Hadith
+              {t('islamic.saveHadith')}
             </Button>
           </div>
         </form>
@@ -923,13 +923,13 @@ export const IslamicTracker = ({ selectedDate }) => {
       <Modal
         isOpen={isVowModalOpen}
         onClose={() => setIsVowModalOpen(false)}
-        title="Record Spiritual Vow"
-        subtitle="Personal commitment or intention"
+        title={t('islamic.recordVow')}
+        subtitle={t('islamic.vowSubtitle')}
       >
         <form onSubmit={handleCreateVow} className="space-y-4">
           <div>
             <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5">
-              Vow Description
+              {t('islamic.vowDesc')}
             </label>
             <input
               type="text"
@@ -942,17 +942,17 @@ export const IslamicTracker = ({ selectedDate }) => {
           </div>
 
           <DateInput
-            label="Target Completion Date"
+            label={t('islamic.vowTargetDate')}
             value={vowTargetDate}
             onChange={setVowTargetDate}
           />
 
           <div className="flex justify-end gap-3 pt-3 border-t border-subtle">
             <Button variant="secondary" onClick={() => setIsVowModalOpen(false)}>
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button type="submit" variant="primary">
-              {editingVowId ? 'Update Vow' : 'Save Vow'}
+              {editingVowId ? t('islamic.updateVow') : t('islamic.saveVow')}
             </Button>
           </div>
         </form>
@@ -962,13 +962,13 @@ export const IslamicTracker = ({ selectedDate }) => {
       <Modal
         isOpen={isQuranModalOpen}
         onClose={() => setIsQuranModalOpen(false)}
-        title={editingQuranId ? 'Edit Quran Recitation' : 'Log Quran Recitation'}
-        subtitle={editingQuranId ? 'Update recitation pages and surah' : `Record recitation for ${formatDisplayDate(activeDate)}`}
+        title={editingQuranId ? t('islamic.editQuran') : t('islamic.logQuran')}
+        subtitle={editingQuranId ? t('islamic.editQuranSubtitle') : `${t('islamic.logQuranSubtitle')} ${formatDisplayDate(activeDate)}`}
       >
         <form onSubmit={handleLogQuran} className="space-y-4">
           <div>
             <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5">
-              Surah Name (Optional)
+              {t('islamic.surahName')}
             </label>
             <input
               type="text"
@@ -982,7 +982,7 @@ export const IslamicTracker = ({ selectedDate }) => {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5">
-                Pages Read
+                {t('islamic.pagesRead')}
               </label>
               <input
                 type="number"
@@ -998,7 +998,7 @@ export const IslamicTracker = ({ selectedDate }) => {
 
             <div>
               <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5">
-                Ayats Read (Optional)
+                {t('islamic.ayatsRead')}
               </label>
               <input
                 type="number"
@@ -1012,10 +1012,10 @@ export const IslamicTracker = ({ selectedDate }) => {
 
           <div className="flex justify-end gap-3 pt-3 border-t border-subtle">
             <Button variant="secondary" onClick={() => setIsQuranModalOpen(false)}>
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button type="submit" variant="primary">
-              {editingQuranId ? 'Update Recitation' : 'Save Recitation'}
+              {editingQuranId ? t('islamic.updateRecitation') : t('islamic.saveRecitation')}
             </Button>
           </div>
         </form>
@@ -1025,19 +1025,19 @@ export const IslamicTracker = ({ selectedDate }) => {
       <Modal
         isOpen={!!deleteQuranId}
         onClose={() => setDeleteQuranId(null)}
-        title="Confirm Deletion"
-        subtitle="This action cannot be undone."
+        title={t('common.confirmDeleteTitle')}
+        subtitle={t('common.confirmDeleteDesc')}
       >
         <div className="space-y-4">
           <p className="text-sm text-secondary">
-            Are you sure you want to delete this Quran recitation log?
+            {t('islamic.deleteQuranDesc')}
           </p>
           <div className="flex justify-end gap-3 pt-3 border-t border-subtle">
             <Button variant="secondary" onClick={() => setDeleteQuranId(null)}>
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button variant="danger" onClick={handleDeleteQuran}>
-              Delete
+              {t('common.delete')}
             </Button>
           </div>
         </div>
@@ -1047,19 +1047,19 @@ export const IslamicTracker = ({ selectedDate }) => {
       <Modal
         isOpen={!!deleteHadithId}
         onClose={() => setDeleteHadithId(null)}
-        title="Confirm Deletion"
-        subtitle="This action cannot be undone."
+        title={t('common.confirmDeleteTitle')}
+        subtitle={t('common.confirmDeleteDesc')}
       >
         <div className="space-y-4">
           <p className="text-sm text-secondary">
-            Are you sure you want to delete this Hadith record?
+            {t('islamic.deleteHadithDesc')}
           </p>
           <div className="flex justify-end gap-3 pt-3 border-t border-subtle">
             <Button variant="secondary" onClick={() => setDeleteHadithId(null)}>
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button variant="danger" onClick={handleDeleteHadith}>
-              Delete
+              {t('common.delete')}
             </Button>
           </div>
         </div>
@@ -1069,19 +1069,19 @@ export const IslamicTracker = ({ selectedDate }) => {
       <Modal
         isOpen={!!deleteVowId}
         onClose={() => setDeleteVowId(null)}
-        title="Confirm Deletion"
-        subtitle="This action cannot be undone."
+        title={t('common.confirmDeleteTitle')}
+        subtitle={t('common.confirmDeleteDesc')}
       >
         <div className="space-y-4">
           <p className="text-sm text-secondary">
-            Are you sure you want to delete this spiritual vow?
+            {t('islamic.deleteVowDesc')}
           </p>
           <div className="flex justify-end gap-3 pt-3 border-t border-subtle">
             <Button variant="secondary" onClick={() => setDeleteVowId(null)}>
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button variant="danger" onClick={handleDeleteVow}>
-              Delete
+              {t('common.delete')}
             </Button>
           </div>
         </div>

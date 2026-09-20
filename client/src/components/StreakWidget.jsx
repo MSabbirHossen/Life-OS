@@ -6,7 +6,7 @@ import { subscribeStreakUpdates } from '../utils/streakEvents';
 import { useLanguage } from '../context/LanguageContext';
 
 export const StreakWidget = ({ compact = false, className = '' }) => {
-  const { t } = useLanguage();
+  const { t, isRTL } = useLanguage();
   const [streakData, setStreakData] = useState({
     currentStreak: 0,
     isSecuredToday: false,
@@ -140,7 +140,7 @@ export const StreakWidget = ({ compact = false, className = '' }) => {
 
       {/* Hover / Click Detail Popover */}
       {showTooltip && (
-        <div className="absolute top-full right-0 mt-2 w-72 sm:w-80 max-w-[calc(100vw-2rem)] p-3.5 bg-surface border border-theme rounded-2xl card-shadow z-50 animate-in fade-in zoom-in-95 duration-150 text-xs">
+        <div className={`absolute top-full ${isRTL ? 'left-0' : 'right-0'} mt-2 w-72 sm:w-80 max-w-[calc(100vw-2rem)] p-3.5 bg-surface border border-theme rounded-2xl card-shadow z-50 animate-in fade-in zoom-in-95 duration-150 text-xs`}>
           <div className="flex items-center gap-2 mb-2 pb-2 border-b border-subtle">
             {isSecuredToday ? (
               <ShieldCheck className="w-4 h-4 text-emerald-500" />

@@ -1,9 +1,10 @@
 import React from 'react';
 import { Calendar, Check } from 'lucide-react';
 import { getFormattedDate, formatDisplayDate } from '../utils/dateHelpers';
+import { useLanguage } from '../context/LanguageContext';
 
 export const DateInput = ({
-  label = 'Date',
+  label,
   value,
   onChange,
   required = false,
@@ -12,6 +13,8 @@ export const DateInput = ({
   id,
   defaultToday = true,
 }) => {
+  const { t } = useLanguage();
+  const displayLabel = label || t('common.date');
   const todayStr = getFormattedDate();
   const currentValue = value !== undefined ? value : (defaultToday ? todayStr : '');
   const isToday = Boolean(currentValue && currentValue === todayStr);
@@ -28,7 +31,7 @@ export const DateInput = ({
           htmlFor={id}
           className="block text-xs font-bold text-secondary uppercase tracking-wider"
         >
-          {label} {required && <span className="text-rose-500">*</span>}
+          {displayLabel} {required && <span className="text-rose-500">*</span>}
         </label>
 
         {/* Quick Today Button */}
@@ -41,10 +44,10 @@ export const DateInput = ({
               ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 cursor-default'
               : 'bg-accent/10 text-accent hover:bg-accent/20 border border-accent/20 active:scale-95'
           }`}
-          title={isToday ? "Date is set to today" : "Set to today's date"}
+          title={isToday ? t('common.today') : t('common.setToday')}
         >
           {isToday ? <Check className="w-3 h-3" /> : <Calendar className="w-3 h-3" />}
-          {isToday ? 'Today' : 'Set Today'}
+          {isToday ? t('common.today') : t('common.setToday')}
         </button>
       </div>
 

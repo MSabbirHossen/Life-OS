@@ -891,18 +891,18 @@ export const FinanceTracker = ({ selectedDate }) => {
       <Modal
         isOpen={isTransactionModalOpen}
         onClose={() => setIsTransactionModalOpen(false)}
-        title={editingTransactionId ? 'Edit Transaction' : formType === 'income' ? 'Log Income' : 'Log Expense'}
-        subtitle={editingTransactionId ? 'Update financial entry details' : `Record transaction (Default: ${defaultCurrency})`}
+        title={editingTransactionId ? t('finance.editTransaction') : formType === 'income' ? t('finance.logIncome') : t('finance.logExpense')}
+        subtitle={editingTransactionId ? t('finance.editTxSubtitle') : `${t('finance.recordTxSubtitle')} (${t('finance.currency')}: ${defaultCurrency})`}
       >
         <form onSubmit={handleCreateTransaction} className="space-y-4">
           <div>
             <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5">
-              Title / Description
+              {t('finance.titleDescription')}
             </label>
             <input
               type="text"
               required
-              placeholder="e.g. Monthly Salary, Grocery Shopping, Coffee"
+              placeholder={t('finance.titlePlaceholder')}
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               className="input-base"
@@ -912,7 +912,7 @@ export const FinanceTracker = ({ selectedDate }) => {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5">
-                Amount
+                {t('finance.amount')}
               </label>
               <input
                 type="number"
@@ -929,7 +929,7 @@ export const FinanceTracker = ({ selectedDate }) => {
             <div>
               <CurrencySelectorInput
                 id="tx-currency"
-                label="Currency"
+                label={t('finance.currency')}
                 value={currency}
                 onChange={setCurrency}
                 availableCurrencies={availableCurrencies}
@@ -940,7 +940,7 @@ export const FinanceTracker = ({ selectedDate }) => {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5">
-                Category
+                {t('common.category')}
               </label>
               <select
                 value={category}
@@ -963,7 +963,7 @@ export const FinanceTracker = ({ selectedDate }) => {
             {formType === 'expense' && NESTED_EXPENSE_CATEGORIES[category] && (
               <div>
                 <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5">
-                  Subcategory
+                  {t('finance.subcategory')}
                 </label>
                 <select
                   value={subCategory}
@@ -981,7 +981,7 @@ export const FinanceTracker = ({ selectedDate }) => {
 
             <div>
               <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5">
-                Payment Method
+                {t('finance.paymentMethod')}
               </label>
               <select
                 value={paymentMethod}
@@ -998,7 +998,7 @@ export const FinanceTracker = ({ selectedDate }) => {
           </div>
 
           <DateInput
-            label="Transaction Date"
+            label={t('finance.txDate')}
             value={formDate}
             onChange={setFormDate}
             required
@@ -1006,11 +1006,11 @@ export const FinanceTracker = ({ selectedDate }) => {
 
           <div>
             <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5">
-              Notes (Optional)
+              {t('common.notes')} ({t('common.optional')})
             </label>
             <input
               type="text"
-              placeholder="e.g. Invoice #1024, Split with friends"
+              placeholder={t('finance.txNotesPlaceholder')}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               className="input-base"
@@ -1019,10 +1019,10 @@ export const FinanceTracker = ({ selectedDate }) => {
 
           <div className="flex justify-end gap-3 pt-3 border-t border-subtle">
             <Button variant="secondary" onClick={() => setIsTransactionModalOpen(false)}>
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button type="submit" variant="primary" loading={savingTx}>
-              {editingTransactionId ? 'Update Transaction' : 'Save Transaction'}
+              {editingTransactionId ? t('finance.updateTransaction') : t('finance.saveTransaction')}
             </Button>
           </div>
         </form>
@@ -1032,13 +1032,13 @@ export const FinanceTracker = ({ selectedDate }) => {
       <Modal
         isOpen={isTransferModalOpen}
         onClose={() => setIsTransferModalOpen(false)}
-        title={isCrossCurrency ? 'Currency Exchange & Transfer' : 'Transfer Funds'}
-        subtitle="Exchange currencies back and forth or move balances between payment methods"
+        title={isCrossCurrency ? t('finance.currencyExchangeAndTransfer') : t('finance.transferFunds')}
+        subtitle={t('finance.transferSubtitle')}
       >
         <form onSubmit={handleCreateTransfer} className="space-y-4">
           <div>
             <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5">
-              Transfer Title (Optional)
+              {t('finance.transferTitle')}
             </label>
             <input
               type="text"
@@ -1060,17 +1060,17 @@ export const FinanceTracker = ({ selectedDate }) => {
               <div className="flex items-center justify-between">
                 <span className="text-xs font-extrabold text-primary uppercase tracking-wider flex items-center gap-1.5">
                   <span className="w-2 h-2 rounded-full bg-rose-500"></span>
-                  From (Send / Outflow)
+                  {t('finance.fromSend')}
                 </span>
                 <span className="text-[11px] text-secondary font-medium">
-                  Source Account
+                  {t('finance.sourceAccount')}
                 </span>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-[11px] font-bold text-secondary uppercase tracking-wider mb-1">
-                    From Method
+                    {t('finance.fromMethod')}
                   </label>
                   <select
                     value={fromMethod}
@@ -1088,7 +1088,7 @@ export const FinanceTracker = ({ selectedDate }) => {
                 <div>
                   <CurrencySelectorInput
                     id="transfer-from-currency"
-                    label="Send Currency"
+                    label={t('finance.sendCurrency')}
                     value={fromCurrency}
                     onChange={handleFromCurrencyChange}
                     availableCurrencies={availableCurrencies}
@@ -1098,7 +1098,7 @@ export const FinanceTracker = ({ selectedDate }) => {
 
               <div>
                 <label className="block text-[11px] font-bold text-secondary uppercase tracking-wider mb-1">
-                  Amount to Send ({fromCurrency})
+                  {t('finance.amountToSend')} ({fromCurrency})
                 </label>
                 <div className="relative">
                   <input
@@ -1130,7 +1130,7 @@ export const FinanceTracker = ({ selectedDate }) => {
                 title="Swap Currencies & Accounts (⇄)"
               >
                 <ArrowLeftRight className="w-3.5 h-3.5 group-hover:rotate-180 transition-transform duration-300" />
-                <span>Swap Currencies (⇄)</span>
+                <span>{t('finance.swapCurrencies')}</span>
               </button>
             </div>
 
@@ -1139,17 +1139,17 @@ export const FinanceTracker = ({ selectedDate }) => {
               <div className="flex items-center justify-between">
                 <span className="text-xs font-extrabold text-primary uppercase tracking-wider flex items-center gap-1.5">
                   <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-                  To (Receive / Inflow)
+                  {t('finance.toReceive')}
                 </span>
                 <span className="text-[11px] text-secondary font-medium">
-                  Destination Account
+                  {t('finance.destAccount')}
                 </span>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-[11px] font-bold text-secondary uppercase tracking-wider mb-1">
-                    To Method
+                    {t('finance.toMethod')}
                   </label>
                   <select
                     value={toMethod}
@@ -1167,7 +1167,7 @@ export const FinanceTracker = ({ selectedDate }) => {
                 <div>
                   <CurrencySelectorInput
                     id="transfer-to-currency"
-                    label="Receive Currency"
+                    label={t('finance.receiveCurrency')}
                     value={toCurrency}
                     onChange={handleToCurrencyChange}
                     availableCurrencies={availableCurrencies}
@@ -1178,7 +1178,7 @@ export const FinanceTracker = ({ selectedDate }) => {
               <div>
                 <div className="flex items-center justify-between mb-1">
                   <label className="block text-[11px] font-bold text-secondary uppercase tracking-wider">
-                    Amount Received ({toCurrency})
+                    {t('finance.amountReceived')} ({toCurrency})
                   </label>
                   {isCustomRate && (
                     <button
@@ -1187,7 +1187,7 @@ export const FinanceTracker = ({ selectedDate }) => {
                       className="text-[10px] font-bold text-accent hover:underline flex items-center gap-0.5 cursor-pointer"
                     >
                       <RefreshCw className="w-3 h-3" />
-                      Reset to Market Rate
+                      {t('finance.resetMarketRate')}
                     </button>
                   )}
                 </div>
@@ -1218,7 +1218,7 @@ export const FinanceTracker = ({ selectedDate }) => {
                       1 {fromCurrency} ≈ {referenceRate >= 100 ? referenceRate.toFixed(2) : referenceRate.toFixed(4)} {toCurrency}
                     </span>
                     <Badge variant={isCustomRate ? 'purple' : 'primary'} size="xs">
-                      {isCustomRate ? 'Custom User Rate' : 'Market Reference'}
+                      {isCustomRate ? t('finance.customUserRate') : t('finance.marketReference')}
                     </Badge>
                   </div>
                   <div className="text-[11px] text-secondary">
@@ -1228,7 +1228,7 @@ export const FinanceTracker = ({ selectedDate }) => {
 
                 {isCustomRate && fromAmount && toAmount && Number(fromAmount) > 0 && (
                   <div className="text-right text-[11px]">
-                    <span className="text-secondary font-medium block">Effective Applied Rate:</span>
+                    <span className="text-secondary font-medium block">{t('finance.effectiveAppliedRate')}:</span>
                     <span className="font-bold text-accent">
                       1 {fromCurrency} = {effectiveCustomRate.toFixed(4)} {toCurrency}
                     </span>
@@ -1237,14 +1237,14 @@ export const FinanceTracker = ({ selectedDate }) => {
               </div>
             ) : (
               <div className="p-2.5 rounded-xl bg-background/60 border border-theme/60 text-xs text-secondary flex items-center justify-between">
-                <span>Direct Transfer: Moving funds within {fromCurrency}</span>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-accent">1:1 Ratio</span>
+                <span>{t('finance.directTransferDesc')} {fromCurrency}</span>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-accent">{t('finance.oneToOneRatio')}</span>
               </div>
             )}
           </div>
 
           <DateInput
-            label="Transfer Date"
+            label={t('finance.transferDate')}
             value={transferDate}
             onChange={setTransferDate}
             required
@@ -1252,11 +1252,11 @@ export const FinanceTracker = ({ selectedDate }) => {
 
           <div>
             <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5">
-              Notes (Optional)
+              {t('common.notes')} ({t('common.optional')})
             </label>
             <input
               type="text"
-              placeholder="e.g. Bank currency exchange, cash withdrawal, online conversion"
+              placeholder={t('finance.transferNotesPlaceholder')}
               value={transferNotes}
               onChange={(e) => setTransferNotes(e.target.value)}
               className="input-base"
@@ -1265,10 +1265,10 @@ export const FinanceTracker = ({ selectedDate }) => {
 
           <div className="flex justify-end gap-3 pt-3 border-t border-subtle">
             <Button variant="secondary" onClick={() => setIsTransferModalOpen(false)}>
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button type="submit" variant="primary" loading={savingTransfer} icon={ArrowRightLeft}>
-              {isCrossCurrency ? 'Execute Currency Exchange' : 'Execute Transfer'}
+              {isCrossCurrency ? t('finance.executeExchange') : t('finance.executeTransfer')}
             </Button>
           </div>
         </form>
@@ -1278,19 +1278,19 @@ export const FinanceTracker = ({ selectedDate }) => {
       <Modal
         isOpen={!!deleteId}
         onClose={() => setDeleteId(null)}
-        title="Confirm Deletion"
-        subtitle="This action cannot be undone."
+        title={t('common.confirmDeleteTitle')}
+        subtitle={t('common.confirmDeleteDesc')}
       >
         <div className="space-y-4">
           <p className="text-sm text-secondary">
-            Are you sure you want to delete this financial record? It will be removed from all balances and multi-currency accounts.
+            {t('finance.deleteTxDesc')}
           </p>
           <div className="flex justify-end gap-3 pt-3 border-t border-subtle">
             <Button variant="secondary" onClick={() => setDeleteId(null)}>
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button variant="danger" onClick={handleDeleteTransaction}>
-              Delete
+              {t('common.delete')}
             </Button>
           </div>
         </div>

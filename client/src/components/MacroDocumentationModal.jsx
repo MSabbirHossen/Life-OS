@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Modal } from './Modal';
 import { Badge } from './Badge';
 import { Button } from './Button';
+import { useLanguage } from '../context/LanguageContext';
 import {
   BookOpen,
   ExternalLink,
@@ -75,13 +76,14 @@ const SOURCE_THEMES = {
 };
 
 export const MacroDocumentationModal = ({ isOpen, onClose }) => {
+  const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState('macros');
 
   return (
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Calorie & Macro Science Guide"
+      title={t('macroCard.scienceDocs')}
       subtitle="Evidence-based nutrition and clinical energy expenditure formulas simplified"
       maxWidth="max-w-2xl"
     >

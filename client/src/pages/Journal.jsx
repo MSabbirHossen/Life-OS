@@ -349,7 +349,7 @@ export const Journal = ({ selectedDate }) => {
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        title={editingEntry ? 'Edit Journal Entry' : 'New Journal Entry'}
+        title={editingEntry ? `${t('common.edit')} ${t('reflection.title')}` : t('reflection.newEntry')}
         subtitle={`Recording thoughts for ${formatDisplayDate(formDate)}`}
         maxWidth="max-w-2xl"
       >
@@ -358,7 +358,7 @@ export const Journal = ({ selectedDate }) => {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
             <div className="lg:col-span-5">
               <DateInput
-                label="Journal Date"
+                label={t('common.date')}
                 value={formDate}
                 onChange={setFormDate}
                 required
@@ -366,43 +366,29 @@ export const Journal = ({ selectedDate }) => {
             </div>
             <div className="lg:col-span-7">
               <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5">
-                Moods (Select all that apply)
+                {t('reflection.mood')}
               </label>
-              <div className="grid grid-cols-3 sm:grid-cols-6 lg:grid-cols-3 gap-1.5">
+              <div className="flex flex-wrap gap-1.5">
                 {MOOD_OPTIONS.map((m) => {
-                  const selected = selectedMoods.includes(m.label);
+                  const isSelected = selectedMoods.includes(m.label);
                   return (
                     <button
-                      type="button"
                       key={m.label}
-                      onClick={() => handleMoodToggle(m.label)}
-                      className={`px-2 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer border flex items-center justify-center gap-1.5 ${
-                        selected
-                          ? 'bg-accent text-white border-accent shadow-xs'
-                          : 'bg-subtle/50 text-secondary border-theme hover:text-primary hover:bg-subtle'
+                      type="button"
+                      onClick={() => toggleMood(m.label)}
+                      className={`px-2.5 py-1 rounded-xl text-xs font-semibold flex items-center gap-1.5 border transition-all cursor-pointer select-none ${
+                        isSelected
+                          ? 'bg-accent/15 border-accent text-accent shadow-xs'
+                          : 'bg-subtle text-secondary border-theme hover:text-primary hover:bg-subtle/80'
                       }`}
                     >
                       <span>{m.emoji}</span>
-                      <span className="truncate">{m.label}</span>
+                      <span>{m.label}</span>
                     </button>
                   );
                 })}
               </div>
             </div>
-          </div>
-
-          {/* Daily Summary */}
-          <div>
-            <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
-              <span>📝</span> Daily Summary & Thoughts
-            </label>
-            <textarea
-              rows={3}
-              placeholder="What happened today? How did you feel?"
-              value={summary}
-              onChange={(e) => setSummary(e.target.value)}
-              className="textarea-base text-sm"
-            />
           </div>
 
           {/* Guided Prompt Card */}
@@ -513,10 +499,10 @@ export const Journal = ({ selectedDate }) => {
           {/* Action Footer */}
           <div className="flex items-center justify-end gap-3 pt-4 border-t border-theme/60 mt-2">
             <Button variant="ghost" size="md" type="button" onClick={() => setIsModalOpen(false)}>
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button type="submit" variant="gradient" size="md">
-              {editingEntry ? 'Update Entry' : 'Save Entry'}
+              {editingEntry ? t('common.update') : t('common.save')}
             </Button>
           </div>
         </form>
@@ -526,19 +512,19 @@ export const Journal = ({ selectedDate }) => {
       <Modal
         isOpen={!!deleteId}
         onClose={() => setDeleteId(null)}
-        title="Confirm Deletion"
-        subtitle="This action cannot be undone."
+        title={t('common.confirmDeleteTitle')}
+        subtitle={t('common.confirmDeleteDesc')}
       >
         <div className="space-y-4">
           <p className="text-sm text-secondary">
-            Are you sure you want to delete this journal entry? It will be permanently removed.
+            {t('common.confirmDeleteDesc')}
           </p>
           <div className="flex justify-end gap-3 pt-3 border-t border-subtle">
             <Button variant="secondary" onClick={() => setDeleteId(null)}>
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button variant="danger" onClick={handleDelete}>
-              Delete
+              {t('common.delete')}
             </Button>
           </div>
         </div>

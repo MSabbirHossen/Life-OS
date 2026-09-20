@@ -124,13 +124,13 @@ export const GuidedReflectionModal = ({ isOpen, onClose, selectedDate, onSaveSuc
         <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-indigo-500/10 via-purple-500/5 to-indigo-500/5 border border-indigo-500/25 shadow-xs relative transition-all">
           <div className="flex items-center justify-between gap-2 mb-2.5">
             <Badge variant="purple" size="xs">
-              <Sparkles className="w-3 h-3 mr-1 text-purple-500" /> {currentPrompt.category} Prompt
+              <Sparkles className="w-3 h-3 mr-1 text-purple-500" /> {currentPrompt.category} {t('reflection.prompt')}
             </Badge>
             <button
               type="button"
               onClick={handleShuffle}
               className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold text-secondary hover:text-primary bg-surface/60 hover:bg-surface border border-theme/60 transition-all cursor-pointer active:scale-95 shadow-xs"
-              title="Shuffle another self-growth question"
+              title={t('reflection.shufflePrompt')}
             >
               <Shuffle className="w-3.5 h-3.5 text-accent" /> {t('reflection.shufflePrompt')}
             </button>
@@ -143,7 +143,7 @@ export const GuidedReflectionModal = ({ isOpen, onClose, selectedDate, onSaveSuc
           <textarea
             value={promptAnswer}
             onChange={(e) => setPromptAnswer(e.target.value)}
-            placeholder="Write your honest reflection here..."
+            placeholder={t('reflection.writeReflectionPrompt')}
             rows={3}
             className="textarea-base mt-3 min-h-[80px] text-sm bg-surface/90 placeholder:text-muted"
           />
@@ -156,7 +156,7 @@ export const GuidedReflectionModal = ({ isOpen, onClose, selectedDate, onSaveSuc
               {t('reflection.mood')}
             </label>
             <span className="text-[11px] font-medium text-secondary capitalize">
-              Selected: <span className="font-bold text-primary">{mood}</span>
+              {t('reflection.selected')} <span className="font-bold text-primary">{MOODS.find((m) => m.value === mood)?.label || mood}</span>
             </span>
           </div>
           <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 sm:gap-2.5">
@@ -192,7 +192,7 @@ export const GuidedReflectionModal = ({ isOpen, onClose, selectedDate, onSaveSuc
             <textarea
               value={highlights}
               onChange={(e) => setHighlights(e.target.value)}
-              placeholder="What went exceptionally well today?"
+              placeholder={t('reflection.winsPlaceholder')}
               rows={3}
               className="textarea-base min-h-[80px] text-sm"
             />
@@ -204,7 +204,7 @@ export const GuidedReflectionModal = ({ isOpen, onClose, selectedDate, onSaveSuc
             <textarea
               value={gratitude}
               onChange={(e) => setGratitude(e.target.value)}
-              placeholder="3 things you appreciate today..."
+              placeholder={t('reflection.gratitudePlaceholder')}
               rows={3}
               className="textarea-base min-h-[80px] text-sm"
             />
@@ -220,7 +220,7 @@ export const GuidedReflectionModal = ({ isOpen, onClose, selectedDate, onSaveSuc
             type="text"
             value={nextDayNotes}
             onChange={(e) => setNextDayNotes(e.target.value)}
-            placeholder="Primary focus, key intention, or reminder for tomorrow morning"
+            placeholder={t('reflection.tomorrowPlaceholder')}
             className="input-base text-sm"
           />
         </div>

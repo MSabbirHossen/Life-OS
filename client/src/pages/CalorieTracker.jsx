@@ -796,8 +796,8 @@ export const CalorieTracker = ({ selectedDate }) => {
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        title={editingMealId ? 'Edit Meal Log' : 'Log Food / Meal'}
-        subtitle={editingMealId ? 'Update food items, portion size, and nutritional profile' : 'Smart autocomplete with accurate piece/gram conversions and macro balancing'}
+        title={editingMealId ? t('calories.editMeal') : t('calories.logMeal')}
+        subtitle={editingMealId ? t('calories.editMealSubtitle') : t('calories.logMealSubtitle')}
         maxWidth="max-w-2xl"
       >
         <form onSubmit={handleAddMeal} className="space-y-4">
@@ -805,17 +805,22 @@ export const CalorieTracker = ({ selectedDate }) => {
           <div className="space-y-3">
             <div>
               <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5">
-                Meal Type
+                {t('calories.mealType')}
               </label>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                {MEAL_TYPES.map((t) => {
-                  const conf = MEAL_TYPE_CONFIG[t] || { icon: '🍽️', label: t };
-                  const isSelected = formMealType === t;
+                {MEAL_TYPES.map((mType) => {
+                  const conf = MEAL_TYPE_CONFIG[mType] || { icon: '🍽️', label: mType };
+                  const isSelected = formMealType === mType;
+                  const localizedLabel =
+                    mType === 'Breakfast' ? t('calories.breakfast') :
+                    mType === 'Lunch' ? t('calories.lunch') :
+                    mType === 'Dinner' ? t('calories.dinner') :
+                    mType === 'Snack' ? t('calories.snack') : mType;
                   return (
                     <button
                       type="button"
-                      key={t}
-                      onClick={() => setFormMealType(t)}
+                      key={mType}
+                      onClick={() => setFormMealType(mType)}
                       className={`flex items-center justify-center gap-2 py-2 px-3 rounded-xl border text-xs font-bold transition-all duration-200 cursor-pointer ${
                         isSelected
                           ? 'bg-accent/15 border-accent text-accent shadow-sm shadow-accent/20 ring-1 ring-accent/30'
@@ -823,7 +828,7 @@ export const CalorieTracker = ({ selectedDate }) => {
                       }`}
                     >
                       <span className="text-base">{conf.icon}</span>
-                      <span>{t}</span>
+                      <span>{localizedLabel}</span>
                     </button>
                   );
                 })}
@@ -831,7 +836,7 @@ export const CalorieTracker = ({ selectedDate }) => {
             </div>
 
             <DateInput
-              label="Meal Date"
+              label={t('calories.mealDate')}
               value={formDate}
               onChange={setFormDate}
               required
@@ -842,12 +847,12 @@ export const CalorieTracker = ({ selectedDate }) => {
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <label className="block text-xs font-bold text-secondary uppercase tracking-wider">
-                Food Item Search
+                {t('calories.foodSearch')}
               </label>
               {selectedFoodItem && (
                 <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1">
                   <CheckCircle2 className="w-3 h-3" />
-                  Auto-filled from {selectedFoodItem.source || 'Database'}
+                  {t('calories.autoFilledFrom')} {selectedFoodItem.source || 'Database'}
                 </span>
               )}
             </div>
@@ -859,7 +864,7 @@ export const CalorieTracker = ({ selectedDate }) => {
               <input
                 type="text"
                 required
-                placeholder="Search food e.g. Oatmeal, Boiled Egg, Chicken Breast, Banana..."
+                placeholder={t('calories.searchFoodPlaceholder')}
                 value={itemName}
                 onChange={(e) => {
                   setItemName(e.target.value);
@@ -894,7 +899,7 @@ export const CalorieTracker = ({ selectedDate }) => {
             {/* Popular Staples Quick Chips */}
             <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar pt-0.5">
               <span className="text-[10px] font-bold text-secondary uppercase shrink-0 mr-1 flex items-center gap-1">
-                <Sparkles className="w-3 h-3 text-accent" /> Staples:
+                <Sparkles className="w-3 h-3 text-accent" /> {t('calories.staples')}
               </span>
               {POPULAR_STAPLES.map((staple) => {
                 const isCurrent = selectedFoodItem?.name === staple.name;
@@ -921,9 +926,9 @@ export const CalorieTracker = ({ selectedDate }) => {
               <div className="p-2.5 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-start gap-2 text-[11px] text-indigo-700 dark:text-indigo-300">
                 <Sparkles className="w-3.5 h-3.5 text-indigo-500 shrink-0 mt-0.5" />
                 <div>
-                  <span className="font-bold block">New Custom Food</span>
+                  <span className="font-bold block">{t('calories.newCustomFood')}</span>
                   <span className="text-secondary text-[10px]">
-                    Set the calorie and macro breakdown below. Life OS will automatically calculate your portion and save this food to your personal library for future logs!
+                    {t('calories.customFoodDesc')}
                   </span>
                 </div>
               </div>
@@ -948,7 +953,7 @@ export const CalorieTracker = ({ selectedDate }) => {
                         )}
                       </div>
                       <span className="text-[11px] text-secondary font-medium">
-                        {food.caloriesPerUnit} kcal per {food.unitType === 'gram' ? '100g' : food.unitType === 'ml' ? '100ml' : food.unitType || 'piece'} · <strong className="text-purple-600 dark:text-purple-400">{food.proteinPerUnit}g P</strong> · <strong className="text-emerald-600 dark:text-emerald-400">{food.carbsPerUnit}g C</strong> · <strong className="text-amber-600 dark:text-amber-400">{food.fatPerUnit}g F</strong>
+                        {food.caloriesPerUnit} {t('common.calories')} / {food.unitType === 'gram' ? '100g' : food.unitType === 'ml' ? '100ml' : food.unitType || 'piece'} · <strong className="text-purple-600 dark:text-purple-400">{food.proteinPerUnit}g {t('calories.protein')}</strong> · <strong className="text-emerald-600 dark:text-emerald-400">{food.carbsPerUnit}g {t('calories.carbs')}</strong> · <strong className="text-amber-600 dark:text-amber-400">{food.fatPerUnit}g {t('calories.fat')}</strong>
                       </span>
                     </div>
                     {food.source && (
@@ -970,9 +975,9 @@ export const CalorieTracker = ({ selectedDate }) => {
                   >
                     <span className="flex items-center gap-1.5">
                       <Sparkles className="w-3.5 h-3.5" />
-                      Set custom nutrition profile for "{itemName}"
+                      {t('calories.setCustomNutrition')} "{itemName}"
                     </span>
-                    <Badge variant="primary" size="xs">Custom Item</Badge>
+                    <Badge variant="primary" size="xs">{t('calories.customItemBadge')}</Badge>
                   </div>
                 )}
               </div>
@@ -984,7 +989,7 @@ export const CalorieTracker = ({ selectedDate }) => {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5">
-                  Quantity {isPerHundred ? `(in ${unit}s)` : `(${unit}s)`}
+                  {t('calories.quantity')} {isPerHundred ? `(in ${unit}s)` : `(${unit}s)`}
                 </label>
                 <input
                   type="number"
@@ -1000,7 +1005,7 @@ export const CalorieTracker = ({ selectedDate }) => {
 
               <div>
                 <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5">
-                  Measurement Unit
+                  {t('calories.measurementUnit')}
                 </label>
                 <select
                   value={unit}
@@ -1019,7 +1024,7 @@ export const CalorieTracker = ({ selectedDate }) => {
             {/* Quick Portion Stepper Chips */}
             <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar pt-0.5">
               <span className="text-[10px] font-bold text-secondary uppercase shrink-0 mr-1 flex items-center gap-1">
-                <Scale className="w-3 h-3 text-secondary" /> Quick Portion:
+                <Scale className="w-3 h-3 text-secondary" /> {t('calories.quickPortion')}
               </span>
               {quickPortions.map((qVal) => {
                 const isCurrent = String(quantity) === String(qVal);
@@ -1047,7 +1052,7 @@ export const CalorieTracker = ({ selectedDate }) => {
               <div className="flex items-center gap-1.5">
                 <Zap className="w-3.5 h-3.5 text-accent" />
                 <span className="text-[11px] font-extrabold text-secondary uppercase tracking-wider">
-                  Nutritional Baseline {isPerHundred ? `(per 100 ${unit})` : `(per 1 ${unit})`}
+                  {t('calories.nutritionalBaseline')} {isPerHundred ? `(per 100 ${unit})` : `(per 1 ${unit})`}
                 </span>
               </div>
               {atwaterCalculatedCalories > 0 && Number(calPerUnit) !== atwaterCalculatedCalories && (
@@ -1058,7 +1063,7 @@ export const CalorieTracker = ({ selectedDate }) => {
                   title="Auto-calculate calories from protein, carbs, and fat (Atwater 4-4-9)"
                 >
                   <Sparkles className="w-3 h-3 text-accent" />
-                  Auto-calc Calories ({atwaterCalculatedCalories} kcal)
+                  {t('calories.autoCalcCalories')} ({atwaterCalculatedCalories} {t('common.calories')})
                 </button>
               )}
             </div>
@@ -1068,9 +1073,9 @@ export const CalorieTracker = ({ selectedDate }) => {
               <div className="p-2.5 rounded-xl bg-surface border border-amber-500/20 shadow-xs">
                 <div className="flex items-center justify-between mb-1">
                   <span className="text-[10px] font-bold text-amber-600 dark:text-amber-400 flex items-center gap-1">
-                    <Flame className="w-3 h-3" /> Calories
+                    <Flame className="w-3 h-3" /> {t('calories.caloriesLabel')}
                   </span>
-                  <span className="text-[9px] text-secondary font-semibold">kcal</span>
+                  <span className="text-[9px] text-secondary font-semibold">{t('common.calories')}</span>
                 </div>
                 <input
                   type="number"
@@ -1085,9 +1090,9 @@ export const CalorieTracker = ({ selectedDate }) => {
               <div className="p-2.5 rounded-xl bg-surface border border-indigo-500/20 shadow-xs">
                 <div className="flex items-center justify-between mb-1">
                   <span className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 flex items-center gap-1">
-                    <Dumbbell className="w-3 h-3" /> Protein
+                    <Dumbbell className="w-3 h-3" /> {t('calories.protein')}
                   </span>
-                  <span className="text-[9px] text-secondary font-semibold">grams</span>
+                  <span className="text-[9px] text-secondary font-semibold">{t('common.grams')}</span>
                 </div>
                 <input
                   type="number"
@@ -1103,9 +1108,9 @@ export const CalorieTracker = ({ selectedDate }) => {
               <div className="p-2.5 rounded-xl bg-surface border border-emerald-500/20 shadow-xs">
                 <div className="flex items-center justify-between mb-1">
                   <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
-                    <Zap className="w-3 h-3" /> Carbs
+                    <Zap className="w-3 h-3" /> {t('calories.carbs')}
                   </span>
-                  <span className="text-[9px] text-secondary font-semibold">grams</span>
+                  <span className="text-[9px] text-secondary font-semibold">{t('common.grams')}</span>
                 </div>
                 <input
                   type="number"
@@ -1121,9 +1126,9 @@ export const CalorieTracker = ({ selectedDate }) => {
               <div className="p-2.5 rounded-xl bg-surface border border-amber-500/20 shadow-xs">
                 <div className="flex items-center justify-between mb-1">
                   <span className="text-[10px] font-bold text-amber-600 dark:text-amber-400 flex items-center gap-1">
-                    <Droplets className="w-3 h-3" /> Fat
+                    <Droplets className="w-3 h-3" /> {t('calories.fat')}
                   </span>
-                  <span className="text-[9px] text-secondary font-semibold">grams</span>
+                  <span className="text-[9px] text-secondary font-semibold">{t('common.grams')}</span>
                 </div>
                 <input
                   type="number"
@@ -1141,7 +1146,7 @@ export const CalorieTracker = ({ selectedDate }) => {
               <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-start gap-2 text-[10px] text-amber-700 dark:text-amber-300">
                 <Info className="w-3.5 h-3.5 text-amber-500 shrink-0 mt-0.5" />
                 <span>
-                  <strong>Macro Data Incomplete:</strong> Protein, carbs, and fat are 0g. We encourage you to enter the macro values above so your daily macro target charts reflect accurate nutrition data.
+                  <strong>{t('calories.macroIncompleteTitle')}</strong> {t('calories.macroIncompleteDesc')}
                 </span>
               </div>
             )}
@@ -1153,7 +1158,7 @@ export const CalorieTracker = ({ selectedDate }) => {
               <div className="flex items-center gap-2">
                 <Scale className="w-4 h-4 text-accent" />
                 <span className="text-xs font-bold text-secondary uppercase tracking-wider">
-                  Calculated Portion
+                  {t('calories.calculatedPortion')}
                 </span>
                 <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-accent/10 text-accent font-extrabold border border-accent/20">
                   {quantity || (isPerHundred ? 100 : 1)} {unit}
@@ -1163,22 +1168,22 @@ export const CalorieTracker = ({ selectedDate }) => {
                 <span className="text-2xl font-black text-primary tracking-tight">
                   {liveItemCalories}
                 </span>
-                <span className="text-xs font-bold text-secondary">kcal</span>
+                <span className="text-xs font-bold text-secondary">{t('common.calories')}</span>
               </div>
             </div>
 
             {/* Macro Badges Grid */}
             <div className="grid grid-cols-3 gap-2">
               <div className="p-2 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex flex-col items-center justify-center">
-                <span className="text-[9px] font-bold text-indigo-600 dark:text-indigo-400 uppercase">Protein</span>
+                <span className="text-[9px] font-bold text-indigo-600 dark:text-indigo-400 uppercase">{t('calories.protein')}</span>
                 <span className="text-sm font-black text-indigo-700 dark:text-indigo-300">{liveItemProtein}g</span>
               </div>
               <div className="p-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex flex-col items-center justify-center">
-                <span className="text-[9px] font-bold text-emerald-600 dark:text-emerald-400 uppercase">Carbs</span>
+                <span className="text-[9px] font-bold text-emerald-600 dark:text-emerald-400 uppercase">{t('calories.carbs')}</span>
                 <span className="text-sm font-black text-emerald-700 dark:text-emerald-300">{liveItemCarbs}g</span>
               </div>
               <div className="p-2 rounded-xl bg-amber-500/10 border border-amber-500/20 flex flex-col items-center justify-center">
-                <span className="text-[9px] font-bold text-amber-600 dark:text-amber-400 uppercase">Fat</span>
+                <span className="text-[9px] font-bold text-amber-600 dark:text-amber-400 uppercase">{t('calories.fat')}</span>
                 <span className="text-sm font-black text-amber-700 dark:text-amber-300">{liveItemFat}g</span>
               </div>
             </div>
@@ -1190,31 +1195,31 @@ export const CalorieTracker = ({ selectedDate }) => {
                   <div
                     style={{ width: `${portionMacroSplit.proteinPct}%` }}
                     className="h-full bg-indigo-500 transition-all duration-300"
-                    title={`Protein: ${portionMacroSplit.proteinPct}%`}
+                    title={`${t('calories.protein')}: ${portionMacroSplit.proteinPct}%`}
                   />
                   <div
                     style={{ width: `${portionMacroSplit.carbsPct}%` }}
                     className="h-full bg-emerald-500 transition-all duration-300"
-                    title={`Carbs: ${portionMacroSplit.carbsPct}%`}
+                    title={`${t('calories.carbs')}: ${portionMacroSplit.carbsPct}%`}
                   />
                   <div
                     style={{ width: `${portionMacroSplit.fatPct}%` }}
                     className="h-full bg-amber-500 transition-all duration-300"
-                    title={`Fat: ${portionMacroSplit.fatPct}%`}
+                    title={`${t('calories.fat')}: ${portionMacroSplit.fatPct}%`}
                   />
                 </div>
                 <div className="flex items-center justify-between text-[10px] font-bold text-secondary px-0.5">
                   <span className="text-indigo-600 dark:text-indigo-400 flex items-center gap-1">
                     <span className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
-                    {portionMacroSplit.proteinPct}% Protein
+                    {portionMacroSplit.proteinPct}% {t('calories.protein')}
                   </span>
                   <span className="text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                    {portionMacroSplit.carbsPct}% Carbs
+                    {portionMacroSplit.carbsPct}% {t('calories.carbs')}
                   </span>
                   <span className="text-amber-600 dark:text-amber-400 flex items-center gap-1">
                     <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-                    {portionMacroSplit.fatPct}% Fat
+                    {portionMacroSplit.fatPct}% {t('calories.fat')}
                   </span>
                 </div>
               </div>
@@ -1223,10 +1228,10 @@ export const CalorieTracker = ({ selectedDate }) => {
 
           <div className="flex justify-end gap-3 pt-3 border-t border-subtle">
             <Button variant="secondary" onClick={() => setIsModalOpen(false)}>
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button type="submit" variant="primary" loading={saving}>
-              {editingMealId ? 'Update Meal' : 'Save Meal'}
+              {editingMealId ? t('calories.updateMeal') : t('calories.saveMeal')}
             </Button>
           </div>
         </form>
@@ -1236,19 +1241,19 @@ export const CalorieTracker = ({ selectedDate }) => {
       <Modal
         isOpen={!!deleteId}
         onClose={() => setDeleteId(null)}
-        title="Delete Meal Log"
-        subtitle="This action cannot be undone."
+        title={t('calories.deleteMealTitle')}
+        subtitle={t('common.confirmDeleteDesc')}
       >
         <div className="space-y-4 pt-2">
           <p className="text-sm text-secondary">
-            Are you sure you want to remove this logged meal? Your consumed calories and macros will be recalculated automatically.
+            {t('calories.deleteMealDesc')}
           </p>
           <div className="flex items-center justify-end gap-3 pt-2">
             <Button variant="ghost" size="sm" onClick={() => setDeleteId(null)}>
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button variant="danger" size="sm" onClick={handleDeleteMeal}>
-              Delete Meal
+              {t('common.delete')}
             </Button>
           </div>
         </div>
