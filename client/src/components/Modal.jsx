@@ -52,7 +52,7 @@ export const Modal = ({
         </div>
 
         {/* Scrollable Body */}
-        <div className="flex-1 overflow-y-auto pr-1 -mr-1 overscroll-contain touch-scroll-x">{children}</div>
+        <div className="flex-1 overflow-y-auto pr-1.5 -mr-1.5 pb-2 overscroll-contain touch-scroll-x">{children}</div>
       </div>
     </div>
   );
