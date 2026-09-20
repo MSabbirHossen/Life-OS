@@ -351,19 +351,22 @@ export const Journal = ({ selectedDate }) => {
         subtitle={`Recording thoughts for ${formatDisplayDate(formDate)}`}
         maxWidth="max-w-2xl"
       >
-        <form onSubmit={handleSubmit} className="space-y-5">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <DateInput
-              label="Journal Date"
-              value={formDate}
-              onChange={setFormDate}
-              required
-            />
-            <div>
+        <form onSubmit={handleSubmit} className="space-y-5 pb-1">
+          {/* Date and Moods Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
+            <div className="lg:col-span-5">
+              <DateInput
+                label="Journal Date"
+                value={formDate}
+                onChange={setFormDate}
+                required
+              />
+            </div>
+            <div className="lg:col-span-7">
               <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5">
                 Moods (Select all that apply)
               </label>
-              <div className="flex flex-wrap gap-1.5">
+              <div className="grid grid-cols-3 sm:grid-cols-6 lg:grid-cols-3 gap-1.5">
                 {MOOD_OPTIONS.map((m) => {
                   const selected = selectedMoods.includes(m.label);
                   return (
@@ -371,13 +374,14 @@ export const Journal = ({ selectedDate }) => {
                       type="button"
                       key={m.label}
                       onClick={() => handleMoodToggle(m.label)}
-                      className={`px-2.5 py-1 rounded-xl text-xs font-bold transition-all cursor-pointer border ${
+                      className={`px-2 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer border flex items-center justify-center gap-1.5 ${
                         selected
-                          ? 'bg-accent text-white border-accent shadow-sm'
-                          : 'bg-subtle text-secondary border-theme hover:text-primary'
+                          ? 'bg-accent text-white border-accent shadow-xs'
+                          : 'bg-subtle/50 text-secondary border-theme hover:text-primary hover:bg-subtle'
                       }`}
                     >
-                      {m.emoji} {m.label}
+                      <span>{m.emoji}</span>
+                      <span className="truncate">{m.label}</span>
                     </button>
                   );
                 })}
@@ -385,89 +389,102 @@ export const Journal = ({ selectedDate }) => {
             </div>
           </div>
 
+          {/* Daily Summary */}
           <div>
-            <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5">
-              Daily Summary & Thoughts
+            <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+              <span>📝</span> Daily Summary & Thoughts
             </label>
             <textarea
               rows={3}
               placeholder="What happened today? How did you feel?"
               value={summary}
               onChange={(e) => setSummary(e.target.value)}
-              className="textarea-base"
+              className="textarea-base text-sm"
             />
           </div>
 
+          {/* Guided Prompt Card */}
           {formPromptQuestion && (
-            <div className="p-4 rounded-2xl bg-indigo-500/5 border border-indigo-500/20 space-y-2">
-              <span className="text-xs font-bold text-accent uppercase tracking-wider block">
-                Guided Prompt: "{formPromptQuestion}"
-              </span>
+            <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-indigo-500/10 via-purple-500/5 to-indigo-500/5 border border-indigo-500/25 shadow-xs space-y-2.5">
+              <div className="flex items-center gap-2">
+                <Badge variant="purple" size="xs">
+                  <Sparkles className="w-3 h-3 mr-1 text-purple-500" /> Guided Prompt
+                </Badge>
+              </div>
+              <h4 className="text-sm sm:text-base font-bold text-primary leading-relaxed">
+                "{formPromptQuestion}"
+              </h4>
               <textarea
                 rows={2}
-                placeholder="Write your answer..."
+                placeholder="Write your honest reflection here..."
                 value={promptAnswer}
                 onChange={(e) => setPromptAnswer(e.target.value)}
-                className="textarea-base"
+                className="textarea-base text-sm bg-surface/90 placeholder:text-muted"
               />
             </div>
           )}
 
+          {/* Dual Columns: Highlights & Challenges */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5">
-                Highlights & Wins
+              <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                <span>✨</span> Highlights & Wins
               </label>
               <textarea
                 rows={2}
-                placeholder="What went exceptionally well?"
+                placeholder="What went exceptionally well today?"
                 value={highlights}
                 onChange={(e) => setHighlights(e.target.value)}
-                className="textarea-base"
+                className="textarea-base min-h-[75px] text-sm"
               />
             </div>
             <div>
-              <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5">
-                Obstacles & Challenges
+              <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                <span>⚡</span> Obstacles & Challenges
               </label>
               <textarea
                 rows={2}
-                placeholder="What problems did you face?"
+                placeholder="What problems or friction did you face?"
                 value={problemsFaced}
                 onChange={(e) => setProblemsFaced(e.target.value)}
-                className="textarea-base"
+                className="textarea-base min-h-[75px] text-sm"
               />
             </div>
           </div>
 
+          {/* Gratitude List */}
           <div>
-            <div className="flex items-center justify-between mb-1.5">
-              <label className="text-xs font-bold text-secondary uppercase tracking-wider">
-                Gratitude List
+            <div className="flex items-center justify-between mb-2">
+              <label className="text-xs font-bold text-secondary uppercase tracking-wider flex items-center gap-1.5">
+                <span>🙏</span> Gratitude List
               </label>
               <button
                 type="button"
                 onClick={addGratitudeItem}
-                className="text-xs font-bold text-accent hover:underline cursor-pointer"
+                className="inline-flex items-center gap-1 text-xs font-bold text-accent hover:text-accent-hover transition-colors cursor-pointer"
               >
-                + Add Item
+                <Plus className="w-3.5 h-3.5" /> Add Blessing
               </button>
             </div>
             <div className="space-y-2">
               {gratitudeList.map((g, idx) => (
                 <div key={idx} className="flex items-center gap-2">
+                  <div className="w-6 h-6 rounded-lg bg-accent/10 border border-accent/20 flex items-center justify-center shrink-0 text-accent font-bold text-[11px]">
+                    #{idx + 1}
+                  </div>
                   <input
                     type="text"
-                    placeholder={`Grateful for #${idx + 1}...`}
+                    placeholder={`Thing you appreciate #${idx + 1}...`}
                     value={g}
                     onChange={(e) => handleGratitudeChange(idx, e.target.value)}
-                    className="input-base"
+                    className="input-base text-sm"
                   />
                   {gratitudeList.length > 1 && (
                     <button
                       type="button"
                       onClick={() => removeGratitudeItem(idx)}
-                      className="p-2 text-rose-500 hover:bg-rose-500/10 rounded-xl transition-colors cursor-pointer"
+                      className="p-2 text-secondary hover:text-rose-600 hover:bg-rose-500/10 rounded-xl transition-colors cursor-pointer shrink-0"
+                      title="Remove item"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -477,24 +494,26 @@ export const Journal = ({ selectedDate }) => {
             </div>
           </div>
 
+          {/* Notes for Tomorrow */}
           <div>
-            <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5">
-              Notes for Tomorrow
+            <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+              <span>🎯</span> Notes & Focus for Tomorrow
             </label>
             <input
               type="text"
-              placeholder="Key focus or priority for tomorrow..."
+              placeholder="Key focus, intention, or reminder for tomorrow..."
               value={notesForTomorrow}
               onChange={(e) => setNotesForTomorrow(e.target.value)}
-              className="input-base"
+              className="input-base text-sm"
             />
           </div>
 
-          <div className="flex justify-end gap-3 pt-3 border-t border-subtle">
-            <Button variant="secondary" onClick={() => setIsModalOpen(false)}>
+          {/* Action Footer */}
+          <div className="flex items-center justify-end gap-3 pt-4 border-t border-theme/60 mt-2">
+            <Button variant="ghost" size="md" type="button" onClick={() => setIsModalOpen(false)}>
               Cancel
             </Button>
-            <Button type="submit" variant="primary">
+            <Button type="submit" variant="gradient" size="md">
               {editingEntry ? 'Update Entry' : 'Save Entry'}
             </Button>
           </div>
