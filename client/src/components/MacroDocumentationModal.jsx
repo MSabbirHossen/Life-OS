@@ -15,8 +15,64 @@ import {
   TrendingUp,
   Activity,
   CheckCircle2,
+  Landmark,
+  Microscope,
+  HeartPulse,
+  GraduationCap,
+  ArrowUpRight,
+  Info,
+  Layers,
+  Award,
 } from 'lucide-react';
 import { DOCUMENTATION_LINKS } from '../utils/calorieCalculator';
+
+const SOURCE_ICONS = {
+  Landmark,
+  Microscope,
+  HeartPulse,
+  GraduationCap,
+  BookOpen,
+  ShieldCheck,
+};
+
+const SOURCE_THEMES = {
+  blue: {
+    gradient: 'from-blue-500/10 via-sky-500/5 to-surface/90',
+    border: 'border-blue-500/25 hover:border-blue-500/50',
+    iconBg: 'bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-500/25',
+    badgeVariant: 'primary',
+    glow: 'group-hover:shadow-blue-500/10',
+    actionBtn: 'group-hover:bg-blue-500 group-hover:text-white group-hover:border-blue-500',
+    accentText: 'text-blue-600 dark:text-blue-400',
+  },
+  purple: {
+    gradient: 'from-purple-500/10 via-violet-500/5 to-surface/90',
+    border: 'border-purple-500/25 hover:border-purple-500/50',
+    iconBg: 'bg-purple-500/15 text-purple-600 dark:text-purple-400 border border-purple-500/25',
+    badgeVariant: 'purple',
+    glow: 'group-hover:shadow-purple-500/10',
+    actionBtn: 'group-hover:bg-purple-500 group-hover:text-white group-hover:border-purple-500',
+    accentText: 'text-purple-600 dark:text-purple-400',
+  },
+  rose: {
+    gradient: 'from-rose-500/10 via-pink-500/5 to-surface/90',
+    border: 'border-rose-500/25 hover:border-rose-500/50',
+    iconBg: 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/25',
+    badgeVariant: 'danger',
+    glow: 'group-hover:shadow-rose-500/10',
+    actionBtn: 'group-hover:bg-rose-500 group-hover:text-white group-hover:border-rose-500',
+    accentText: 'text-rose-600 dark:text-rose-400',
+  },
+  amber: {
+    gradient: 'from-amber-500/10 via-yellow-500/5 to-surface/90',
+    border: 'border-amber-500/25 hover:border-amber-500/50',
+    iconBg: 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/25',
+    badgeVariant: 'warning',
+    glow: 'group-hover:shadow-amber-500/10',
+    actionBtn: 'group-hover:bg-amber-500 group-hover:text-white group-hover:border-amber-500',
+    accentText: 'text-amber-600 dark:text-amber-400',
+  },
+};
 
 export const MacroDocumentationModal = ({ isOpen, onClose }) => {
   const [activeTab, setActiveTab] = useState('macros');
@@ -31,60 +87,63 @@ export const MacroDocumentationModal = ({ isOpen, onClose }) => {
     >
       <div className="space-y-4 text-xs pb-1">
         {/* Navigation Tabs */}
-        <div className="grid grid-cols-3 gap-1.5 p-1 bg-subtle rounded-2xl border border-theme">
+        <div className="grid grid-cols-3 gap-1.5 p-1 bg-subtle/80 backdrop-blur-xs rounded-2xl border border-theme">
           <button
             type="button"
             onClick={() => setActiveTab('macros')}
-            className={`py-2 px-2.5 rounded-xl font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 text-xs ${
+            className={`py-2 px-2.5 rounded-xl font-bold transition-all duration-200 cursor-pointer flex items-center justify-center gap-1.5 text-xs ${
               activeTab === 'macros'
-                ? 'bg-surface text-primary shadow-xs'
-                : 'text-secondary hover:text-primary'
+                ? 'bg-surface text-primary shadow-sm border border-theme font-extrabold'
+                : 'text-secondary hover:text-primary hover:bg-surface/50'
             }`}
           >
-            <span>🥗</span>
+            <span className="text-sm">🥗</span>
             <span className="truncate">Macronutrients</span>
           </button>
 
           <button
             type="button"
             onClick={() => setActiveTab('calculator')}
-            className={`py-2 px-2.5 rounded-xl font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 text-xs ${
+            className={`py-2 px-2.5 rounded-xl font-bold transition-all duration-200 cursor-pointer flex items-center justify-center gap-1.5 text-xs ${
               activeTab === 'calculator'
-                ? 'bg-surface text-primary shadow-xs'
-                : 'text-secondary hover:text-primary'
+                ? 'bg-surface text-primary shadow-sm border border-theme font-extrabold'
+                : 'text-secondary hover:text-primary hover:bg-surface/50'
             }`}
           >
-            <span>⚡</span>
+            <span className="text-sm">⚡</span>
             <span className="truncate">How Budget Works</span>
           </button>
 
           <button
             type="button"
             onClick={() => setActiveTab('sources')}
-            className={`py-2 px-2.5 rounded-xl font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 text-xs ${
+            className={`py-2 px-2.5 rounded-xl font-bold transition-all duration-200 cursor-pointer flex items-center justify-center gap-1.5 text-xs ${
               activeTab === 'sources'
-                ? 'bg-surface text-primary shadow-xs'
-                : 'text-secondary hover:text-primary'
+                ? 'bg-surface text-primary shadow-sm border border-theme font-extrabold'
+                : 'text-secondary hover:text-primary hover:bg-surface/50'
             }`}
           >
-            <span>📖</span>
+            <span className="text-sm">📚</span>
             <span className="truncate">Official Sources</span>
           </button>
         </div>
 
         {/* Tab 1: Macronutrients & Energy Density */}
         {activeTab === 'macros' && (
-          <div className="space-y-3.5 animate-fade-in">
+          <div className="space-y-3 animate-fade-in">
             {/* Quick Rule Header */}
-            <div className="p-3 bg-gradient-to-r from-indigo-500/10 via-purple-500/5 to-transparent rounded-2xl border border-indigo-500/20 flex items-center justify-between gap-3">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl bg-indigo-500/15 flex items-center justify-center text-indigo-600 dark:text-indigo-400 shrink-0">
-                  <Flame className="w-4 h-4" />
+            <div className="p-3.5 bg-gradient-to-r from-indigo-500/15 via-purple-500/10 to-transparent rounded-2xl border border-indigo-500/25 flex items-center justify-between gap-3 shadow-xs">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 text-white flex items-center justify-center shadow-sm shadow-indigo-500/20 shrink-0">
+                  <Flame className="w-5 h-5" />
                 </div>
                 <div>
-                  <span className="font-bold text-primary block text-xs">Standardized Atwater Energy Factors</span>
-                  <p className="text-[11px] text-secondary">
-                    Every calorie you consume comes from three core macronutrients with fixed caloric densities.
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold text-primary text-xs">Standardized Atwater Energy Factors</span>
+                    <Badge variant="purple" size="xs">4–4–9 Rule</Badge>
+                  </div>
+                  <p className="text-[11px] text-secondary mt-0.5">
+                    Every calorie you consume comes from three core macronutrients with fixed clinical energy densities.
                   </p>
                 </div>
               </div>
@@ -93,145 +152,268 @@ export const MacroDocumentationModal = ({ isOpen, onClose }) => {
             {/* 3 Macro Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               {/* Protein Card */}
-              <div className="p-3.5 rounded-2xl bg-purple-500/5 border border-purple-500/20 space-y-2 flex flex-col justify-between">
-                <div>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <div className="flex items-center gap-1.5">
-                      <Dumbbell className="w-4 h-4 text-purple-500" />
+              <div className="p-3.5 rounded-2xl bg-gradient-to-b from-purple-500/10 via-purple-500/5 to-surface/90 border border-purple-500/25 space-y-2.5 flex flex-col justify-between shadow-xs hover:border-purple-500/45 transition-all">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-7 h-7 rounded-lg bg-purple-500/15 text-purple-600 dark:text-purple-400 flex items-center justify-center border border-purple-500/20">
+                        <Dumbbell className="w-3.5 h-3.5" />
+                      </div>
                       <span className="font-bold text-primary text-sm">Protein</span>
                     </div>
                     <Badge variant="purple" size="xs">4 kcal / g</Badge>
                   </div>
-                  <p className="text-[11px] text-secondary font-medium leading-relaxed">
-                    Essential for muscle synthesis, immune tissue repair, and appetite control via satiety hormones.
+                  <p className="text-[11px] text-secondary leading-relaxed font-medium">
+                    Essential for muscle tissue synthesis, enzymatic repair, and maximum satiety through appetite hormones.
                   </p>
                 </div>
-                <div className="pt-2 border-t border-purple-500/15 text-[10px] text-purple-600 dark:text-purple-400 font-semibold">
-                  🍗 Chicken, fish, eggs, tofu, Greek yogurt
+                <div className="pt-2 border-t border-purple-500/20">
+                  <span className="text-[10px] text-purple-600 dark:text-purple-400 font-bold block mb-1">
+                    Optimal Sources:
+                  </span>
+                  <div className="flex flex-wrap gap-1">
+                    {['Chicken', 'Fish', 'Eggs', 'Tofu', 'Greek Yogurt'].map((food) => (
+                      <span
+                        key={food}
+                        className="px-1.5 py-0.5 rounded-md bg-purple-500/10 text-purple-700 dark:text-purple-300 text-[9px] font-semibold border border-purple-500/15"
+                      >
+                        {food}
+                      </span>
+                    ))}
+                  </div>
                 </div>
               </div>
 
               {/* Carbs Card */}
-              <div className="p-3.5 rounded-2xl bg-emerald-500/5 border border-emerald-500/20 space-y-2 flex flex-col justify-between">
-                <div>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <div className="flex items-center gap-1.5">
-                      <Zap className="w-4 h-4 text-emerald-500" />
+              <div className="p-3.5 rounded-2xl bg-gradient-to-b from-emerald-500/10 via-emerald-500/5 to-surface/90 border border-emerald-500/25 space-y-2.5 flex flex-col justify-between shadow-xs hover:border-emerald-500/45 transition-all">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-7 h-7 rounded-lg bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center justify-center border border-emerald-500/20">
+                        <Zap className="w-3.5 h-3.5" />
+                      </div>
                       <span className="font-bold text-primary text-sm">Carbs</span>
                     </div>
-                    <Badge variant="emerald" size="xs">4 kcal / g</Badge>
+                    <Badge variant="success" size="xs">4 kcal / g</Badge>
                   </div>
-                  <p className="text-[11px] text-secondary font-medium leading-relaxed">
-                    Primary fast-acting fuel for brain metabolism, central nervous system, and workout performance.
+                  <p className="text-[11px] text-secondary leading-relaxed font-medium">
+                    Primary fast-acting fuel for brain metabolism, central nervous system, and high-intensity workout performance.
                   </p>
                 </div>
-                <div className="pt-2 border-t border-emerald-500/15 text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold">
-                  🍚 Rice, oats, potatoes, fruits, whole grains
+                <div className="pt-2 border-t border-emerald-500/20">
+                  <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold block mb-1">
+                    Optimal Sources:
+                  </span>
+                  <div className="flex flex-wrap gap-1">
+                    {['Rice', 'Oats', 'Potatoes', 'Fruits', 'Whole Grains'].map((food) => (
+                      <span
+                        key={food}
+                        className="px-1.5 py-0.5 rounded-md bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 text-[9px] font-semibold border border-emerald-500/15"
+                      >
+                        {food}
+                      </span>
+                    ))}
+                  </div>
                 </div>
               </div>
 
               {/* Fats Card */}
-              <div className="p-3.5 rounded-2xl bg-amber-500/5 border border-amber-500/20 space-y-2 flex flex-col justify-between">
-                <div>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <div className="flex items-center gap-1.5">
-                      <Heart className="w-4 h-4 text-amber-500" />
+              <div className="p-3.5 rounded-2xl bg-gradient-to-b from-amber-500/10 via-amber-500/5 to-surface/90 border border-amber-500/25 space-y-2.5 flex flex-col justify-between shadow-xs hover:border-amber-500/45 transition-all">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-7 h-7 rounded-lg bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center justify-center border border-amber-500/20">
+                        <Heart className="w-3.5 h-3.5" />
+                      </div>
                       <span className="font-bold text-primary text-sm">Fats</span>
                     </div>
-                    <Badge variant="amber" size="xs">9 kcal / g</Badge>
+                    <Badge variant="warning" size="xs">9 kcal / g</Badge>
                   </div>
-                  <p className="text-[11px] text-secondary font-medium leading-relaxed">
+                  <p className="text-[11px] text-secondary leading-relaxed font-medium">
                     Critical for steroid hormone production (testosterone/estrogen) and fat-soluble vitamin uptake (A, D, E, K).
                   </p>
                 </div>
-                <div className="pt-2 border-t border-amber-500/15 text-[10px] text-amber-600 dark:text-amber-400 font-semibold">
-                  🥑 Olive oil, avocado, almonds, seeds, salmon
+                <div className="pt-2 border-t border-amber-500/20">
+                  <span className="text-[10px] text-amber-600 dark:text-amber-400 font-bold block mb-1">
+                    Optimal Sources:
+                  </span>
+                  <div className="flex flex-wrap gap-1">
+                    {['Olive Oil', 'Avocado', 'Almonds', 'Seeds', 'Salmon'].map((food) => (
+                      <span
+                        key={food}
+                        className="px-1.5 py-0.5 rounded-md bg-amber-500/10 text-amber-700 dark:text-amber-300 text-[9px] font-semibold border border-amber-500/15"
+                      >
+                        {food}
+                      </span>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
 
             {/* Total Calculation Formula Box */}
-            <div className="p-3 rounded-xl bg-subtle border border-theme text-center">
-              <span className="text-[11px] text-secondary font-medium block mb-1">
-                Universal Calorie Math Equation:
+            <div className="p-3.5 rounded-2xl bg-surface/80 backdrop-blur-xs border border-theme text-center space-y-1.5 shadow-xs">
+              <span className="text-[11px] text-secondary font-semibold block">
+                Universal Caloric Math Equation:
               </span>
-              <code className="text-xs font-mono font-bold text-primary bg-surface px-2.5 py-1 rounded-lg border border-theme inline-block">
-                Total Calories = (Grams of Protein × 4) + (Grams of Carbs × 4) + (Grams of Fat × 9)
-              </code>
+              <div className="flex flex-wrap items-center justify-center gap-1.5 text-xs font-mono font-bold text-primary">
+                <span className="px-2 py-1 rounded-lg bg-subtle border border-theme">Total Calories</span>
+                <span className="text-secondary">=</span>
+                <span className="px-2 py-1 rounded-lg bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20">
+                  (Protein g × 4)
+                </span>
+                <span className="text-secondary">+</span>
+                <span className="px-2 py-1 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                  (Carbs g × 4)
+                </span>
+                <span className="text-secondary">+</span>
+                <span className="px-2 py-1 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                  (Fat g × 9)
+                </span>
+              </div>
             </div>
           </div>
         )}
 
         {/* Tab 2: How Budget & TDEE is Calculated */}
         {activeTab === 'calculator' && (
-          <div className="space-y-3 animate-fade-in">
+          <div className="space-y-3.5 animate-fade-in">
             {/* Step 1: BMR */}
-            <div className="p-3.5 rounded-2xl bg-subtle border border-theme space-y-2">
+            <div className="p-4 rounded-2xl bg-surface/90 backdrop-blur-xs border border-indigo-500/20 shadow-xs space-y-2.5">
               <div className="flex items-center justify-between">
-                <span className="font-bold text-primary text-xs flex items-center gap-1.5">
-                  <span className="w-5 h-5 rounded-lg bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-[11px] font-extrabold">1</span>
-                  Basal Metabolic Rate (BMR)
-                </span>
-                <Badge variant="purple" size="xs">Mifflin-St Jeor Formula</Badge>
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 rounded-lg bg-indigo-500 text-white flex items-center justify-center text-xs font-extrabold shadow-xs shadow-indigo-500/30">
+                    1
+                  </div>
+                  <span className="font-bold text-primary text-xs sm:text-sm">
+                    Basal Metabolic Rate (BMR)
+                  </span>
+                </div>
+                <Badge variant="purple" size="xs">Mifflin-St Jeor Clinical Formula</Badge>
               </div>
-              <p className="text-[11px] text-secondary">
-                The minimum calories your body requires at total rest to sustain life (brain function, breathing, organ operation, and cellular turnover).
+              <p className="text-[11px] text-secondary leading-relaxed">
+                The minimum baseline energy required at total rest to sustain vital life (brain function, breathing, organ operation, and cellular turnover).
               </p>
-              <div className="p-2.5 rounded-xl bg-surface border border-theme font-mono text-[11px] text-indigo-600 dark:text-indigo-400 space-y-0.5">
-                <div>• Men: 10 × weight(kg) + 6.25 × height(cm) - 5 × age(years) + 5</div>
-                <div>• Women: 10 × weight(kg) + 6.25 × height(cm) - 5 × age(years) - 161</div>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px]">
+                <div className="p-2.5 rounded-xl bg-gradient-to-br from-indigo-500/10 via-indigo-500/5 to-surface border border-indigo-500/20 font-mono text-indigo-600 dark:text-indigo-400 space-y-0.5">
+                  <div className="flex items-center justify-between font-bold mb-0.5 font-sans">
+                    <span className="text-primary text-[10px] uppercase tracking-wider flex items-center gap-1">
+                      <span>👨</span> Men's Formula
+                    </span>
+                    <span className="text-[9px] px-1.5 py-0.2 rounded bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 font-mono">+5 base</span>
+                  </div>
+                  <div className="text-[10px]">10 × kg + 6.25 × cm - 5 × age + 5</div>
+                </div>
+
+                <div className="p-2.5 rounded-xl bg-gradient-to-br from-purple-500/10 via-purple-500/5 to-surface border border-purple-500/20 font-mono text-purple-600 dark:text-purple-400 space-y-0.5">
+                  <div className="flex items-center justify-between font-bold mb-0.5 font-sans">
+                    <span className="text-primary text-[10px] uppercase tracking-wider flex items-center gap-1">
+                      <span>👩</span> Women's Formula
+                    </span>
+                    <span className="text-[9px] px-1.5 py-0.2 rounded bg-purple-500/15 text-purple-600 dark:text-purple-400 font-mono">-161 base</span>
+                  </div>
+                  <div className="text-[10px]">10 × kg + 6.25 × cm - 5 × age - 161</div>
+                </div>
               </div>
             </div>
 
             {/* Step 2: TDEE */}
-            <div className="p-3.5 rounded-2xl bg-subtle border border-theme space-y-2">
+            <div className="p-4 rounded-2xl bg-surface/90 backdrop-blur-xs border border-emerald-500/20 shadow-xs space-y-2.5">
               <div className="flex items-center justify-between">
-                <span className="font-bold text-primary text-xs flex items-center gap-1.5">
-                  <span className="w-5 h-5 rounded-lg bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-[11px] font-extrabold">2</span>
-                  Total Daily Energy Expenditure (TDEE)
-                </span>
-                <Badge variant="emerald" size="xs">TDEE = BMR × Activity Multiplier</Badge>
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 rounded-lg bg-emerald-500 text-white flex items-center justify-center text-xs font-extrabold shadow-xs shadow-emerald-500/30">
+                    2
+                  </div>
+                  <span className="font-bold text-primary text-xs sm:text-sm">
+                    Total Daily Energy Expenditure (TDEE)
+                  </span>
+                </div>
+                <Badge variant="success" size="xs">TDEE = BMR × Activity Factor</Badge>
               </div>
-              <p className="text-[11px] text-secondary">
-                Total calories burned in a 24-hour window incorporating your daily physical movement, steps, workouts, and digestion.
+              <p className="text-[11px] text-secondary leading-relaxed">
+                Total calories burned across a 24-hour window incorporating your daily physical movement, steps (NEAT), workouts, and digestion.
               </p>
-              <div className="grid grid-cols-3 gap-1.5 text-[10px] text-center">
-                <div className="p-1.5 rounded-lg bg-surface border border-theme">
-                  <span className="font-bold text-primary block">Sedentary (×1.2)</span>
-                  <span className="text-secondary">Desk job, little exercise</span>
+              
+              <div className="grid grid-cols-3 gap-2 text-[10px]">
+                <div className="p-2.5 rounded-xl bg-surface border border-theme text-center space-y-0.5 hover:border-secondary/40 transition-colors">
+                  <div className="flex items-center justify-center gap-1 font-bold text-primary">
+                    <span>🪑</span> Sedentary
+                  </div>
+                  <Badge variant="neutral" size="xs">× 1.20</Badge>
+                  <span className="text-secondary text-[9px] block pt-0.5">Desk job, minimal exercise</span>
                 </div>
-                <div className="p-1.5 rounded-lg bg-surface border border-theme">
-                  <span className="font-bold text-primary block">Moderate (×1.55)</span>
-                  <span className="text-secondary">3–5 training sessions/wk</span>
+
+                <div className="p-2.5 rounded-xl bg-emerald-500/5 border border-emerald-500/25 text-center space-y-0.5 hover:border-emerald-500/40 transition-colors">
+                  <div className="flex items-center justify-center gap-1 font-bold text-primary">
+                    <span>🏃</span> Moderate
+                  </div>
+                  <Badge variant="success" size="xs">× 1.55</Badge>
+                  <span className="text-secondary text-[9px] block pt-0.5">3–5 training sessions/wk</span>
                 </div>
-                <div className="p-1.5 rounded-lg bg-surface border border-theme">
-                  <span className="font-bold text-primary block">Athlete (×1.9)</span>
-                  <span className="text-secondary">High-intensity 2x/day</span>
+
+                <div className="p-2.5 rounded-xl bg-indigo-500/5 border border-indigo-500/25 text-center space-y-0.5 hover:border-indigo-500/40 transition-colors">
+                  <div className="flex items-center justify-center gap-1 font-bold text-primary">
+                    <span>⚡</span> Athlete
+                  </div>
+                  <Badge variant="primary" size="xs">× 1.90</Badge>
+                  <span className="text-secondary text-[9px] block pt-0.5">High intensity 2x/day</span>
                 </div>
               </div>
             </div>
 
             {/* Step 3: Goals */}
-            <div className="p-3.5 rounded-2xl bg-subtle border border-theme space-y-2">
+            <div className="p-4 rounded-2xl bg-surface/90 backdrop-blur-xs border border-amber-500/20 shadow-xs space-y-2.5">
               <div className="flex items-center justify-between">
-                <span className="font-bold text-primary text-xs flex items-center gap-1.5">
-                  <span className="w-5 h-5 rounded-lg bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center justify-center text-[11px] font-extrabold">3</span>
-                  Target Goal Adjustment
-                </span>
-                <Badge variant="amber" size="xs">Deficit / Surplus</Badge>
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 rounded-lg bg-amber-500 text-white flex items-center justify-center text-xs font-extrabold shadow-xs shadow-amber-500/30">
+                    3
+                  </div>
+                  <span className="font-bold text-primary text-xs sm:text-sm">
+                    Target Goal Calibration
+                  </span>
+                </div>
+                <Badge variant="warning" size="xs">Caloric Deficit vs Surplus</Badge>
               </div>
+              
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-[11px]">
-                <div className="p-2 rounded-xl bg-surface border border-theme">
-                  <span className="font-bold text-rose-600 dark:text-rose-400 block">Fat Loss (-10% to -20%)</span>
-                  <span className="text-secondary text-[10px]">~250–500 kcal deficit for steady, thyroid-safe weight loss.</span>
+                {/* Fat Loss */}
+                <div className="p-3 rounded-xl bg-gradient-to-b from-rose-500/10 via-rose-500/5 to-surface border border-rose-500/25 space-y-1 hover:border-rose-500/45 transition-colors">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-rose-600 dark:text-rose-400 flex items-center gap-1">
+                      <span>🔥</span> Fat Loss
+                    </span>
+                    <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-rose-500/15 text-rose-600 dark:text-rose-400 font-mono">-10% to -20%</span>
+                  </div>
+                  <p className="text-secondary text-[10px] leading-relaxed">
+                    ~250–500 kcal deficit targeting body fat oxidation while preserving metabolic rate.
+                  </p>
                 </div>
-                <div className="p-2 rounded-xl bg-surface border border-theme">
-                  <span className="font-bold text-emerald-600 dark:text-emerald-400 block">Maintenance (±0%)</span>
-                  <span className="text-secondary text-[10px]">Matches your exact TDEE for body weight stabilization.</span>
+
+                {/* Maintenance */}
+                <div className="p-3 rounded-xl bg-gradient-to-b from-emerald-500/10 via-emerald-500/5 to-surface border border-emerald-500/25 space-y-1 hover:border-emerald-500/45 transition-colors">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                      <span>⚖️</span> Maintain
+                    </span>
+                    <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 font-mono">±0% (TDEE)</span>
+                  </div>
+                  <p className="text-secondary text-[10px] leading-relaxed">
+                    Energy balance matching exact TDEE for body weight and hormonal stabilization.
+                  </p>
                 </div>
-                <div className="p-2 rounded-xl bg-surface border border-theme">
-                  <span className="font-bold text-indigo-600 dark:text-indigo-400 block">Muscle Gain (+10% to +20%)</span>
-                  <span className="text-secondary text-[10px]">~250–500 kcal surplus to optimize lean muscle hypertrophy.</span>
+
+                {/* Muscle Gain */}
+                <div className="p-3 rounded-xl bg-gradient-to-b from-indigo-500/10 via-indigo-500/5 to-surface border border-indigo-500/25 space-y-1 hover:border-indigo-500/45 transition-colors">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-indigo-600 dark:text-indigo-400 flex items-center gap-1">
+                      <span>💪</span> Hypertrophy
+                    </span>
+                    <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 font-mono">+10% to +20%</span>
+                  </div>
+                  <p className="text-secondary text-[10px] leading-relaxed">
+                    ~250–500 kcal surplus to optimize substrate for lean myofibrillar hypertrophy.
+                  </p>
                 </div>
               </div>
             </div>
@@ -240,45 +422,74 @@ export const MacroDocumentationModal = ({ isOpen, onClose }) => {
 
         {/* Tab 3: Official Scientific Sources */}
         {activeTab === 'sources' && (
-          <div className="space-y-2.5 animate-fade-in">
-            <p className="text-[11px] text-secondary">
-              Life OS uses peer-reviewed clinical research and clinical public health guidelines:
-            </p>
+          <div className="space-y-3 animate-fade-in">
+            <div className="flex items-center gap-2 p-2.5 rounded-xl bg-subtle border border-theme text-secondary text-[11px]">
+              <Info className="w-4 h-4 text-accent shrink-0" />
+              <span>
+                Life OS relies strictly on peer-reviewed clinical research and official public health institutions:
+              </span>
+            </div>
 
-            <div className="space-y-2">
-              {DOCUMENTATION_LINKS.map((doc, idx) => (
-                <a
-                  key={idx}
-                  href={doc.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="group p-3 rounded-2xl bg-subtle hover:bg-surface border border-theme transition-all duration-200 flex items-center justify-between gap-3 text-left cursor-pointer"
-                >
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2 mb-0.5">
-                      <span className="font-bold text-primary text-xs group-hover:text-accent transition-colors">
-                        {doc.title}
-                      </span>
-                      <Badge variant="neutral" size="xs">{doc.badge}</Badge>
+            <div className="space-y-2.5">
+              {DOCUMENTATION_LINKS.map((doc) => {
+                const IconComponent = SOURCE_ICONS[doc.icon] || BookOpen;
+                const theme = SOURCE_THEMES[doc.theme] || SOURCE_THEMES.blue;
+
+                return (
+                  <a
+                    key={doc.id || doc.url}
+                    href={doc.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={`group relative p-3.5 rounded-2xl bg-surface/90 backdrop-blur-xs border ${theme.border} bg-gradient-to-r ${theme.gradient} transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md ${theme.glow} flex items-center justify-between gap-3 text-left cursor-pointer`}
+                  >
+                    <div className="flex items-start gap-3 min-w-0 flex-1">
+                      {/* Icon Container */}
+                      <div className={`w-9 h-9 rounded-xl ${theme.iconBg} flex items-center justify-center shrink-0 mt-0.5 transition-transform group-hover:scale-105`}>
+                        <IconComponent className="w-4 h-4" />
+                      </div>
+
+                      <div className="min-w-0 flex-1 space-y-1">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className={`font-bold text-primary text-xs sm:text-sm ${theme.accentText} transition-colors`}>
+                            {doc.title}
+                          </span>
+                          <Badge variant={doc.badgeVariant || theme.badgeVariant} size="xs">
+                            {doc.badge}
+                          </Badge>
+                        </div>
+
+                        <p className="text-[11px] text-secondary leading-relaxed">
+                          {doc.summary}
+                        </p>
+
+                        <div className="flex items-center gap-1.5 text-[10px] text-muted font-medium pt-0.5">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block shrink-0" />
+                          <span>{doc.organization}</span>
+                        </div>
+                      </div>
                     </div>
-                    <p className="text-[11px] text-secondary leading-snug">{doc.summary}</p>
-                    <span className="text-[10px] text-muted block mt-0.5 font-medium">{doc.organization}</span>
-                  </div>
-                  <div className="w-7 h-7 rounded-xl bg-surface group-hover:bg-accent/10 border border-theme flex items-center justify-center text-secondary group-hover:text-accent shrink-0 transition-all">
-                    <ExternalLink className="w-3.5 h-3.5" />
-                  </div>
-                </a>
-              ))}
+
+                    {/* Action Button */}
+                    <div className="shrink-0 flex items-center">
+                      <div className={`w-8 h-8 rounded-xl bg-surface border border-theme text-secondary flex items-center justify-center transition-all duration-200 ${theme.actionBtn}`}>
+                        <ArrowUpRight className="w-4 h-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                      </div>
+                    </div>
+                  </a>
+                );
+              })}
             </div>
           </div>
         )}
 
         {/* Modal Footer */}
         <div className="flex items-center justify-between pt-3 border-t border-theme mt-2">
-          <span className="text-[11px] text-muted">
-            Clinical Guidelines: Mifflin-St Jeor & USDA AMDR
-          </span>
-          <Button variant="primary" size="sm" onClick={onClose}>
+          <div className="flex items-center gap-1.5 text-[11px] text-muted">
+            <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
+            <span>Clinical Standards: Mifflin-St Jeor & USDA AMDR</span>
+          </div>
+          <Button variant="primary" size="sm" onClick={onClose} className="px-5">
             Got It
           </Button>
         </div>

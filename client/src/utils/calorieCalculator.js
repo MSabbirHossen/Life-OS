@@ -72,32 +72,48 @@ export const MACRO_SPLIT_PRESETS = [
 
 export const DOCUMENTATION_LINKS = [
   {
+    id: 'usda',
     title: 'USDA Dietary Guidelines & Macronutrient Ranges',
     organization: 'USDA National Agricultural Library & HHS',
     url: 'https://www.nal.usda.gov/human-nutrition-and-food-safety/macronutrients',
     summary: 'Official Acceptable Macronutrient Distribution Ranges (AMDR): Protein 10–35%, Carbs 45–65%, Fat 20–35%.',
     badge: 'Government Standard',
+    badgeVariant: 'primary',
+    theme: 'blue',
+    icon: 'Landmark',
   },
   {
+    id: 'mifflin',
     title: 'Mifflin-St Jeor Clinical Energy Equation Study',
     organization: 'National Library of Medicine (NIH / PubMed)',
     url: 'https://pubmed.ncbi.nlm.nih.gov/2305711/',
     summary: 'The clinically validated standard for predicting Basal Metabolic Rate (BMR) with the highest accuracy.',
     badge: 'Clinical Evidence',
+    badgeVariant: 'purple',
+    theme: 'purple',
+    icon: 'Microscope',
   },
   {
+    id: 'mayo',
     title: 'Mayo Clinic: Carbohydrates, Protein & Fat Guidelines',
     organization: 'Mayo Clinic Health Information',
     url: 'https://www.mayoclinic.org/healthy-lifestyle/nutrition-and-healthy-eating/in-depth/carbohydrates/art-20045705',
     summary: 'Medical guidance on energy balance, daily caloric allowances, and balancing macronutrient ratios.',
     badge: 'Medical Guidance',
+    badgeVariant: 'danger',
+    theme: 'rose',
+    icon: 'HeartPulse',
   },
   {
+    id: 'harvard',
     title: 'Harvard T.H. Chan School of Public Health Nutrition Guide',
     organization: 'Harvard University Dept of Nutrition',
     url: 'https://www.hsph.harvard.edu/nutritionsource/what-should-you-eat/protein/',
     summary: 'Comprehensive scientific review of dietary protein, essential amino acids, and long-term metabolic health.',
     badge: 'Academic Research',
+    badgeVariant: 'warning',
+    theme: 'amber',
+    icon: 'GraduationCap',
   },
 ];
 
