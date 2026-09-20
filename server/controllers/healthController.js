@@ -484,20 +484,51 @@ export const searchFoodItems = async (req, res) => {
       const key = (item.name || '').toLowerCase().trim();
       if (!seenNames.has(key)) {
         seenNames.add(key);
+        const itemUnit = item.unit || item.unitType || 'gram';
+        const isGramOrMl = itemUnit === 'gram' || itemUnit === 'g' || itemUnit === 'ml';
+
+        const calPerUnit = item.caloriesPerUnit !== undefined
+          ? Number(item.caloriesPerUnit)
+          : isGramOrMl
+          ? Number(item.caloriesPer100g ?? 100)
+          : Number(item.caloriesPerPiece ?? 100);
+
+        const pPerUnit = item.proteinPerUnit !== undefined
+          ? Number(item.proteinPerUnit)
+          : isGramOrMl
+          ? Number(item.proteinPer100g ?? 0)
+          : Number(item.proteinPerPiece ?? 0);
+
+        const cPerUnit = item.carbsPerUnit !== undefined
+          ? Number(item.carbsPerUnit)
+          : isGramOrMl
+          ? Number(item.carbsPer100g ?? 0)
+          : Number(item.carbsPerPiece ?? 0);
+
+        const fPerUnit = item.fatPerUnit !== undefined
+          ? Number(item.fatPerUnit)
+          : isGramOrMl
+          ? Number(item.fatPer100g ?? 0)
+          : Number(item.fatPerPiece ?? 0);
+
         combined.push({
           _id: item._id,
           name: item.name,
           category: item.category || 'General',
-          unit: item.unit || item.unitType || 'piece',
-          caloriesPerUnit: item.caloriesPerUnit || item.caloriesPerPiece || item.caloriesPer100g || 100,
-          caloriesPer100g: item.caloriesPer100g || (item.unit === 'gram' ? item.caloriesPerUnit : 100),
-          proteinPer100g: item.proteinPer100g || item.proteinPerUnit || 0,
-          carbsPer100g: item.carbsPer100g || item.carbsPerUnit || 0,
-          fatPer100g: item.fatPer100g || item.fatPerUnit || 0,
-          caloriesPerPiece: item.caloriesPerPiece || (item.unit === 'piece' ? item.caloriesPerUnit : 100),
-          proteinPerPiece: item.proteinPerPiece || item.proteinPerUnit || 0,
-          carbsPerPiece: item.carbsPerPiece || item.carbsPerUnit || 0,
-          fatPerPiece: item.fatPerPiece || item.fatPerUnit || 0,
+          unit: itemUnit,
+          unitType: itemUnit,
+          caloriesPerUnit: calPerUnit,
+          proteinPerUnit: pPerUnit,
+          carbsPerUnit: cPerUnit,
+          fatPerUnit: fPerUnit,
+          caloriesPer100g: item.caloriesPer100g || (isGramOrMl ? calPerUnit : 100),
+          proteinPer100g: item.proteinPer100g !== undefined ? item.proteinPer100g : (isGramOrMl ? pPerUnit : 0),
+          carbsPer100g: item.carbsPer100g !== undefined ? item.carbsPer100g : (isGramOrMl ? cPerUnit : 0),
+          fatPer100g: item.fatPer100g !== undefined ? item.fatPer100g : (isGramOrMl ? fPerUnit : 0),
+          caloriesPerPiece: item.caloriesPerPiece || (!isGramOrMl ? calPerUnit : 100),
+          proteinPerPiece: item.proteinPerPiece !== undefined ? item.proteinPerPiece : (!isGramOrMl ? pPerUnit : 0),
+          carbsPerPiece: item.carbsPerPiece !== undefined ? item.carbsPerPiece : (!isGramOrMl ? cPerUnit : 0),
+          fatPerPiece: item.fatPerPiece !== undefined ? item.fatPerPiece : (!isGramOrMl ? fPerUnit : 0),
           source,
         });
       }
