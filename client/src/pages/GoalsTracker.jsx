@@ -22,6 +22,7 @@ import {
   Flame,
   Check,
   Search,
+  Link2,
 } from 'lucide-react';
 
 const CATEGORIES = ['Health', 'Career', 'Learning', 'Spiritual', 'Financial', 'Personal'];
@@ -466,11 +467,11 @@ export const GoalsTracker = () => {
                 <Link2 className="w-3.5 h-3.5 text-accent" /> {t('goals.linkHabits')}
               </label>
               <span className="text-[11px] text-muted">
-                {selectedHabitIds.length} {t('goals.linkedHabitsCount')}
+                {linkedHabits.length} {t('goals.linkedHabitsCount')}
               </span>
             </div>
 
-            {habits.length === 0 ? (
+            {availableHabits.length === 0 ? (
               <p className="text-xs text-muted italic">
                 {t('goals.noHabitsToLink')}
               </p>
