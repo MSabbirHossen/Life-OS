@@ -11,12 +11,30 @@ export const Card = ({
   hover = false,
   badge,
   noPadding = false,
+  onClick,
 }) => {
+  const handleClick = (e) => {
+    if (onClick) {
+      const target = e.target;
+      if (
+        target.closest('button') ||
+        target.closest('a') ||
+        target.closest('input') ||
+        target.closest('select') ||
+        target.closest('textarea')
+      ) {
+        return;
+      }
+      onClick(e);
+    }
+  };
+
   return (
     <div
+      onClick={handleClick}
       className={`relative group bg-surface border border-theme rounded-2xl card-shadow flex flex-col ${
-        hover ? 'card-hover' : ''
-      } ${noPadding ? '' : 'p-4 sm:p-5 md:p-6'} ${className}`}
+        hover || onClick ? 'card-hover' : ''
+      } ${onClick ? 'cursor-pointer' : ''} ${noPadding ? '' : 'p-4 sm:p-5 md:p-6'} ${className}`}
     >
       <div className="flex-1 min-w-0">
         {(title || action || Icon || badge) && (

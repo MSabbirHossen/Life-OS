@@ -10,6 +10,7 @@ export const StatCard = ({
   trend,
   color = 'indigo',
   className = '',
+  onClick,
 }) => {
   const colorMap = {
     indigo: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
@@ -23,7 +24,7 @@ export const StatCard = ({
   const selectedColor = colorMap[color] || colorMap.indigo;
 
   return (
-    <Card hover className={`relative overflow-hidden ${className}`}>
+    <Card hover onClick={onClick} className={`relative overflow-hidden ${className}`}>
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0 flex-1">
           <span className="text-xs font-semibold text-secondary uppercase tracking-wider block truncate">
