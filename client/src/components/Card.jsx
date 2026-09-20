@@ -59,7 +59,7 @@ export const Card = ({
         {children}
       </div>
       {bottomAction && (
-        <div className="absolute bottom-2.5 right-2.5 sm:bottom-3 sm:right-3 flex items-center gap-1 z-10 opacity-85 sm:opacity-70 group-hover:opacity-100 transition-all duration-200">
+        <div className="mt-auto pt-3 flex items-center justify-end z-10">
           {bottomAction}
         </div>
       )}
