@@ -209,10 +209,10 @@ export const Journal = ({ selectedDate }) => {
             <div className="space-y-2">
               <div className="flex items-center gap-2">
                 <Badge variant="purple" size="xs" dot>
-                  Guided Prompt of the Day
+                  {t('reflection.guidedPromptOfTheDay')}
                 </Badge>
                 <span className="text-[11px] font-bold text-secondary uppercase tracking-wider">
-                  Category: {prompt.category}
+                  {t('reflection.category')}: {prompt.category}
                 </span>
               </div>
               <h3 className="text-lg sm:text-xl font-extrabold text-primary tracking-tight">
@@ -227,10 +227,10 @@ export const Journal = ({ selectedDate }) => {
                 loading={loadingPrompt}
                 onClick={fetchPrompt}
               >
-                New Prompt
+                {t('reflection.newPrompt')}
               </Button>
               <Button variant="primary" size="sm" icon={Plus} onClick={openCreateModal}>
-                Answer Now
+                {t('reflection.answerNow')}
               </Button>
             </div>
           </div>
@@ -240,8 +240,8 @@ export const Journal = ({ selectedDate }) => {
       {/* Entries Section */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-bold text-primary tracking-tight">Journal Entries</h2>
-          <span className="text-xs font-semibold text-secondary">{entries.length} entries recorded</span>
+          <h2 className="text-lg font-bold text-primary tracking-tight">{t('reflection.journalEntries')}</h2>
+          <span className="text-xs font-semibold text-secondary">{entries.length} {t('reflection.entriesRecorded')}</span>
         </div>
 
         {loading ? (
@@ -251,9 +251,9 @@ export const Journal = ({ selectedDate }) => {
         ) : entries.length === 0 ? (
           <EmptyState
             icon={BookOpen}
-            title="No journal entries yet"
-            description="Start documenting your daily reflections, highlights, and gratitude list."
-            actionText="Create First Entry"
+            title={t('reflection.noEntries')}
+            description={t('reflection.noEntriesDesc')}
+            actionText={t('reflection.createFirstEntry')}
             onAction={openCreateModal}
           />
         ) : (
@@ -267,14 +267,14 @@ export const Journal = ({ selectedDate }) => {
                     <button
                       onClick={() => openEditModal(entry)}
                       className="p-1.5 rounded-lg bg-surface/90 dark:bg-surface/90 backdrop-blur-xs border border-theme/60 text-secondary hover:text-accent hover:border-accent/40 hover:bg-accent/10 shadow-xs transition-all cursor-pointer"
-                      title="Edit Entry"
+                      title={t('common.edit')}
                     >
                       <Edit2 className="w-3.5 h-3.5" />
                     </button>
                     <button
                       onClick={() => setDeleteId(entry._id)}
                       className="p-1.5 rounded-lg bg-surface/90 dark:bg-surface/90 backdrop-blur-xs border border-theme/60 text-secondary hover:text-rose-600 hover:border-rose-500/40 hover:bg-rose-500/10 shadow-xs transition-all cursor-pointer"
-                      title="Delete Entry"
+                      title={t('common.delete')}
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
@@ -317,7 +317,7 @@ export const Journal = ({ selectedDate }) => {
                   {entry.gratitude && entry.gratitude.length > 0 && (
                     <div className="space-y-1.5">
                       <span className="text-[11px] font-bold text-secondary uppercase tracking-wider flex items-center gap-1">
-                        <Heart className="w-3 h-3 text-rose-500" /> Gratitude
+                        <Heart className="w-3 h-3 text-rose-500" /> {t('reflection.gratitude')}
                       </span>
                       <ul className="text-xs text-secondary space-y-1 pl-4 list-disc">
                         {entry.gratitude.map((g, i) => (
@@ -350,7 +350,7 @@ export const Journal = ({ selectedDate }) => {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         title={editingEntry ? `${t('common.edit')} ${t('reflection.title')}` : t('reflection.newEntry')}
-        subtitle={`Recording thoughts for ${formatDisplayDate(formDate)}`}
+        subtitle={`${t('reflection.recordingThoughtsFor')} ${formatDisplayDate(formDate)}`}
         maxWidth="max-w-2xl"
       >
         <form onSubmit={handleSubmit} className="space-y-5 pb-1">
@@ -396,7 +396,7 @@ export const Journal = ({ selectedDate }) => {
             <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-indigo-500/10 via-purple-500/5 to-indigo-500/5 border border-indigo-500/25 shadow-xs space-y-2.5">
               <div className="flex items-center gap-2">
                 <Badge variant="purple" size="xs">
-                  <Sparkles className="w-3 h-3 mr-1 text-purple-500" /> Guided Prompt
+                  <Sparkles className="w-3 h-3 mr-1 text-purple-500" /> {t('reflection.guidedPrompt')}
                 </Badge>
               </div>
               <h4 className="text-sm sm:text-base font-bold text-primary leading-relaxed">
@@ -404,7 +404,7 @@ export const Journal = ({ selectedDate }) => {
               </h4>
               <textarea
                 rows={2}
-                placeholder="Write your honest reflection here..."
+                placeholder={t('reflection.writeReflectionPrompt')}
                 value={promptAnswer}
                 onChange={(e) => setPromptAnswer(e.target.value)}
                 className="textarea-base text-sm bg-surface/90 placeholder:text-muted"
@@ -416,11 +416,11 @@ export const Journal = ({ selectedDate }) => {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
-                <span>✨</span> Highlights & Wins
+                <span>✨</span> {t('reflection.wins')}
               </label>
               <textarea
                 rows={2}
-                placeholder="What went exceptionally well today?"
+                placeholder={t('reflection.winsPlaceholder')}
                 value={highlights}
                 onChange={(e) => setHighlights(e.target.value)}
                 className="textarea-base min-h-[75px] text-sm"
@@ -428,11 +428,11 @@ export const Journal = ({ selectedDate }) => {
             </div>
             <div>
               <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
-                <span>⚡</span> Obstacles & Challenges
+                <span>⚡</span> {t('reflection.obstacles')}
               </label>
               <textarea
                 rows={2}
-                placeholder="What problems or friction did you face?"
+                placeholder={t('reflection.obstaclesPlaceholder')}
                 value={problemsFaced}
                 onChange={(e) => setProblemsFaced(e.target.value)}
                 className="textarea-base min-h-[75px] text-sm"
@@ -444,14 +444,14 @@ export const Journal = ({ selectedDate }) => {
           <div>
             <div className="flex items-center justify-between mb-2">
               <label className="text-xs font-bold text-secondary uppercase tracking-wider flex items-center gap-1.5">
-                <span>🙏</span> Gratitude List
+                <span>🙏</span> {t('reflection.gratitudeList')}
               </label>
               <button
                 type="button"
                 onClick={addGratitudeItem}
                 className="inline-flex items-center gap-1 text-xs font-bold text-accent hover:text-accent-hover transition-colors cursor-pointer"
               >
-                <Plus className="w-3.5 h-3.5" /> Add Blessing
+                <Plus className="w-3.5 h-3.5" /> {t('reflection.addBlessing')}
               </button>
             </div>
             <div className="space-y-2">
@@ -462,7 +462,7 @@ export const Journal = ({ selectedDate }) => {
                   </div>
                   <input
                     type="text"
-                    placeholder={`Thing you appreciate #${idx + 1}...`}
+                    placeholder={`${t('reflection.appreciatePlaceholder')} #${idx + 1}...`}
                     value={g}
                     onChange={(e) => handleGratitudeChange(idx, e.target.value)}
                     className="input-base text-sm"
@@ -472,7 +472,7 @@ export const Journal = ({ selectedDate }) => {
                       type="button"
                       onClick={() => removeGratitudeItem(idx)}
                       className="p-2 text-secondary hover:text-rose-600 hover:bg-rose-500/10 rounded-xl transition-colors cursor-pointer shrink-0"
-                      title="Remove item"
+                      title={t('common.delete')}
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -485,11 +485,11 @@ export const Journal = ({ selectedDate }) => {
           {/* Notes for Tomorrow */}
           <div>
             <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
-              <span>🎯</span> Notes & Focus for Tomorrow
+              <span>🎯</span> {t('reflection.tomorrowPlan')}
             </label>
             <input
               type="text"
-              placeholder="Key focus, intention, or reminder for tomorrow..."
+              placeholder={t('reflection.tomorrowPlaceholder')}
               value={notesForTomorrow}
               onChange={(e) => setNotesForTomorrow(e.target.value)}
               className="input-base text-sm"
@@ -517,7 +517,7 @@ export const Journal = ({ selectedDate }) => {
       >
         <div className="space-y-4">
           <p className="text-sm text-secondary">
-            {t('common.confirmDeleteDesc')}
+            {t('reflection.deleteJournalDesc')}
           </p>
           <div className="flex justify-end gap-3 pt-3 border-t border-subtle">
             <Button variant="secondary" onClick={() => setDeleteId(null)}>
