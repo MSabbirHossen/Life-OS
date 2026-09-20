@@ -72,32 +72,32 @@ export const MACRO_SPLIT_PRESETS = [
 
 export const DOCUMENTATION_LINKS = [
   {
-    title: 'USDA Dietary Guidelines for Americans',
-    organization: 'USDA & U.S. Dept of Health and Human Services (HHS)',
-    url: 'https://www.dietaryguidelines.gov/resources/2020-2025-dietary-guidelines-online-materials',
+    title: 'USDA Dietary Guidelines & Macronutrient Ranges',
+    organization: 'USDA National Agricultural Library & HHS',
+    url: 'https://www.nal.usda.gov/human-nutrition-and-food-safety/macronutrients',
     summary: 'Official Acceptable Macronutrient Distribution Ranges (AMDR): Protein 10–35%, Carbs 45–65%, Fat 20–35%.',
     badge: 'Government Standard',
   },
   {
-    title: 'Mifflin-St Jeor BMR & Energy Expenditure Study',
-    organization: 'National Library of Medicine (NIH / NCBI)',
-    url: 'https://www.ncbi.nlm.nih.gov/books/NBK279077/',
-    summary: 'The clinical standard formula for estimating Basal Metabolic Rate (BMR) with the highest predictive accuracy.',
+    title: 'Mifflin-St Jeor Clinical Energy Equation Study',
+    organization: 'National Library of Medicine (NIH / PubMed)',
+    url: 'https://pubmed.ncbi.nlm.nih.gov/2305711/',
+    summary: 'The clinically validated standard for predicting Basal Metabolic Rate (BMR) with the highest accuracy.',
     badge: 'Clinical Evidence',
   },
   {
     title: 'Mayo Clinic: Carbohydrates, Protein & Fat Guidelines',
     organization: 'Mayo Clinic Health Information',
     url: 'https://www.mayoclinic.org/healthy-lifestyle/nutrition-and-healthy-eating/in-depth/carbohydrates/art-20045705',
-    summary: 'Scientific guidance on energy breakdown, daily caloric allowances, and balancing macronutrient ratios.',
+    summary: 'Medical guidance on energy balance, daily caloric allowances, and balancing macronutrient ratios.',
     badge: 'Medical Guidance',
   },
   {
-    title: 'Precision Nutrition: Macronutrient Calculator & Guide',
-    organization: 'Precision Nutrition Institute',
-    url: 'https://www.precisionnutrition.com/macro-calculator',
-    summary: 'Comprehensive methodology for translating body metrics into protein, carb, and fat targets based on goals.',
-    badge: 'Sports Nutrition',
+    title: 'Harvard T.H. Chan School of Public Health Nutrition Guide',
+    organization: 'Harvard University Dept of Nutrition',
+    url: 'https://www.hsph.harvard.edu/nutritionsource/what-should-you-eat/protein/',
+    summary: 'Comprehensive scientific review of dietary protein, essential amino acids, and long-term metabolic health.',
+    badge: 'Academic Research',
   },
 ];
 
