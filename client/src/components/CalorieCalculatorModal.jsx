@@ -31,14 +31,16 @@ export const CalorieCalculatorModal = ({
   onClose,
   onApplied,
   onOpenDocs,
-  currentWeight = 70,
+  currentWeight,
 }) => {
   const [savedSettings] = useState(() => getSavedMacroSettings());
 
   const [gender, setGender] = useState(savedSettings?.bodyProfile?.gender || 'male');
-  const [weightKg, setWeightKg] = useState(currentWeight || savedSettings?.bodyProfile?.weightKg || 70);
-  const [heightCm, setHeightCm] = useState(savedSettings?.bodyProfile?.heightCm || 175);
-  const [age, setAge] = useState(savedSettings?.bodyProfile?.age || 26);
+  const [weightKg, setWeightKg] = useState(
+    savedSettings?.bodyProfile?.weightKg ?? (currentWeight || '')
+  );
+  const [heightCm, setHeightCm] = useState(savedSettings?.bodyProfile?.heightCm ?? '');
+  const [age, setAge] = useState(savedSettings?.bodyProfile?.age ?? '');
   const [activityLevel, setActivityLevel] = useState(savedSettings?.bodyProfile?.activityLevel || 'moderate');
   const [goal, setGoal] = useState(savedSettings?.bodyProfile?.goal || 'maintain');
   const [macroPreset, setMacroPreset] = useState(savedSettings?.presetId || 'balanced');
@@ -47,7 +49,7 @@ export const CalorieCalculatorModal = ({
 
   // Sync weight if parent passes a fresh currentWeight
   useEffect(() => {
-    if (currentWeight && currentWeight > 0) {
+    if (currentWeight && currentWeight > 0 && !weightKg) {
       setWeightKg(currentWeight);
     }
   }, [currentWeight]);
@@ -79,9 +81,9 @@ export const CalorieCalculatorModal = ({
         presetId: macroPreset,
         bodyProfile: {
           gender,
-          weightKg: Number(weightKg) || 70,
-          heightCm: Number(heightCm) || 175,
-          age: Number(age) || 26,
+          weightKg: weightKg ? Number(weightKg) : 70,
+          heightCm: heightCm ? Number(heightCm) : 175,
+          age: age ? Number(age) : 25,
           activityLevel,
           goal,
         },
@@ -107,7 +109,14 @@ export const CalorieCalculatorModal = ({
       // Fallback: still save locally
       saveMacroSettings({
         presetId: macroPreset,
-        bodyProfile: { gender, weightKg, heightCm, age, activityLevel, goal },
+        bodyProfile: {
+          gender,
+          weightKg: weightKg ? Number(weightKg) : 70,
+          heightCm: heightCm ? Number(heightCm) : 175,
+          age: age ? Number(age) : 25,
+          activityLevel,
+          goal,
+        },
       });
       if (onApplied) {
         onApplied({ budgetKcal: budgetResult.budgetKcal, macroTargets, bmr, tdee: budgetResult.tdee });
@@ -163,36 +172,39 @@ export const CalorieCalculatorModal = ({
           {/* Age, Height, Weight inputs */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
-              <label className="text-[11px] font-semibold text-secondary mb-1 block">Age (years)</label>
+              <label className="text-[11px] font-semibold text-secondary mb-1 block text-center">Age (years)</label>
               <input
                 type="number"
-                min="12"
-                max="100"
+                min="1"
+                max="120"
+                placeholder="e.g. 25"
                 value={age}
-                onChange={(e) => setAge(Math.max(12, Number(e.target.value) || 25))}
+                onChange={(e) => setAge(e.target.value)}
                 className="input-base w-full py-1.5 font-bold text-primary text-center"
               />
             </div>
             <div>
-              <label className="text-[11px] font-semibold text-secondary mb-1 block">Height (cm)</label>
+              <label className="text-[11px] font-semibold text-secondary mb-1 block text-center">Height (cm)</label>
               <input
                 type="number"
-                min="100"
-                max="250"
+                min="1"
+                max="260"
+                placeholder="e.g. 175"
                 value={heightCm}
-                onChange={(e) => setHeightCm(Math.max(100, Number(e.target.value) || 175))}
+                onChange={(e) => setHeightCm(e.target.value)}
                 className="input-base w-full py-1.5 font-bold text-primary text-center"
               />
             </div>
             <div>
-              <label className="text-[11px] font-semibold text-secondary mb-1 block">Weight (kg)</label>
+              <label className="text-[11px] font-semibold text-secondary mb-1 block text-center">Weight (kg)</label>
               <input
                 type="number"
-                step="0.5"
-                min="30"
-                max="300"
+                step="0.1"
+                min="1"
+                max="400"
+                placeholder="e.g. 70"
                 value={weightKg}
-                onChange={(e) => setWeightKg(Math.max(30, Number(e.target.value) || 70))}
+                onChange={(e) => setWeightKg(e.target.value)}
                 className="input-base w-full py-1.5 font-bold text-primary text-center"
               />
             </div>

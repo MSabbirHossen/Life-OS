@@ -265,9 +265,9 @@ export const getSavedMacroSettings = () => {
     customSplits: { proteinPercent: 30, carbsPercent: 40, fatPercent: 30 },
     bodyProfile: {
       gender: 'male',
-      weightKg: 70,
-      heightCm: 175,
-      age: 26,
+      weightKg: '',
+      heightCm: '',
+      age: '',
       activityLevel: 'moderate',
       goal: 'maintain',
     },
