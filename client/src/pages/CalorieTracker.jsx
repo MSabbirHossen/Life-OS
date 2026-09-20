@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { useLanguage } from '../context/LanguageContext';
 import { PageHeader } from '../components/PageHeader';
 import { Card } from '../components/Card';
 import { StatCard } from '../components/StatCard';
@@ -131,6 +132,7 @@ const UNITS = ['piece', 'gram', 'ml', 'cup', 'bowl', 'tablespoon', 'teaspoon'];
 const MACRO_COLORS = ['#6366F1', '#10B981', '#F59E0B']; // Protein (Indigo), Carbs (Emerald), Fat (Amber)
 
 export const CalorieTracker = ({ selectedDate }) => {
+  const { t, isRTL } = useLanguage();
   const activeDate = selectedDate || getFormattedDate();
 
   const [meals, setMeals] = useState([]);
@@ -514,12 +516,12 @@ export const CalorieTracker = ({ selectedDate }) => {
   return (
     <div className="space-y-6 sm:space-y-8 animate-fade-in">
       <PageHeader
-        category="Nutrition & Macros"
-        title="Calorie & Meal Tracker"
-        description={`Smart autocomplete meal logger with verified online nutritional profiles and accurate gram/piece conversions for ${formatDisplayDate(activeDate)}`}
+        category={t('categories.nutrition', 'Nutrition & Macros')}
+        title={t('calories.title', 'Calorie & Meal Tracker')}
+        description={`${t('calories.subtitle', 'Manage caloric intake, macronutrient ratios, and dietary goals with precision')} (${formatDisplayDate(activeDate)})`}
         action={
           <Button variant="gradient" size="md" icon={Plus} onClick={() => openCreateModal('Breakfast')}>
-            Log Meal
+            {t('calories.logMeal', 'Log Meal')}
           </Button>
         }
       />
@@ -527,35 +529,35 @@ export const CalorieTracker = ({ selectedDate }) => {
       {/* Top Stat Cards Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-5">
         <StatCard
-          title="Calories Consumed"
+          title={t('dashboard.caloriesToday', 'Calories Consumed')}
           value={`${summary.caloriesConsumed || 0} kcal`}
           subtitle={`Goal: ${summary.dailyCalorieGoal || 2000} kcal`}
           icon={Flame}
           color="amber"
         />
         <StatCard
-          title="Remaining Budget"
+          title={t('calories.budgetRemaining', 'Remaining Budget')}
           value={`${summary.remainingCalories || 0} kcal`}
           subtitle="Energy balance"
           icon={Utensils}
           color="indigo"
         />
         <StatCard
-          title="Total Protein"
+          title={t('calories.protein', 'Total Protein')}
           value={`${summary.totalProtein || 0}g`}
           subtitle="Muscle recovery"
           icon={Sparkles}
           color="purple"
         />
         <StatCard
-          title="Water Hydration"
+          title={t('dashboard.waterToday', 'Water Hydration')}
           value={`${summary.waterGlasses || 0} Glasses`}
           subtitle={`${summary.waterMl || 0} ml consumed`}
           icon={Droplets}
           color="cyan"
         />
         <StatCard
-          title="IF Completed Fasts"
+          title={t('fasting.title', 'IF Completed Fasts')}
           value={`${fastingStats.completedCount} Done`}
           subtitle={`${fastingStats.streak}d streak · ${fastingStats.partialCount} partial · ${fastingStats.earlyEndedCount} <20%`}
           icon={Trophy}

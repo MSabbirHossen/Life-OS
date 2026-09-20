@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useLanguage } from '../context/LanguageContext';
 import { PageHeader } from '../components/PageHeader';
 import { Card } from '../components/Card';
 import { StatCard } from '../components/StatCard';
@@ -39,6 +40,7 @@ const PRAYER_META = {
 };
 
 export const QadaMatrix = () => {
+  const { t, isRTL } = useLanguage();
   const [qadaData, setQadaData] = useState([]);
   const [vows, setVows] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -311,9 +313,9 @@ export const QadaMatrix = () => {
   return (
     <div className="space-y-6 sm:space-y-8 animate-fade-in">
       <PageHeader
-        category="Spiritual Accountability"
-        title="Qada Salah Matrix & Niyyah Tracker"
-        description="Comprehensive debt tracker for missed prayers (including Witr) and spiritual promises"
+        category={t('categories.spiritual', 'Spiritual Discipline')}
+        title={t('qada.title', 'Salah & Qada Matrix')}
+        description={t('qada.subtitle', 'Daily obligatory prayer tracking and lifetime missed prayer (Qada Umri) clearance matrix.')}
         action={
           <div className="flex items-center gap-2 flex-wrap">
             <Button
@@ -328,7 +330,7 @@ export const QadaMatrix = () => {
                 setIsCalculatorOpen(true);
               }}
             >
-              Lifetime Qada Calculator
+              {t('qada.qadaUmri', 'Lifetime Qada Calculator')}
             </Button>
             <Button
               variant="gradient"
@@ -343,7 +345,7 @@ export const QadaMatrix = () => {
                 setIsVowModalOpen(true);
               }}
             >
-              New Spiritual Vow
+              {t('common.add', 'New Spiritual Vow')}
             </Button>
           </div>
         }

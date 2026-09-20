@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useLanguage } from '../context/LanguageContext';
 import { PageHeader } from '../components/PageHeader';
 import { Card } from '../components/Card';
 import { StatCard } from '../components/StatCard';
@@ -28,11 +29,12 @@ const CATEGORY_COLORS = {
   Fitness: 'emerald',
   Islamic: 'cyan',
   Social: 'amber',
-  Sleep: 'neutral',
+  Sleep: 'rose',
   Other: 'neutral',
 };
 
 export const TimeTracker = ({ selectedDate }) => {
+  const { t, isRTL } = useLanguage();
   const currentDate = selectedDate || getFormattedDate();
 
   const [logs, setLogs] = useState([]);
@@ -194,12 +196,12 @@ export const TimeTracker = ({ selectedDate }) => {
   return (
     <div className="space-y-6 sm:space-y-8 animate-fade-in">
       <PageHeader
-        category="Time Distribution"
-        title="Time Tracker"
-        description={`Track daily focus blocks, tasks, categories, and review distribution for ${formatDisplayDate(currentDate)}`}
+        category={t('categories.time', 'Time Distribution')}
+        title={t('time.title', 'Time Tracker')}
+        description={`${t('time.subtitle', 'Track focused work sessions, manage distraction-free intervals, and analyze daily output.')} (${formatDisplayDate(currentDate)})`}
         action={
           <Button variant="gradient" size="md" icon={Plus} onClick={openCreateModal}>
-            Log Time Block
+            {t('time.startTimer', 'Log Time Block')}
           </Button>
         }
       />
@@ -207,7 +209,7 @@ export const TimeTracker = ({ selectedDate }) => {
       {/* Top Stat Summary Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
         <StatCard
-          title="Total Time Logged"
+          title={t('time.totalFocusTime', 'Total Time Logged')}
           value={`${Math.floor((summary.totalMinutes || 0) / 60)}h ${(summary.totalMinutes || 0) % 60}m`}
           subtitle={`${logs.length} time blocks recorded`}
           icon={Clock}

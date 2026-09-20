@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useLanguage } from '../context/LanguageContext';
 import { PageHeader } from '../components/PageHeader';
 import { Card } from '../components/Card';
 import { StatCard } from '../components/StatCard';
@@ -43,6 +44,7 @@ const SALAH_STATUSES = [
 
 export const IslamicTracker = ({ selectedDate }) => {
   const navigate = useNavigate();
+  const { t, isRTL } = useLanguage();
   const activeDate = selectedDate || getFormattedDate();
 
   const [salahLogs, setSalahLogs] = useState([]);
@@ -406,9 +408,9 @@ export const IslamicTracker = ({ selectedDate }) => {
   return (
     <div className="space-y-6 sm:space-y-8 animate-fade-in">
       <PageHeader
-        category="Spiritual Life & Deen"
-        title="Islamic Practice & Qada Tracker"
-        description={`Track daily 5 Salah prayers, make up missed (Qada) prayers, record Hadiths, and fulfill spiritual vows for ${formatDisplayDate(activeDate)}`}
+        category={t('categories.spiritual', 'Spiritual Life & Deen')}
+        title={t('islamic.title', 'Islamic Practice & Qada Tracker')}
+        description={`${t('islamic.subtitle', 'Prayer schedules, fasting countdowns, daily adhkar, and Quran reflections.')} (${formatDisplayDate(activeDate)})`}
         action={
           <div className="flex items-center gap-2.5 flex-wrap">
             <Button
@@ -417,7 +419,7 @@ export const IslamicTracker = ({ selectedDate }) => {
               icon={Compass}
               onClick={() => navigate('/qada-matrix')}
             >
-              Full Qada Matrix
+              {t('qada.title', 'Full Qada Matrix')}
             </Button>
             <Button
               variant="secondary"
@@ -441,7 +443,7 @@ export const IslamicTracker = ({ selectedDate }) => {
               icon={Plus}
               onClick={() => setIsQuranModalOpen(true)}
             >
-              Log Quran
+              {t('islamic.quranProgress', 'Log Quran')}
             </Button>
           </div>
         }

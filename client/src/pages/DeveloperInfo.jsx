@@ -3,6 +3,7 @@ import { PageHeader } from '../components/PageHeader';
 import { Card } from '../components/Card';
 import { Button } from '../components/Button';
 import { Badge } from '../components/Badge';
+import { useLanguage } from '../context/LanguageContext';
 import {
   Sparkles,
   ExternalLink,
@@ -214,6 +215,7 @@ export const SOCIAL_LINKS = [
 ];
 
 export const DeveloperInfo = ({ isCompact = false }) => {
+  const { t } = useLanguage();
   const [copiedLink, setCopiedLink] = useState(false);
   const [copiedEmail, setCopiedEmail] = useState(false);
   const [filterCategory, setFilterCategory] = useState('All');
@@ -297,8 +299,8 @@ export const DeveloperInfo = ({ isCompact = false }) => {
     <div className="space-y-6 sm:space-y-8 animate-fade-in max-w-6xl mx-auto">
       <PageHeader
         category="Creator & Community"
-        title="Developer & Community Hub"
-        description="Connect with MS Hossen (Part-Time Coder), the architect behind Life OS. Reach out via WhatsApp, Telegram, Email, explore the Portfolio, or share feedback."
+        title={t('developer.title')}
+        description={t('developer.subtitle')}
         action={
           <div className="flex items-center gap-2 sm:gap-2.5 flex-wrap">
             <Button
@@ -315,7 +317,7 @@ export const DeveloperInfo = ({ isCompact = false }) => {
               rel="noopener noreferrer"
             >
               <Button variant="secondary" size="md" icon={Globe}>
-                Portfolio
+                {t('developer.portfolio')}
               </Button>
             </a>
             <a

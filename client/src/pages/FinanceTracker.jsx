@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useLanguage } from '../context/LanguageContext';
 import { PageHeader } from '../components/PageHeader';
 import { Card } from '../components/Card';
 import { StatCard } from '../components/StatCard';
@@ -220,6 +221,7 @@ const CurrencySelectorInput = ({
 
 export const FinanceTracker = ({ selectedDate }) => {
   const { user } = useAuth();
+  const { t, isRTL } = useLanguage();
   const defaultCurrency = (user?.currency || localStorage.getItem('lifeos_currency') || 'USD').toUpperCase();
   const [customCurrencies, setCustomCurrencies] = useState([]);
   const availableCurrencies = Array.from(new Set([defaultCurrency, ...POPULAR_CURRENCIES, ...customCurrencies]));
@@ -565,9 +567,9 @@ export const FinanceTracker = ({ selectedDate }) => {
   return (
     <div className="space-y-6 sm:space-y-8 animate-fade-in">
       <PageHeader
-        category="Wealth & Budgeting"
-        title="Finance & Fund Transfers"
-        description={`Monitor income, expenses, multi-currency assets (${defaultCurrency}), and exchange currencies seamlessly.`}
+        category={t('nav.finance', 'Wealth & Budgeting')}
+        title={t('finance.title', 'Personal Finance & Wealth')}
+        description={`${t('finance.subtitle', 'Track income streams, categorize daily expenses, and analyze cash flow.')} (${defaultCurrency})`}
         action={
           <div className="flex items-center gap-2.5 flex-wrap">
             <Button
@@ -584,7 +586,7 @@ export const FinanceTracker = ({ selectedDate }) => {
               icon={ArrowUpRight}
               onClick={() => openTransactionModal('income')}
             >
-              + Income
+              + {t('finance.income', 'Income')}
             </Button>
             <Button
               variant="gradient"
@@ -592,7 +594,7 @@ export const FinanceTracker = ({ selectedDate }) => {
               icon={Plus}
               onClick={() => openTransactionModal('expense')}
             >
-              Log Expense
+              {t('finance.addTransaction', 'Log Expense')}
             </Button>
           </div>
         }

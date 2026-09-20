@@ -5,6 +5,7 @@ import { Button } from '../components/Button';
 import { Badge } from '../components/Badge';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
+import { useLanguage } from '../context/LanguageContext';
 import api from '../utils/api';
 import { Link } from 'react-router-dom';
 import {
@@ -22,6 +23,8 @@ import {
   Code2,
   ExternalLink,
   Coins,
+  Globe,
+  Check,
 } from 'lucide-react';
 
 const CURRENCY_OPTIONS = [
@@ -44,6 +47,7 @@ const CURRENCY_OPTIONS = [
 ];
 
 export const Settings = () => {
+  const { t, language, changeLanguage } = useLanguage();
   const { user, updateUser } = useAuth();
   const { theme, setTheme } = useTheme();
 
@@ -149,17 +153,79 @@ export const Settings = () => {
   return (
     <div className="space-y-6 sm:space-y-8 animate-fade-in max-w-4xl">
       <PageHeader
-        category="Configuration & Preferences"
-        title="Settings & Preferences"
-        description="Manage your account profile, configure daily targets, and customize theme appearance."
+        category={t('categories.system')}
+        title={t('settings.title')}
+        description={t('settings.subtitle')}
       />
 
       {saveSuccess && (
         <div className="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/25 flex items-center gap-2 text-xs font-bold text-emerald-600 dark:text-emerald-400 animate-fade-in">
           <CheckCircle2 className="w-4 h-4 shrink-0" />
-          Settings saved successfully!
+          {t('common.save')} successfully!
         </div>
       )}
+
+      {/* Language & Localization Card */}
+      <Card hover title={t('settings.language')} subtitle="Switch application interface language and typography" icon={Globe}>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 mt-2">
+          <button
+            type="button"
+            onClick={() => changeLanguage('en')}
+            className={`p-4 rounded-2xl border transition-all cursor-pointer flex items-center justify-between gap-3 ${
+              language === 'en'
+                ? 'bg-accent/10 border-accent text-accent shadow-sm'
+                : 'bg-subtle border-theme text-secondary hover:text-primary hover:border-[var(--color-border-hover)]'
+            }`}
+          >
+            <div className="flex items-center gap-3">
+              <span className="text-2xl">🇺🇸</span>
+              <div className="text-left">
+                <span className="text-xs font-bold block text-primary">English</span>
+                <span className="text-[10px] text-secondary">Default (LTR)</span>
+              </div>
+            </div>
+            {language === 'en' && <Check className="w-4 h-4 text-accent" />}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => changeLanguage('bn')}
+            className={`p-4 rounded-2xl border transition-all cursor-pointer flex items-center justify-between gap-3 ${
+              language === 'bn'
+                ? 'bg-accent/10 border-accent text-accent shadow-sm'
+                : 'bg-subtle border-theme text-secondary hover:text-primary hover:border-[var(--color-border-hover)]'
+            }`}
+          >
+            <div className="flex items-center gap-3">
+              <span className="text-2xl">🇧🇩</span>
+              <div className="text-left">
+                <span className="text-xs font-bold block text-primary font-bengali">বাংলা</span>
+                <span className="text-[10px] text-secondary">Bengali (LTR)</span>
+              </div>
+            </div>
+            {language === 'bn' && <Check className="w-4 h-4 text-accent" />}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => changeLanguage('ar')}
+            className={`p-4 rounded-2xl border transition-all cursor-pointer flex items-center justify-between gap-3 ${
+              language === 'ar'
+                ? 'bg-accent/10 border-accent text-accent shadow-sm'
+                : 'bg-subtle border-theme text-secondary hover:text-primary hover:border-[var(--color-border-hover)]'
+            }`}
+          >
+            <div className="flex items-center gap-3">
+              <span className="text-2xl">🇸🇦</span>
+              <div className="text-left">
+                <span className="text-xs font-bold block text-primary font-arabic">العربية</span>
+                <span className="text-[10px] text-secondary">Arabic (RTL)</span>
+              </div>
+            </div>
+            {language === 'ar' && <Check className="w-4 h-4 text-accent" />}
+          </button>
+        </div>
+      </Card>
 
       <form onSubmit={handleSaveSettings} className="space-y-6 sm:space-y-7">
         {/* Appearance Theme Card */}

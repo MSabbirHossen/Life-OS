@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLanguage } from '../context/LanguageContext';
 import { PageHeader } from '../components/PageHeader';
 import { Card } from '../components/Card';
 import { Button } from '../components/Button';
@@ -35,6 +36,7 @@ const MOOD_OPTIONS = [
 ];
 
 export const Journal = ({ selectedDate }) => {
+  const { t, isRTL } = useLanguage();
   const [entries, setEntries] = useState([]);
   const [loading, setLoading] = useState(true);
   const [prompt, setPrompt] = useState(null);
@@ -180,9 +182,9 @@ export const Journal = ({ selectedDate }) => {
   return (
     <div className="space-y-6 sm:space-y-8 animate-fade-in">
       <PageHeader
-        category="Daily Reflection"
-        title="Journal & Reflection"
-        description="Capture your thoughts, mood, daily gratitude, and track recurring tags."
+        category={t('categories.mindfulness', 'Daily Reflection')}
+        title={t('reflection.title', 'Journal & Reflection')}
+        description={t('reflection.subtitle', 'Mindful evening reviews, gratitude logging, and cognitive reflections.')}
         action={
           <div className="flex items-center gap-2.5 flex-wrap">
             <Button
@@ -191,10 +193,10 @@ export const Journal = ({ selectedDate }) => {
               icon={Sparkles}
               onClick={() => setIsGuidedModalOpen(true)}
             >
-              Guided Growth Popup
+              {t('reflection.guidedReflection', 'Guided Growth Popup')}
             </Button>
             <Button variant="gradient" size="md" icon={Plus} onClick={openCreateModal}>
-              New Journal Entry
+              {t('reflection.newEntry', 'New Journal Entry')}
             </Button>
           </div>
         }

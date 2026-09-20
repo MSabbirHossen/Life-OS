@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { useLanguage } from '../context/LanguageContext';
 import { PageHeader } from '../components/PageHeader';
 import { Card } from '../components/Card';
 import { StatCard } from '../components/StatCard';
@@ -51,6 +52,7 @@ const getHabitIncompleteDays = (habit, targetDateStr) => {
 };
 
 export const HabitsTracker = ({ selectedDate }) => {
+  const { t, isRTL } = useLanguage();
   const activeDate = selectedDate || getFormattedDate();
 
   const [habits, setHabits] = useState([]);
@@ -418,12 +420,12 @@ export const HabitsTracker = ({ selectedDate }) => {
   return (
     <div className="space-y-6 sm:space-y-8 animate-fade-in">
       <PageHeader
-        category="Discipline & Consistency"
-        title="Habits Tracker"
-        description={`Daily discipline routines, streak tracking, and GitHub-style lifetime contribution activity for ${formatDisplayDate(activeDate)}`}
+        category={t('categories.habits', 'Discipline & Consistency')}
+        title={t('habits.title', 'Habits Tracker')}
+        description={`${t('habits.subtitle', 'Build sustainable daily routines, track completion streaks, and minimize habit decay.')} (${formatDisplayDate(activeDate)})`}
         action={
           <Button variant="gradient" size="md" icon={Plus} onClick={handleOpenCreateModal}>
-            New Habit
+            {t('habits.newHabit', 'New Habit')}
           </Button>
         }
       />
@@ -431,22 +433,22 @@ export const HabitsTracker = ({ selectedDate }) => {
       {/* Top Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-5">
         <StatCard
-          title="Completed Today"
+          title={t('habits.completedToday', 'Completed Today')}
           value={`${completedCount} / ${safeHabits.length}`}
           subtitle={`${Math.max(0, safeHabits.length - completedCount)} habits remaining`}
           icon={CheckSquare}
           color="emerald"
         />
         <StatCard
-          title="Active Habits"
+          title={t('habits.activeHabits', 'Active Habits')}
           value={safeHabits.length}
           subtitle="Daily discipline routines"
           icon={Layers}
           color="indigo"
         />
         <StatCard
-          title="Longest Streak"
-          value={`${longestStreak} Days`}
+          title={t('habits.bestStreak', 'Longest Streak')}
+          value={`${longestStreak} ${t('common.days', 'Days')}`}
           subtitle="Top consistency record"
           icon={Flame}
           color="rose"
@@ -456,7 +458,7 @@ export const HabitsTracker = ({ selectedDate }) => {
       {/* Daily Habits Checklist */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-bold text-primary tracking-tight">Today's Habits Checklist</h2>
+          <h2 className="text-lg font-bold text-primary tracking-tight">{t('habits.activeHabits', "Today's Habits Checklist")}</h2>
           <span className="text-xs font-semibold text-secondary">
             {completedCount} of {safeHabits.length} done
           </span>

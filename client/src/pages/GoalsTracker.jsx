@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLanguage } from '../context/LanguageContext';
 import { PageHeader } from '../components/PageHeader';
 import { Card } from '../components/Card';
 import { StatCard } from '../components/StatCard';
@@ -26,6 +27,7 @@ import {
 const CATEGORIES = ['Health', 'Career', 'Learning', 'Spiritual', 'Financial', 'Personal'];
 
 export const GoalsTracker = () => {
+  const { t, isRTL } = useLanguage();
   const [goals, setGoals] = useState([]);
   const [availableHabits, setAvailableHabits] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -166,12 +168,12 @@ export const GoalsTracker = () => {
   return (
     <div className="space-y-6 sm:space-y-8 animate-fade-in">
       <PageHeader
-        category="Vision & Long-Term Targets"
-        title="Goals & Milestones"
-        description="Connect daily habits and study sessions to milestones to track progress automatically."
+        category={t('nav.goals', 'Vision & Long-Term Targets')}
+        title={t('goals.title', 'Goals & Milestones')}
+        description={t('goals.subtitle', 'Set high-impact Objectives & Key Results (OKRs) and track progress milestones.')}
         action={
           <Button variant="gradient" size="md" icon={Plus} onClick={() => setIsModalOpen(true)}>
-            New Goal
+            {t('goals.addGoal', 'New Goal')}
           </Button>
         }
       />

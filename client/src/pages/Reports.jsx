@@ -9,6 +9,7 @@ import { Badge } from '../components/Badge';
 import api from '../utils/api';
 import { DateInput } from '../components/DateInput';
 import { formatDisplayDate } from '../utils/dateHelpers';
+import { useLanguage } from '../context/LanguageContext';
 import {
   FileText,
   Download,
@@ -23,6 +24,7 @@ import {
 } from 'lucide-react';
 
 export const Reports = () => {
+  const { t } = useLanguage();
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [exportLoading, setExportLoading] = useState(false);
@@ -111,9 +113,9 @@ export const Reports = () => {
   return (
     <div className="space-y-6 sm:space-y-8 animate-fade-in">
       <PageHeader
-        category="Synthesis & Retrospectives"
-        title="Weekly & Monthly Reports"
-        description="Conduct high-level retrospectives, extract insights, and export comprehensive JSON backups."
+        category={t('categories.analytics')}
+        title={t('reports.title')}
+        description={t('reports.subtitle')}
         action={
           <div className="flex items-center gap-2 sm:gap-2.5 flex-wrap">
             <Button
@@ -123,10 +125,10 @@ export const Reports = () => {
               loading={exportLoading}
               onClick={handleExportData}
             >
-              Export JSON Data
+              {t('settings.exportData')}
             </Button>
             <Button variant="gradient" size="md" icon={Plus} onClick={() => setIsModalOpen(true)}>
-              New Retrospective
+              {t('common.create')} {t('reports.weeklyReport')}
             </Button>
           </div>
         }

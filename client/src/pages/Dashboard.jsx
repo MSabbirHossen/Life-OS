@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useLanguage } from '../context/LanguageContext';
 import { PageHeader } from '../components/PageHeader';
 import { Card } from '../components/Card';
 import { StatCard } from '../components/StatCard';
@@ -49,6 +50,7 @@ const SALAH_CYCLE = ['pending', 'onTime', 'jamaah', 'late', 'missed', 'qada'];
 export const Dashboard = ({ selectedDate }) => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { t, isRTL } = useLanguage();
   const activeDate = selectedDate || getFormattedDate();
 
   const [data, setData] = useState(null);
@@ -102,48 +104,34 @@ export const Dashboard = ({ selectedDate }) => {
     setSalahMap((prev) => ({ ...prev, [prayerName]: nextStatus }));
 
     try {
-      await api.post('/islamic/salah', {
+      await api.post('/salah/log', {
         date: activeDate,
         prayerName,
         status: nextStatus,
       });
+      fetchDashboardData(true);
     } catch (err) {
-      console.error('Failed to update Salah status', err);
+      console.error('Failed to update prayer status', err);
       fetchDashboardData(true);
     }
   };
 
   if (loading) {
     return (
-      <div className="flex flex-col justify-center items-center min-h-[60vh] gap-3">
-        <div className="w-10 h-10 border-4 border-accent border-t-transparent rounded-full animate-spin"></div>
-        <span className="text-xs font-semibold text-secondary">Synthesizing Personal Life Cockpit...</span>
+      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-3">
+        <div className="w-10 h-10 border-4 border-accent border-t-transparent rounded-full animate-spin" />
+        <span className="text-xs font-bold text-secondary uppercase tracking-widest">{t('common.loading', 'Loading Dashboard...')}</span>
       </div>
     );
   }
 
-  const defaultSummary = {
-    journal: null,
-    prompt: { category: 'Growth', question: 'What is one high-impact decision you made today?' },
-    time: { totalMinutes: 0, byCategory: {}, count: 0 },
-    study: { totalMinutes: 0, sessionsCount: 0 },
-    calories: { consumed: 0, intake: 0, burned: 0, net: 0, remaining: 2000, goal: 2000, protein: 0 },
-    fitness: { caloriesBurned: 0, workoutsCount: 0 },
-    salah: { completedCount: 0, total: 5, logs: [] },
-    finance: { expensesToday: 0, expensesMonth: 0, incomeToday: 0 },
-    habits: { activeCount: 0, completedTodayCount: 0 },
-    goalsCount: 0,
-  };
-
-  const summary = data?.summary || defaultSummary;
-
-  // Calorie calculations
-  const calorieIntake = summary.calories?.intake ?? summary.calories?.consumed ?? 0;
-  const calorieBurned = summary.fitness?.caloriesBurned ?? summary.calories?.burned ?? 0;
-  const netCalories = summary.calories?.net ?? (calorieIntake - calorieBurned);
+  const summary = data?.summary || {};
+  const calorieIntake = summary.calories?.intake ?? summary.calories?.consumed ?? summary.calories?.totalIntake ?? 0;
+  const calorieBurned = summary.fitness?.totalCaloriesBurned ?? summary.fitness?.caloriesBurned ?? summary.calories?.burned ?? 0;
+  const netCalories = summary.calories?.netCalories ?? summary.calories?.net ?? (calorieIntake - calorieBurned);
   const calorieGoal = summary.calories?.goal ?? 2000;
-  const remainingCalories = Math.max(0, calorieGoal - netCalories);
-  const isDeficit = netCalories <= calorieGoal;
+  const remainingCalories = summary.calories?.remainingCalories ?? Math.max(0, calorieGoal - netCalories);
+  const isDeficit = summary.calories?.isDeficit ?? (netCalories <= calorieGoal);
 
   // Time Chart Data
   const timeChartData = Object.entries(summary.time?.byCategory || {}).map(([name, value]) => ({
@@ -157,9 +145,9 @@ export const Dashboard = ({ selectedDate }) => {
     <div className="space-y-6 sm:space-y-8 animate-fade-in">
       {/* Top Cockpit Header */}
       <PageHeader
-        category="Command Center"
-        title="Personal Life Management Cockpit"
-        description={`Live synthesis and metrics for ${formatDisplayDate(activeDate)}`}
+        category={t('categories.overview', 'Command Center')}
+        title={t('dashboard.title', 'Personal Life Management Cockpit')}
+        description={`${t('dashboard.subtitle', 'Live synthesis and metrics for')} ${formatDisplayDate(activeDate)}`}
         action={
           <div className="flex items-center gap-2.5 flex-wrap">
             <button
@@ -175,7 +163,7 @@ export const Dashboard = ({ selectedDate }) => {
               icon={CheckSquare}
               onClick={() => navigate('/habits')}
             >
-              Habits
+              {t('nav.habits', 'Habits')}
             </Button>
             <Button
               variant="gradient"
@@ -183,7 +171,7 @@ export const Dashboard = ({ selectedDate }) => {
               icon={BookOpen}
               onClick={() => setIsReflectionModalOpen(true)}
             >
-              Guided Reflection
+              {t('reflection.guidedReflection', 'Guided Reflection')}
             </Button>
           </div>
         }
@@ -200,10 +188,10 @@ export const Dashboard = ({ selectedDate }) => {
           <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate('/islamic')}>
             <Compass className="w-4 h-4 text-emerald-500" />
             <span className="text-xs font-black text-primary uppercase tracking-wider hover:text-accent transition-colors">
-              Today's 5 Daily Prayers (Salah)
+              {t('dashboard.salahTitle', "Today's 5 Daily Prayers (Salah)")}
             </span>
             <Badge variant="success" size="xs">
-              {Object.values(salahMap).filter((s) => s !== 'pending' && s !== 'missed').length} / 5 Done
+              {Object.values(salahMap).filter((s) => s !== 'pending' && s !== 'missed').length} / 5 {t('goals.completed', 'Done')}
             </Badge>
           </div>
           <div className="flex items-center gap-3">
@@ -211,13 +199,13 @@ export const Dashboard = ({ selectedDate }) => {
               onClick={() => navigate('/qada-matrix')}
               className="text-xs font-bold text-accent hover:underline flex items-center gap-1 cursor-pointer"
             >
-              Qada Matrix <ArrowRight className="w-3 h-3" />
+              {t('nav.qada', 'Qada Matrix')} <ArrowRight className="w-3 h-3" />
             </button>
             <button
               onClick={() => navigate('/islamic')}
               className="text-xs font-bold text-secondary hover:text-primary flex items-center gap-1 cursor-pointer"
             >
-              Islamic Tracker <ArrowRight className="w-3 h-3" />
+              {t('nav.islamic', 'Islamic Tracker')} <ArrowRight className="w-3 h-3" />
             </button>
           </div>
         </div>
@@ -226,6 +214,7 @@ export const Dashboard = ({ selectedDate }) => {
           {['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'].map((prayer) => {
             const status = salahMap[prayer] || 'pending';
             const config = SALAH_STATUS_CONFIG[status] || SALAH_STATUS_CONFIG.pending;
+            const prayerNameTranslated = t(`dashboard.salah${prayer}`, prayer);
             return (
               <button
                 key={prayer}
@@ -235,7 +224,7 @@ export const Dashboard = ({ selectedDate }) => {
                 title={`Click to cycle status: ${prayer}`}
               >
                 <div className="flex items-center gap-1.5 sm:gap-2">
-                  <span className="text-xs sm:text-sm font-extrabold text-primary">{prayer}</span>
+                  <span className="text-xs sm:text-sm font-extrabold text-primary">{prayerNameTranslated}</span>
                 </div>
                 <span className="text-[11px] sm:text-xs font-bold flex items-center gap-1">
                   {config.icon} {config.label}
@@ -249,7 +238,7 @@ export const Dashboard = ({ selectedDate }) => {
       {/* Row 1: Bento Stat Strip */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
         <StatCard
-          title="Time Logged"
+          title={t('dashboard.focusMinutes', 'Time Logged')}
           value={`${Math.floor((summary.time?.totalMinutes || 0) / 60)}h ${(summary.time?.totalMinutes || 0) % 60}m`}
           subtitle={`${summary.time?.count || 0} blocks recorded`}
           icon={Clock}
@@ -257,7 +246,7 @@ export const Dashboard = ({ selectedDate }) => {
           onClick={() => navigate('/time-tracker')}
         />
         <StatCard
-          title="Net Calorie Balance"
+          title={t('calories.budgetRemaining', 'Net Calorie Balance')}
           value={`${netCalories} kcal`}
           subtitle={`${isDeficit ? 'Caloric Deficit' : 'Caloric Surplus'} (${remainingCalories} rem)`}
           icon={Utensils}
@@ -265,7 +254,7 @@ export const Dashboard = ({ selectedDate }) => {
           onClick={() => navigate('/calories')}
         />
         <StatCard
-          title="Calories Burned"
+          title={t('dashboard.burnedToday', 'Calories Burned')}
           value={`${calorieBurned} kcal`}
           subtitle={`${summary.fitness?.workoutsCount || 0} workout sessions`}
           icon={Dumbbell}
@@ -273,9 +262,9 @@ export const Dashboard = ({ selectedDate }) => {
           onClick={() => navigate('/fitness')}
         />
         <StatCard
-          title="Habits Completed"
+          title={t('dashboard.habitsCompleted', 'Habits Completed')}
           value={`${summary.habits?.completedTodayCount || 0} / ${summary.habits?.activeCount || 0}`}
-          subtitle="Daily discipline streak"
+          subtitle={t('habits.streak', 'Daily discipline streak')}
           icon={Flame}
           color="purple"
           onClick={() => navigate('/habits')}

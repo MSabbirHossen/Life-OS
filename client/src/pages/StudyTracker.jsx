@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useLanguage } from '../context/LanguageContext';
 import { PageHeader } from '../components/PageHeader';
 import { Card } from '../components/Card';
 import { Button } from '../components/Button';
@@ -27,6 +28,7 @@ import {
 } from 'lucide-react';
 
 export const StudyTracker = ({ selectedDate }) => {
+  const { t, isRTL } = useLanguage();
   const activeDate = selectedDate || getFormattedDate();
 
   const [sessions, setSessions] = useState([]);
@@ -426,9 +428,9 @@ export const StudyTracker = ({ selectedDate }) => {
   return (
     <div className="space-y-6 sm:space-y-8 animate-fade-in">
       <PageHeader
-        category="Learning & Mastery"
-        title="Study & Topic Planning"
-        description={`Log deep focus study sessions, plan backlogs chapter by chapter, and track completion for ${formatDisplayDate(activeDate)}`}
+        category={t('nav.study', 'Learning & Mastery')}
+        title={t('study.title', 'Study & Learning Tracker')}
+        description={`${t('study.subtitle', 'Organize subjects, log study pomodoros, schedule spaced repetition, and master topics.')} (${formatDisplayDate(activeDate)})`}
         action={
           <div className="flex items-center gap-2.5">
             <Button
@@ -437,7 +439,7 @@ export const StudyTracker = ({ selectedDate }) => {
               icon={ListTodo}
               onClick={openCreateTopicModal}
             >
-              Plan Topic / Chapter
+              {t('study.addSubject', 'Plan Topic / Chapter')}
             </Button>
             <Button
               variant="gradient"
@@ -445,7 +447,7 @@ export const StudyTracker = ({ selectedDate }) => {
               icon={Plus}
               onClick={openCreateSessionModal}
             >
-              Log Session
+              {t('study.logSession', 'Log Session')}
             </Button>
           </div>
         }
