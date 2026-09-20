@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { useLanguage } from '../context/LanguageContext';
 import { PageHeader } from '../components/PageHeader';
 import { Card } from '../components/Card';
 import { Button } from '../components/Button';
@@ -159,6 +160,7 @@ const cmToIn = (cm) => (cm !== undefined && cm !== null && cm !== '' ? Number((N
 const inToCm = (inches) => (inches !== undefined && inches !== null && inches !== '' ? Number((Number(inches) * IN_TO_CM).toFixed(1)) : '');
 
 export const FitnessTracker = ({ selectedDate }) => {
+  const { t, isRTL } = useLanguage();
   const currentDate = selectedDate || getFormattedDate();
 
   const [workouts, setWorkouts] = useState([]);
@@ -629,9 +631,9 @@ export const FitnessTracker = ({ selectedDate }) => {
   return (
     <div className="space-y-6 sm:space-y-8 animate-fade-in">
       <PageHeader
-        category="Health & Physicality"
-        title="Fitness & Workouts"
-        description={`Track strength, cardio, and energy expenditure with real MET-based calorie burn calculations for ${formatDisplayDate(currentDate)}`}
+        category={t('categories.health', 'Health & Physicality')}
+        title={t('fitness.title', 'Fitness & Workouts')}
+        description={`${t('fitness.subtitle', 'Track strength, cardio, and energy expenditure with real MET-based calorie burn calculations')} (${formatDisplayDate(currentDate)})`}
         action={
           <div className="flex items-center gap-2 sm:gap-2.5 flex-wrap">
             <Button
@@ -640,7 +642,7 @@ export const FitnessTracker = ({ selectedDate }) => {
               icon={Scale}
               onClick={openCreateMetricModal}
             >
-              Measurements
+              {t('fitness.measurements', 'Measurements')}
             </Button>
             <Button
               variant="gradient"
@@ -648,7 +650,7 @@ export const FitnessTracker = ({ selectedDate }) => {
               icon={Plus}
               onClick={openCreateWorkoutModal}
             >
-              Log Workout
+              {t('fitness.logWorkout', 'Log Workout')}
             </Button>
           </div>
         }
@@ -657,21 +659,21 @@ export const FitnessTracker = ({ selectedDate }) => {
       {/* Top Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-5">
         <StatCard
-          title="Active Energy Burned"
+          title={t('fitness.activeEnergyBurned', 'Active Energy Burned')}
           value={`${totalCaloriesBurned} kcal`}
           subtitle={`${workouts.length} exercises logged`}
           icon={Flame}
           color="rose"
         />
         <StatCard
-          title="Exercise Duration"
+          title={t('fitness.exerciseDuration', 'Exercise Duration')}
           value={`${Math.floor(totalWorkoutMinutes / 60)}h ${totalWorkoutMinutes % 60}m`}
           subtitle="Total training time"
           icon={Dumbbell}
           color="indigo"
         />
         <StatCard
-          title="Current Weight"
+          title={t('fitness.currentWeight', 'Current Weight')}
           value={latestWeight ? `${latestWeight} kg` : `${latestUserWeight} kg (est)`}
           subtitle="Used for accurate calorie formula"
           icon={Scale}
@@ -682,7 +684,9 @@ export const FitnessTracker = ({ selectedDate }) => {
       {/* Workouts Section */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-bold text-primary tracking-tight">Today's Exercises & Workouts</h2>
+          <h2 className="text-lg font-bold text-primary tracking-tight">
+            {t('fitness.todaysExercises', "Today's Exercises & Workouts")}
+          </h2>
           <span className="text-xs font-semibold text-secondary">{workouts.length} logged</span>
         </div>
 
@@ -693,9 +697,9 @@ export const FitnessTracker = ({ selectedDate }) => {
         ) : workouts.length === 0 ? (
           <EmptyState
             icon={Dumbbell}
-            title="No workouts recorded today"
-            description="Log your workout session to calculate calories burned and track physical progress."
-            actionText="Log Workout"
+            title={t('fitness.noWorkoutsToday', 'No workouts recorded today')}
+            description={t('fitness.noWorkoutsDesc', 'Log your workout session to calculate calories burned and track physical progress.')}
+            actionText={t('fitness.logWorkout', 'Log Workout')}
             onAction={openCreateWorkoutModal}
           />
         ) : (

@@ -348,3 +348,23 @@ html, body {
   overflow-x: hidden;
 }
 
+/* Multilingual Font Families */
+body.font-bengali, [lang="bn"] {
+  font-family: 'Hind Siliguri', 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif !important;
+}
+
+body.font-arabic, [lang="ar"], [dir="rtl"] {
+  font-family: 'Cairo', 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif !important;
+}
+
+/* RTL Layout Enhancements */
+[dir="rtl"] {
+  text-align: right;
+}
+
+[dir="rtl"] .ltr-only {
+  direction: ltr;
+  text-align: left;
+}
+
+
