@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card } from './Card';
 import { Button } from './Button';
 import { Badge } from './Badge';
@@ -38,6 +39,7 @@ const FASTING_PROTOCOLS = [
 ];
 
 export const FastingTimer = ({ compact = false }) => {
+  const navigate = useNavigate();
   const [selectedProtocolId, setSelectedProtocolId] = useState('16:8');
   const [customHours, setCustomHours] = useState(16);
   const [showSettings, setShowSettings] = useState(false);
@@ -192,8 +194,16 @@ export const FastingTimer = ({ compact = false }) => {
     totalAttempted > 0 ? Math.round((fastingStats.completedCount / totalAttempted) * 100) : 0;
 
   if (compact) {
+    const handleCompactClick = (e) => {
+      if (e.target.closest('button')) return;
+      navigate('/calories');
+    };
+
     return (
-      <div className="p-3 sm:p-4 rounded-2xl bg-subtle border border-theme flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 sm:gap-4">
+      <div
+        onClick={handleCompactClick}
+        className="p-3 sm:p-4 rounded-2xl bg-subtle border border-theme flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 sm:gap-4 card-hover cursor-pointer"
+      >
         <div className="flex items-center gap-3 sm:gap-3.5 min-w-0">
           <div className="relative flex items-center justify-center shrink-0">
             <svg width={size} height={size} className="transform -rotate-90">
