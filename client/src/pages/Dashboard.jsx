@@ -190,23 +190,36 @@ export const Dashboard = ({ selectedDate }) => {
       />
 
       {/* 5-Prayer Salah Interactive Pills Strip */}
-      <div className="p-4 rounded-2xl bg-surface border border-theme card-shadow">
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2">
+      <div
+        onClick={(e) => {
+          if (!e.target.closest('button')) navigate('/islamic');
+        }}
+        className="p-4 rounded-2xl bg-surface border border-theme card-shadow card-hover cursor-pointer"
+      >
+        <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+          <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate('/islamic')}>
             <Compass className="w-4 h-4 text-emerald-500" />
-            <span className="text-xs font-black text-primary uppercase tracking-wider">
+            <span className="text-xs font-black text-primary uppercase tracking-wider hover:text-accent transition-colors">
               Today's 5 Daily Prayers (Salah)
             </span>
             <Badge variant="success" size="xs">
               {Object.values(salahMap).filter((s) => s !== 'pending' && s !== 'missed').length} / 5 Done
             </Badge>
           </div>
-          <button
-            onClick={() => navigate('/qada-matrix')}
-            className="text-xs font-bold text-accent hover:underline flex items-center gap-1 cursor-pointer"
-          >
-            Qada Matrix <ArrowRight className="w-3 h-3" />
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => navigate('/qada-matrix')}
+              className="text-xs font-bold text-accent hover:underline flex items-center gap-1 cursor-pointer"
+            >
+              Qada Matrix <ArrowRight className="w-3 h-3" />
+            </button>
+            <button
+              onClick={() => navigate('/islamic')}
+              className="text-xs font-bold text-secondary hover:text-primary flex items-center gap-1 cursor-pointer"
+            >
+              Islamic Tracker <ArrowRight className="w-3 h-3" />
+            </button>
+          </div>
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-2.5">
@@ -241,6 +254,7 @@ export const Dashboard = ({ selectedDate }) => {
           subtitle={`${summary.time?.count || 0} blocks recorded`}
           icon={Clock}
           color="indigo"
+          onClick={() => navigate('/time-tracker')}
         />
         <StatCard
           title="Net Calorie Balance"
@@ -248,6 +262,7 @@ export const Dashboard = ({ selectedDate }) => {
           subtitle={`${isDeficit ? 'Caloric Deficit' : 'Caloric Surplus'} (${remainingCalories} rem)`}
           icon={Utensils}
           color={isDeficit ? 'emerald' : 'rose'}
+          onClick={() => navigate('/calories')}
         />
         <StatCard
           title="Calories Burned"
@@ -255,6 +270,7 @@ export const Dashboard = ({ selectedDate }) => {
           subtitle={`${summary.fitness?.workoutsCount || 0} workout sessions`}
           icon={Dumbbell}
           color="amber"
+          onClick={() => navigate('/fitness')}
         />
         <StatCard
           title="Habits Completed"
@@ -262,6 +278,7 @@ export const Dashboard = ({ selectedDate }) => {
           subtitle="Daily discipline streak"
           icon={Flame}
           color="purple"
+          onClick={() => navigate('/habits')}
         />
       </div>
 
@@ -272,6 +289,7 @@ export const Dashboard = ({ selectedDate }) => {
           {/* Calorie Intake vs Expenditure Net Balance Engine Card */}
           <Card
             hover
+            onClick={() => navigate('/calories')}
             title="Daily Calorie & Energy Balance Engine"
             subtitle="Live synthesis of food intake vs workout expenditure"
             icon={Activity}
@@ -351,6 +369,7 @@ export const Dashboard = ({ selectedDate }) => {
             {/* Financial Summary */}
             <Card
               hover
+              onClick={() => navigate('/finance')}
               title="Finance Snapshot"
               subtitle="Expenses & Cashflow"
               icon={Wallet}
@@ -380,6 +399,7 @@ export const Dashboard = ({ selectedDate }) => {
           {/* Time Distribution Donut */}
           <Card
             hover
+            onClick={() => navigate('/time-tracker')}
             title="Today's Time Allocation"
             subtitle="Logged blocks categorized across deep work, study, deen, & rest"
             icon={Clock}
@@ -434,10 +454,16 @@ export const Dashboard = ({ selectedDate }) => {
           {/* Guided Reflection Card with Shuffle Generator */}
           <Card
             hover
+            onClick={() => navigate('/journal')}
             title="Daily Guided Reflection"
             subtitle="Prompt of the Day"
             icon={BookOpen}
             badge={<Badge variant="primary" size="xs">Journal</Badge>}
+            action={
+              <Button variant="ghost" size="xs" onClick={() => navigate('/journal')}>
+                Journal <ArrowRight className="w-3 h-3 ml-1" />
+              </Button>
+            }
           >
             <div className="space-y-3.5 mt-1">
               <Badge variant="purple" size="xs">
@@ -468,10 +494,16 @@ export const Dashboard = ({ selectedDate }) => {
           {/* Spiritual Wisdom & Anchor */}
           <Card
             hover
+            onClick={() => navigate('/islamic')}
             title="Spiritual Anchor"
             subtitle="Daily Islamic Wisdom"
             icon={Compass}
             badge={<Badge variant="success" size="xs">Deen</Badge>}
+            action={
+              <Button variant="ghost" size="xs" onClick={() => navigate('/islamic')}>
+                Islamic Tracker <ArrowRight className="w-3 h-3 ml-1" />
+              </Button>
+            }
           >
             <div className="p-4 bg-emerald-500/5 border border-emerald-500/20 rounded-2xl space-y-2 mt-1">
               <p className="text-xs font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5 uppercase tracking-wider">
