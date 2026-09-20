@@ -21,6 +21,11 @@ import {
   Zap,
   Check,
   Search,
+  CheckCircle2,
+  Sparkles,
+  X,
+  Timer,
+  Info,
 } from 'lucide-react';
 import {
   ResponsiveContainer,
@@ -34,6 +39,92 @@ import {
 } from 'recharts';
 
 const TARGET_TYPES = ['Muscle', 'Cardio', 'Flexibility', 'Sports'];
+
+const TARGET_CONFIG = {
+  Muscle: { label: 'Muscle', icon: '🏋️', color: 'indigo' },
+  Cardio: { label: 'Cardio', icon: '🏃', color: 'rose' },
+  Flexibility: { label: 'Flexibility', icon: '🧘', color: 'purple' },
+  Sports: { label: 'Sports', icon: '⚽', color: 'emerald' },
+};
+
+const POPULAR_WORKOUT_STAPLES = [
+  {
+    name: 'Barbell Bench Press',
+    target: 'Muscle',
+    trackingType: 'sets_reps',
+    defaultSets: 4,
+    defaultReps: 10,
+    defaultWeight: 60,
+    met: 6.0,
+    muscle: 'Chest',
+    source: 'Verified Routine',
+    icon: '🏋️',
+  },
+  {
+    name: 'Barbell Back Squat',
+    target: 'Muscle',
+    trackingType: 'sets_reps',
+    defaultSets: 4,
+    defaultReps: 8,
+    defaultWeight: 70,
+    met: 7.5,
+    muscle: 'Quads & Glutes',
+    source: 'Verified Routine',
+    icon: '🦵',
+  },
+  {
+    name: 'Deadlift (Conventional)',
+    target: 'Muscle',
+    trackingType: 'sets_reps',
+    defaultSets: 4,
+    defaultReps: 6,
+    defaultWeight: 80,
+    met: 8.0,
+    muscle: 'Full Posterior Chain',
+    source: 'Verified Routine',
+    icon: '💪',
+  },
+  {
+    name: 'Outdoor Running',
+    target: 'Cardio',
+    trackingType: 'duration',
+    defaultDuration: 30,
+    met: 9.8,
+    muscle: 'Cardiovascular',
+    source: 'Verified Routine',
+    icon: '🏃',
+  },
+  {
+    name: 'Jump Rope (Skipping)',
+    target: 'Cardio',
+    trackingType: 'duration',
+    defaultDuration: 20,
+    met: 11.0,
+    muscle: 'Full Body & Calves',
+    source: 'Verified Routine',
+    icon: '🦘',
+  },
+  {
+    name: 'Stationary Cycling',
+    target: 'Cardio',
+    trackingType: 'duration',
+    defaultDuration: 30,
+    met: 7.0,
+    muscle: 'Quads & Cardio',
+    source: 'Verified Routine',
+    icon: '🚴',
+  },
+  {
+    name: 'Yoga (Vinyasa Flow)',
+    target: 'Flexibility',
+    trackingType: 'duration',
+    defaultDuration: 45,
+    met: 3.5,
+    muscle: 'Mobility & Flexibility',
+    source: 'Verified Routine',
+    icon: '🧘',
+  },
+];
 
 const TARGET_COLORS = {
   Muscle: 'indigo',
@@ -99,6 +190,7 @@ export const FitnessTracker = ({ selectedDate }) => {
   const [savingMetric, setSavingMetric] = useState(false);
 
   // Workout Autocomplete Suggestions
+  const [selectedWorkoutType, setSelectedWorkoutType] = useState(null);
   const [wSuggestions, setWSuggestions] = useState([]);
   const [showWSuggestions, setShowWSuggestions] = useState(false);
   const [searchingSuggestions, setSearchingSuggestions] = useState(false);
@@ -141,25 +233,25 @@ export const FitnessTracker = ({ selectedDate }) => {
   const estimatedCalories = useMemo(() => {
     const weightKg = latestUserWeight;
     if (wTrackingType === 'duration') {
-      const met = Number(wMet) || (wTarget === 'Cardio' ? 8.0 : 6.0);
+      const met = Number(wMet) || (wTarget === 'Cardio' ? 8.5 : wTarget === 'Sports' ? 7.5 : wTarget === 'Flexibility' ? 3.5 : 6.0);
       const hours = (Number(wDuration) || 0) / 60;
       return Math.round(met * weightKg * hours);
     } else {
       // Strength sets & reps
       const sets = Number(wSets) || 0;
       const reps = Number(wReps) || 0;
+      if (sets === 0 || reps === 0) return 0;
       const liftWeight = Number(wWeight) || 0;
-      const weightBonus = liftWeight > 0 ? (liftWeight / 100) * 2 : 0;
-      const calPerRep = 0.35 + (weightBonus / Math.max(1, sets * reps));
-      const base = sets * reps * calPerRep;
+      const weightBonus = liftWeight > 0 ? (liftWeight / 100) * 0.2 : 0;
+      const calPerRep = 0.8 + weightBonus;
       const bodyFactor = weightKg / 70;
-      return Math.max(5, Math.round(base * bodyFactor));
+      return Math.max(5, Math.round(sets * reps * calPerRep * bodyFactor));
     }
   }, [wTrackingType, wDuration, wMet, wTarget, wSets, wReps, wWeight, latestUserWeight]);
 
   // Autocomplete Workout Types Search
   useEffect(() => {
-    if (!wName.trim() || wName.length < 2) {
+    if (!wName.trim() || wName.length < 2 || selectedWorkoutType) {
       setWSuggestions([]);
       setShowWSuggestions(false);
       return;
@@ -179,24 +271,42 @@ export const FitnessTracker = ({ selectedDate }) => {
     }, 150);
 
     return () => clearTimeout(timer);
-  }, [wName]);
+  }, [wName, selectedWorkoutType]);
 
   const handleSelectWorkoutType = (wt) => {
+    setSelectedWorkoutType(wt);
     setWName(wt.name);
-    setWTarget(wt.target || 'Muscle');
-    setWTrackingType(wt.trackingType || 'sets_reps');
+    const target = wt.target || 'Muscle';
+    setWTarget(target);
+    const trackingType = wt.trackingType || (target === 'Cardio' || target === 'Sports' || target === 'Flexibility' ? 'duration' : 'sets_reps');
+    setWTrackingType(trackingType);
+
     if (wt.met) setWMet(wt.met);
-    if (wt.defaultSets) setWSets(wt.defaultSets);
-    if (wt.defaultReps) setWReps(wt.defaultReps);
-    if (wt.defaultWeight) setWWeight(wt.defaultWeight);
     if (wt.caloriesPerSet) setWIdealCalPerSet(wt.caloriesPerSet);
     if (wt.defaultCaloriesPerMinute) setWIdealCalPerMin(wt.defaultCaloriesPerMinute);
+
+    if (trackingType === 'duration') {
+      const dur = wt.defaultDuration || 30;
+      setWDuration(dur);
+      setWSets('');
+      setWReps('');
+      setWWeight('');
+    } else {
+      const sets = wt.defaultSets !== undefined && wt.defaultSets !== null ? wt.defaultSets : 3;
+      const reps = wt.defaultReps !== undefined && wt.defaultReps !== null ? wt.defaultReps : 10;
+      const weight = wt.defaultWeight !== undefined && wt.defaultWeight !== null && wt.defaultWeight !== 0 ? wt.defaultWeight : '';
+      setWSets(sets);
+      setWReps(reps);
+      setWWeight(weight);
+      setWDuration('');
+    }
 
     setShowWSuggestions(false);
   };
 
   const openCreateWorkoutModal = () => {
     setEditingWorkoutId(null);
+    setSelectedWorkoutType(null);
     setWDate(currentDate);
     setWName('');
     setWTrackingType('sets_reps');
@@ -212,14 +322,15 @@ export const FitnessTracker = ({ selectedDate }) => {
 
   const handleEditWorkout = (w) => {
     setEditingWorkoutId(w._id);
+    setSelectedWorkoutType(null);
     setWDate(w.date || currentDate);
     setWName(w.name || '');
-    setWTrackingType(w.trackingType || 'sets_reps');
-    setWSets(w.sets !== undefined ? w.sets : '');
-    setWReps(w.reps !== undefined ? w.reps : '');
-    setWWeight(w.weight !== undefined && w.weight !== 0 ? w.weight : '');
-    setWDuration(w.durationMinutes !== undefined ? w.durationMinutes : '');
-    setWCalories(w.caloriesBurned !== undefined ? w.caloriesBurned : '');
+    setWTrackingType(w.trackingType || (w.sets > 0 ? 'sets_reps' : 'duration'));
+    setWSets(w.sets !== undefined && w.sets !== null ? w.sets : '');
+    setWReps(w.reps !== undefined && w.reps !== null ? w.reps : '');
+    setWWeight(w.weight !== undefined && w.weight !== 0 && w.weight !== null ? w.weight : '');
+    setWDuration(w.durationMinutes !== undefined && w.durationMinutes !== null ? w.durationMinutes : '');
+    setWCalories(w.caloriesBurned !== undefined && w.caloriesBurned !== null ? w.caloriesBurned : '');
     setWTarget(w.target || 'Muscle');
     setWNotes(w.notes || '');
     setIsWorkoutModalOpen(true);
@@ -678,100 +789,209 @@ export const FitnessTracker = ({ selectedDate }) => {
       <Modal
         isOpen={isWorkoutModalOpen}
         onClose={() => setIsWorkoutModalOpen(false)}
-        title={editingWorkoutId ? 'Edit Workout' : 'Log Exercise / Workout'}
-        subtitle={editingWorkoutId ? 'Update exercises, sets, reps, and energy burn' : 'Choose an exercise or search online to calculate calorie burns'}
-        maxWidth="max-w-xl"
+        title={editingWorkoutId ? 'Edit Workout Log' : 'Log Exercise / Workout'}
+        subtitle={editingWorkoutId ? 'Update exercises, sets, reps, and energy burn' : 'Smart autocomplete with auto-deduced sets, reps, weight, duration, and MET calorie burns'}
+        maxWidth="max-w-2xl"
       >
         <form onSubmit={handleWorkoutSubmit} className="space-y-4">
+          {/* Tracking Type Mode Switcher */}
           <div className="flex bg-subtle p-1 rounded-xl border border-theme">
             <button
               type="button"
-              onClick={() => setWTrackingType('sets_reps')}
-              className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+              onClick={() => {
+                setWTrackingType('sets_reps');
+                if (wTarget === 'Cardio' || wTarget === 'Flexibility') setWTarget('Muscle');
+                if (!wSets) setWSets(3);
+                if (!wReps) setWReps(10);
+              }}
+              className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
                 wTrackingType === 'sets_reps'
-                  ? 'bg-surface text-primary card-shadow'
+                  ? 'bg-surface text-primary card-shadow ring-1 ring-accent/20'
                   : 'text-secondary hover:text-primary'
               }`}
             >
-              Sets & Reps (Strength)
+              <span>🏋️</span> Sets & Reps (Strength)
             </button>
             <button
               type="button"
-              onClick={() => setWTrackingType('duration')}
-              className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+              onClick={() => {
+                setWTrackingType('duration');
+                if (wTarget === 'Muscle') setWTarget('Cardio');
+                if (!wDuration) setWDuration(30);
+              }}
+              className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
                 wTrackingType === 'duration'
-                  ? 'bg-surface text-primary card-shadow'
+                  ? 'bg-surface text-primary card-shadow ring-1 ring-accent/20'
                   : 'text-secondary hover:text-primary'
               }`}
             >
-              Time & Duration (Cardio/Sports)
+              <span>⏱️</span> Time & Duration (Cardio/Sports)
             </button>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {/* Date & Target Category Pills */}
+          <div className="space-y-3">
+            <div>
+              <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5">
+                Target Category
+              </label>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                {TARGET_TYPES.map((t) => {
+                  const conf = TARGET_CONFIG[t] || { icon: '🎯', label: t, color: 'indigo' };
+                  const isSelected = wTarget === t;
+                  return (
+                    <button
+                      type="button"
+                      key={t}
+                      onClick={() => {
+                        setWTarget(t);
+                        if ((t === 'Cardio' || t === 'Sports' || t === 'Flexibility') && wTrackingType === 'sets_reps') {
+                          setWTrackingType('duration');
+                          if (!wDuration) setWDuration(30);
+                        } else if (t === 'Muscle' && wTrackingType === 'duration') {
+                          setWTrackingType('sets_reps');
+                          if (!wSets) setWSets(3);
+                          if (!wReps) setWReps(10);
+                        }
+                      }}
+                      className={`flex items-center justify-center gap-2 py-2 px-3 rounded-xl border text-xs font-bold transition-all duration-200 cursor-pointer ${
+                        isSelected
+                          ? 'bg-accent/15 border-accent text-accent shadow-sm shadow-accent/20 ring-1 ring-accent/30'
+                          : 'bg-surface hover:bg-subtle border-theme text-secondary hover:text-primary'
+                      }`}
+                    >
+                      <span className="text-base">{conf.icon}</span>
+                      <span>{t}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
             <DateInput
               label="Workout Date"
               value={wDate}
               onChange={setWDate}
               required
             />
-
-            <div>
-              <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5">
-                Target Category
-              </label>
-              <select
-                value={wTarget}
-                onChange={(e) => setWTarget(e.target.value)}
-                className="select-base"
-              >
-                {TARGET_TYPES.map((t) => (
-                  <option key={t} value={t}>
-                    {t}
-                  </option>
-                ))}
-              </select>
-            </div>
           </div>
 
-          <div className="relative">
-            <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5">
-              Exercise Name (Search server suggestions)
-            </label>
+          {/* Autocomplete Exercise Search Input & Quick Staples */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <label className="block text-xs font-bold text-secondary uppercase tracking-wider">
+                Exercise Name (Search server library)
+              </label>
+              {selectedWorkoutType && (
+                <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1">
+                  <CheckCircle2 className="w-3 h-3" />
+                  Auto-deduced from {selectedWorkoutType.source || 'Verified Library'}
+                </span>
+              )}
+            </div>
+
             <div className="relative">
+              <div className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-secondary">
+                <Search className="w-4 h-4" />
+              </div>
               <input
                 type="text"
                 required
-                placeholder="e.g. Bench Press, Squats, Running, Jump Rope"
+                placeholder="Search exercise e.g. Bench Press, Squats, Running, Jump Rope..."
                 value={wName}
                 onChange={(e) => {
                   setWName(e.target.value);
+                  setSelectedWorkoutType(null);
                   setShowWSuggestions(true);
                 }}
                 onFocus={() => {
                   if (wSuggestions.length > 0) setShowWSuggestions(true);
                 }}
-                className="input-base pr-8"
+                className="input-base pl-10 pr-10"
               />
+              {wName && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setWName('');
+                    setSelectedWorkoutType(null);
+                    setShowWSuggestions(false);
+                  }}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-secondary hover:text-primary transition-colors cursor-pointer"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
               {searchingSuggestions && (
-                <div className="absolute right-2.5 top-2.5">
+                <div className="absolute right-3.5 top-1/2 -translate-y-1/2">
                   <div className="w-4 h-4 border-2 border-accent border-t-transparent rounded-full animate-spin" />
                 </div>
               )}
             </div>
 
+            {/* Popular Staples Quick Chips */}
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar pt-0.5">
+              <span className="text-[10px] font-bold text-secondary uppercase shrink-0 mr-1 flex items-center gap-1">
+                <Sparkles className="w-3 h-3 text-accent" /> Staples:
+              </span>
+              {POPULAR_WORKOUT_STAPLES.map((staple) => {
+                const isCurrent = selectedWorkoutType?.name === staple.name || wName === staple.name;
+                return (
+                  <button
+                    type="button"
+                    key={staple.name}
+                    onClick={() => handleSelectWorkoutType(staple)}
+                    className={`shrink-0 flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold border transition-all cursor-pointer ${
+                      isCurrent
+                        ? 'bg-accent/15 border-accent text-accent shadow-xs'
+                        : 'bg-subtle/70 hover:bg-subtle border-theme text-secondary hover:text-primary'
+                    }`}
+                  >
+                    <span>{staple.icon}</span>
+                    <span>{staple.name}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Custom Exercise Guidance Banner */}
+            {!selectedWorkoutType && wName.trim().length >= 2 && wSuggestions.length === 0 && !searchingSuggestions && (
+              <div className="p-2.5 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-start gap-2 text-[11px] text-indigo-700 dark:text-indigo-300">
+                <Sparkles className="w-3.5 h-3.5 text-indigo-500 shrink-0 mt-0.5" />
+                <div>
+                  <span className="font-bold block">New Custom Exercise</span>
+                  <span className="text-secondary text-[10px]">
+                    Set your target Sets, Reps / Set, Weight (kg), or Duration below. Life OS will calculate your energy burn and save this exercise to your routine for future logs!
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* Suggestions Dropdown */}
             {showWSuggestions && wSuggestions.length > 0 && (
-              <div className="absolute left-0 right-0 top-full mt-1.5 bg-surface border border-theme rounded-2xl card-shadow z-30 max-h-56 overflow-y-auto divide-y divide-theme/40 shadow-xl">
+              <div className="absolute left-0 right-0 mt-1.5 bg-surface border border-theme rounded-2xl card-shadow z-30 max-h-60 overflow-y-auto divide-y divide-theme/40 shadow-xl">
                 {wSuggestions.map((wt, idx) => (
                   <div
                     key={wt._id || idx}
                     onClick={() => handleSelectWorkoutType(wt)}
-                    className="p-3 hover:bg-subtle cursor-pointer flex items-center justify-between text-xs transition-colors"
+                    className="p-3 hover:bg-subtle cursor-pointer flex items-center justify-between text-xs transition-colors group"
                   >
                     <div>
-                      <span className="font-bold text-primary block">{wt.name}</span>
-                      <span className="text-[11px] text-secondary">
-                        {wt.category || wt.target} {wt.met ? `• MET: ${wt.met}` : ''}
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-bold text-primary group-hover:text-accent transition-colors">
+                          {wt.name}
+                        </span>
+                        {wt.equipment && (
+                          <span className="text-[9px] px-1.5 py-0.2 rounded bg-subtle text-secondary border border-theme">
+                            {wt.equipment}
+                          </span>
+                        )}
+                      </div>
+                      <span className="text-[11px] text-secondary font-medium">
+                        {wt.trackingType === 'duration'
+                          ? `⏱️ ${wt.defaultDuration || 30} mins`
+                          : `🏋️ ${wt.defaultSets || 3} sets × ${wt.defaultReps || 10} reps ${wt.defaultWeight ? `@ ${wt.defaultWeight}kg` : ''}`}
+                        {wt.met ? ` · MET: ${wt.met}` : ''}
                       </span>
                     </div>
                     <div className="flex items-center gap-1.5">
@@ -779,88 +999,237 @@ export const FitnessTracker = ({ selectedDate }) => {
                         {wt.target || 'Exercise'}
                       </Badge>
                       {wt.source && (
-                        <span className="text-[9px] px-1.5 py-0.5 rounded bg-surface border border-theme text-secondary">
+                        <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-surface border border-theme text-secondary font-medium">
                           {wt.source}
                         </span>
                       )}
                     </div>
                   </div>
                 ))}
+
+                {/* Direct Custom Selection Option */}
+                {wName.trim().length >= 2 && (
+                  <div
+                    onClick={() => {
+                      setSelectedWorkoutType({ name: wName.trim(), isCustom: true });
+                      setShowWSuggestions(false);
+                    }}
+                    className="p-2.5 bg-accent/5 hover:bg-accent/10 cursor-pointer flex items-center justify-between text-xs text-accent font-bold transition-colors"
+                  >
+                    <span className="flex items-center gap-1.5">
+                      <Sparkles className="w-3.5 h-3.5" />
+                      Set custom workout parameters for "{wName}"
+                    </span>
+                    <Badge variant="primary" size="xs">Custom Item</Badge>
+                  </div>
+                )}
               </div>
             )}
           </div>
 
+          {/* Exercise Numeric Parameters (Sets & Reps vs Duration) */}
           {wTrackingType === 'sets_reps' ? (
-            <div className="grid grid-cols-3 gap-3">
-              <div>
-                <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5">
-                  Sets
-                </label>
-                <input
-                  type="number"
-                  min="1"
-                  required
-                  value={wSets}
-                  onChange={(e) => setWSets(e.target.value)}
-                  placeholder="e.g. 3"
-                  className="input-base"
-                />
+            <div className="space-y-3 p-4 bg-subtle/50 rounded-2xl border border-theme">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-extrabold text-secondary uppercase tracking-wider flex items-center gap-1.5">
+                  <Dumbbell className="w-3.5 h-3.5 text-accent" /> Strength Configuration
+                </span>
+                {(!wSets || !wReps) && (
+                  <span className="text-[10px] text-amber-600 dark:text-amber-400 font-bold flex items-center gap-1">
+                    <Info className="w-3 h-3" /> Please set sets & reps
+                  </span>
+                )}
               </div>
-              <div>
-                <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5">
-                  Reps / Set
-                </label>
-                <input
-                  type="number"
-                  min="1"
-                  required
-                  value={wReps}
-                  onChange={(e) => setWReps(e.target.value)}
-                  placeholder="e.g. 10"
-                  className="input-base"
-                />
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {/* Sets */}
+                <div className="p-2.5 rounded-xl bg-surface border border-theme shadow-xs">
+                  <label className="block text-[10px] font-bold text-secondary uppercase tracking-wider mb-1">
+                    Sets
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    required
+                    value={wSets}
+                    onChange={(e) => setWSets(e.target.value)}
+                    placeholder="e.g. 3"
+                    className="w-full bg-subtle/60 border border-theme rounded-lg px-2.5 py-1.5 text-xs font-bold text-primary focus:outline-none focus:border-accent"
+                  />
+                  <div className="flex items-center gap-1 mt-2">
+                    {[3, 4, 5].map((s) => (
+                      <button
+                        type="button"
+                        key={s}
+                        onClick={() => setWSets(s)}
+                        className={`flex-1 py-0.5 text-[10px] font-bold rounded border transition-all cursor-pointer ${
+                          Number(wSets) === s
+                            ? 'bg-accent text-white border-accent'
+                            : 'bg-subtle text-secondary hover:text-primary border-theme'
+                        }`}
+                      >
+                        {s} sets
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Reps */}
+                <div className="p-2.5 rounded-xl bg-surface border border-theme shadow-xs">
+                  <label className="block text-[10px] font-bold text-secondary uppercase tracking-wider mb-1">
+                    Reps / Set
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    required
+                    value={wReps}
+                    onChange={(e) => setWReps(e.target.value)}
+                    placeholder="e.g. 10"
+                    className="w-full bg-subtle/60 border border-theme rounded-lg px-2.5 py-1.5 text-xs font-bold text-primary focus:outline-none focus:border-accent"
+                  />
+                  <div className="flex items-center gap-1 mt-2">
+                    {[8, 10, 12, 15].map((r) => (
+                      <button
+                        type="button"
+                        key={r}
+                        onClick={() => setWReps(r)}
+                        className={`flex-1 py-0.5 text-[10px] font-bold rounded border transition-all cursor-pointer ${
+                          Number(wReps) === r
+                            ? 'bg-accent text-white border-accent'
+                            : 'bg-subtle text-secondary hover:text-primary border-theme'
+                        }`}
+                      >
+                        {r}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Weight */}
+                <div className="p-2.5 rounded-xl bg-surface border border-theme shadow-xs">
+                  <label className="block text-[10px] font-bold text-secondary uppercase tracking-wider mb-1">
+                    Lifted Weight ({unitSystem === 'metric' ? 'kg' : 'lbs'})
+                  </label>
+                  <input
+                    type="number"
+                    step="0.5"
+                    placeholder="e.g. 20"
+                    value={wWeight}
+                    onChange={(e) => setWWeight(e.target.value)}
+                    className="w-full bg-subtle/60 border border-theme rounded-lg px-2.5 py-1.5 text-xs font-bold text-primary focus:outline-none focus:border-accent"
+                  />
+                  <div className="flex items-center gap-1 mt-2">
+                    {[0, 20, 40, 60, 80].map((wtVal) => (
+                      <button
+                        type="button"
+                        key={wtVal}
+                        onClick={() => setWWeight(wtVal)}
+                        className={`flex-1 py-0.5 text-[10px] font-bold rounded border transition-all cursor-pointer ${
+                          String(wWeight) === String(wtVal)
+                            ? 'bg-accent text-white border-accent'
+                            : 'bg-subtle text-secondary hover:text-primary border-theme'
+                        }`}
+                      >
+                        {wtVal}{wtVal === 0 ? ' (BW)' : ''}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </div>
-              <div>
-                <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5">
-                  Weight (kg)
-                </label>
-                <input
-                  type="number"
-                  step="0.5"
-                  placeholder="e.g. 20"
-                  value={wWeight}
-                  onChange={(e) => setWWeight(e.target.value)}
-                  className="input-base"
-                />
-              </div>
+
+              {/* Incomplete Strength Prompt */}
+              {(!wSets || !wReps) && (
+                <div className="p-2 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-start gap-2 text-[10px] text-amber-700 dark:text-amber-300">
+                  <Info className="w-3.5 h-3.5 text-amber-500 shrink-0 mt-0.5" />
+                  <span>
+                    <strong>Missing Sets or Reps:</strong> Enter your target Sets and Reps / Set so Life OS can calculate your total volume and energy expenditure.
+                  </span>
+                </div>
+              )}
             </div>
           ) : (
-            <div>
-              <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5">
-                Duration (Minutes)
-              </label>
-              <input
-                type="number"
-                min="1"
-                required
-                value={wDuration}
-                onChange={(e) => setWDuration(e.target.value)}
-                placeholder="e.g. 30"
-                className="input-base"
-              />
+            <div className="space-y-3 p-4 bg-subtle/50 rounded-2xl border border-theme">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-extrabold text-secondary uppercase tracking-wider flex items-center gap-1.5">
+                  <Timer className="w-3.5 h-3.5 text-rose-500" /> Duration Configuration
+                </span>
+                {!wDuration && (
+                  <span className="text-[10px] text-amber-600 dark:text-amber-400 font-bold flex items-center gap-1">
+                    <Info className="w-3 h-3" /> Please set duration
+                  </span>
+                )}
+              </div>
+
+              <div className="p-2.5 rounded-xl bg-surface border border-theme shadow-xs">
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-[10px] font-bold text-secondary uppercase tracking-wider">
+                    Workout Duration
+                  </label>
+                  <span className="text-[9px] text-secondary font-semibold">minutes</span>
+                </div>
+                <input
+                  type="number"
+                  min="1"
+                  required
+                  value={wDuration}
+                  onChange={(e) => setWDuration(e.target.value)}
+                  placeholder="e.g. 30"
+                  className="w-full bg-subtle/60 border border-theme rounded-lg px-2.5 py-1.5 text-xs font-bold text-primary focus:outline-none focus:border-rose-500"
+                />
+
+                <div className="flex items-center gap-1.5 mt-2">
+                  {[15, 20, 30, 45, 60].map((d) => (
+                    <button
+                      type="button"
+                      key={d}
+                      onClick={() => setWDuration(d)}
+                      className={`flex-1 py-1 text-[10px] font-bold rounded border transition-all cursor-pointer ${
+                        Number(wDuration) === d
+                          ? 'bg-rose-500 text-white border-rose-500 shadow-xs'
+                          : 'bg-subtle text-secondary hover:text-primary border-theme'
+                      }`}
+                    >
+                      {d} min
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Incomplete Duration Prompt */}
+              {!wDuration && (
+                <div className="p-2 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-start gap-2 text-[10px] text-amber-700 dark:text-amber-300">
+                  <Info className="w-3.5 h-3.5 text-amber-500 shrink-0 mt-0.5" />
+                  <span>
+                    <strong>Missing Duration:</strong> Enter your workout Duration in minutes to calculate MET-based calorie burn.
+                  </span>
+                </div>
+              )}
             </div>
           )}
 
-          {/* Dynamic Calorie Burn Preview */}
-          <div className="p-3.5 bg-subtle rounded-2xl border border-theme space-y-2.5">
+          {/* Live Calorie Burn Estimation HUD */}
+          <div className="p-4 bg-gradient-to-br from-surface to-subtle rounded-2xl border border-theme shadow-sm space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-bold text-secondary uppercase tracking-wider">
-                Live Calorie Estimation
-              </span>
-              <span className="text-xs font-extrabold text-rose-600 dark:text-rose-400 bg-rose-500/10 px-2.5 py-0.5 rounded-full border border-rose-500/20">
-                ~{estimatedCalories} kcal calculated
-              </span>
+              <div className="flex items-center gap-2">
+                <Flame className="w-4 h-4 text-rose-500" />
+                <span className="text-xs font-bold text-secondary uppercase tracking-wider">
+                  Live Calorie Estimation
+                </span>
+                <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-rose-500/10 text-rose-600 dark:text-rose-400 font-extrabold border border-rose-500/20">
+                  {wTrackingType === 'sets_reps'
+                    ? `${wSets || 0}s × ${wReps || 0}r ${wWeight ? `@ ${wWeight}kg` : ''}`
+                    : `${wDuration || 0} mins`}
+                </span>
+              </div>
+              <div className="flex items-baseline gap-1">
+                <span className="text-2xl font-black text-rose-600 dark:text-rose-400 tracking-tight">
+                  ~{estimatedCalories}
+                </span>
+                <span className="text-xs font-bold text-secondary">kcal</span>
+              </div>
             </div>
+
             <p className="text-[11px] text-secondary">
               Formula based on MET {wMet || 6.0} and your weight ({latestUserWeight} kg).
             </p>
@@ -885,7 +1254,7 @@ export const FitnessTracker = ({ selectedDate }) => {
             </label>
             <input
               type="text"
-              placeholder="e.g. Good form, increased resistance"
+              placeholder="e.g. Good form, increased resistance, peak heart rate"
               value={wNotes}
               onChange={(e) => setWNotes(e.target.value)}
               className="input-base"
