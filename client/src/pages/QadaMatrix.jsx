@@ -447,11 +447,11 @@ export const QadaMatrix = () => {
                   </div>
                 }
                 bottomAction={
-                  <div className="flex items-center bg-surface/90 dark:bg-zinc-900/90 backdrop-blur-md border border-theme rounded-lg p-0.5 shadow-sm">
+                  <div className="flex items-center gap-1.5">
                     <button
                       type="button"
                       onClick={() => handleOpenEdit(record)}
-                      className="p-1 text-secondary hover:text-primary hover:bg-subtle rounded transition-colors cursor-pointer"
+                      className="p-1.5 rounded-lg bg-surface/90 dark:bg-surface/90 backdrop-blur-xs border border-theme/60 text-secondary hover:text-accent hover:border-accent/40 hover:bg-accent/10 shadow-xs transition-all cursor-pointer"
                       title={`Edit ${prayer} baseline or dates`}
                     >
                       <Edit2 className="w-3.5 h-3.5" />
