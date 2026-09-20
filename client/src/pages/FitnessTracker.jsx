@@ -133,6 +133,21 @@ const TARGET_COLORS = {
   Sports: 'emerald',
 };
 
+// Metric Configuration with Colors, Units, and Icons
+const METRIC_CONFIG = {
+  weight: { key: 'weight', label: 'Weight', color: '#6366F1', unitMetric: 'kg', unitImperial: 'lbs', icon: '⚖️' },
+  waist: { key: 'waist', label: 'Waist', color: '#10B981', unitMetric: 'cm', unitImperial: 'in', icon: '📏' },
+  height: { key: 'height', label: 'Height', color: '#06B6D4', unitMetric: 'cm', unitImperial: 'in', icon: '🧍' },
+  bodyFat: { key: 'bodyFat', label: 'Body Fat', color: '#F59E0B', unitMetric: '%', unitImperial: '%', icon: '📊' },
+  chest: { key: 'chest', label: 'Chest', color: '#EC4899', unitMetric: 'cm', unitImperial: 'in', icon: '👕' },
+  arms: { key: 'arms', label: 'Arms', color: '#8B5CF6', unitMetric: 'cm', unitImperial: 'in', icon: '💪' },
+  shoulders: { key: 'shoulders', label: 'Shoulders', color: '#3B82F6', unitMetric: 'cm', unitImperial: 'in', icon: '🏋️' },
+  hips: { key: 'hips', label: 'Hips', color: '#14B8A6', unitMetric: 'cm', unitImperial: 'in', icon: '👖' },
+  thighs: { key: 'thighs', label: 'Thighs', color: '#F97316', unitMetric: 'cm', unitImperial: 'in', icon: '🦵' },
+  calves: { key: 'calves', label: 'Calves', color: '#84CC16', unitMetric: 'cm', unitImperial: 'in', icon: '👟' },
+  neck: { key: 'neck', label: 'Neck', color: '#A855F7', unitMetric: 'cm', unitImperial: 'in', icon: '🧣' },
+};
+
 // Unit Conversion Constants & Helpers
 const KG_TO_LBS = 2.20462;
 const CM_TO_IN = 0.393701;
@@ -163,6 +178,9 @@ export const FitnessTracker = ({ selectedDate }) => {
       console.error(e);
     }
   };
+
+  // Selected graph metric filter ('all' = all active metrics at once, or specific key)
+  const [selectedGraphMetric, setSelectedGraphMetric] = useState('all');
 
   // Modals
   const [isWorkoutModalOpen, setIsWorkoutModalOpen] = useState(false);
@@ -195,12 +213,19 @@ export const FitnessTracker = ({ selectedDate }) => {
   const [showWSuggestions, setShowWSuggestions] = useState(false);
   const [searchingSuggestions, setSearchingSuggestions] = useState(false);
 
-  // Metric Form State
+  // Metric Form State (placeholders instead of default values)
   const [mDate, setMDate] = useState(currentDate);
   const [mWeight, setMWeight] = useState('');
+  const [mHeight, setMHeight] = useState('');
   const [mWaist, setMWaist] = useState('');
+  const [mBodyFat, setMBodyFat] = useState('');
   const [mChest, setMChest] = useState('');
   const [mArm, setMArm] = useState('');
+  const [mShoulders, setMShoulders] = useState('');
+  const [mHips, setMHips] = useState('');
+  const [mThighs, setMThighs] = useState('');
+  const [mCalves, setMCalves] = useState('');
+  const [mNeck, setMNeck] = useState('');
   const [mNotes, setMNotes] = useState('');
 
   const fetchData = useCallback(async (showLoading = true) => {
@@ -340,9 +365,16 @@ export const FitnessTracker = ({ selectedDate }) => {
     setEditingMetricId(null);
     setMDate(currentDate);
     setMWeight('');
+    setMHeight('');
     setMWaist('');
+    setMBodyFat('');
     setMChest('');
     setMArm('');
+    setMShoulders('');
+    setMHips('');
+    setMThighs('');
+    setMCalves('');
+    setMNeck('');
     setMNotes('');
     setIsMetricModalOpen(true);
   };
@@ -352,14 +384,28 @@ export const FitnessTracker = ({ selectedDate }) => {
     setMDate(metric.date || currentDate);
     if (unitSystem === 'imperial') {
       setMWeight(metric.weightKg ? kgToLbs(metric.weightKg) : '');
+      setMHeight(metric.heightCm ? cmToIn(metric.heightCm) : '');
       setMWaist(metric.waistCm ? cmToIn(metric.waistCm) : '');
+      setMBodyFat(metric.bodyFatPercent !== undefined && metric.bodyFatPercent !== null ? metric.bodyFatPercent : '');
       setMChest(metric.chestCm ? cmToIn(metric.chestCm) : '');
       setMArm(metric.armCm ? cmToIn(metric.armCm) : '');
+      setMShoulders(metric.shouldersCm ? cmToIn(metric.shouldersCm) : '');
+      setMHips(metric.hipsCm ? cmToIn(metric.hipsCm) : '');
+      setMThighs(metric.thighsCm ? cmToIn(metric.thighsCm) : '');
+      setMCalves(metric.calvesCm ? cmToIn(metric.calvesCm) : '');
+      setMNeck(metric.neckCm ? cmToIn(metric.neckCm) : '');
     } else {
       setMWeight(metric.weightKg !== undefined && metric.weightKg !== null ? metric.weightKg : '');
+      setMHeight(metric.heightCm !== undefined && metric.heightCm !== null ? metric.heightCm : '');
       setMWaist(metric.waistCm !== undefined && metric.waistCm !== null ? metric.waistCm : '');
+      setMBodyFat(metric.bodyFatPercent !== undefined && metric.bodyFatPercent !== null ? metric.bodyFatPercent : '');
       setMChest(metric.chestCm !== undefined && metric.chestCm !== null ? metric.chestCm : '');
       setMArm(metric.armCm !== undefined && metric.armCm !== null ? metric.armCm : '');
+      setMShoulders(metric.shouldersCm !== undefined && metric.shouldersCm !== null ? metric.shouldersCm : '');
+      setMHips(metric.hipsCm !== undefined && metric.hipsCm !== null ? metric.hipsCm : '');
+      setMThighs(metric.thighsCm !== undefined && metric.thighsCm !== null ? metric.thighsCm : '');
+      setMCalves(metric.calvesCm !== undefined && metric.calvesCm !== null ? metric.calvesCm : '');
+      setMNeck(metric.neckCm !== undefined && metric.neckCm !== null ? metric.neckCm : '');
     }
     setMNotes(metric.notes || '');
     setIsMetricModalOpen(true);
@@ -370,15 +416,27 @@ export const FitnessTracker = ({ selectedDate }) => {
     if (targetUnit === 'imperial') {
       // metric -> imperial
       if (mWeight) setMWeight(kgToLbs(mWeight));
+      if (mHeight) setMHeight(cmToIn(mHeight));
       if (mWaist) setMWaist(cmToIn(mWaist));
       if (mChest) setMChest(cmToIn(mChest));
       if (mArm) setMArm(cmToIn(mArm));
+      if (mShoulders) setMShoulders(cmToIn(mShoulders));
+      if (mHips) setMHips(cmToIn(mHips));
+      if (mThighs) setMThighs(cmToIn(mThighs));
+      if (mCalves) setMCalves(cmToIn(mCalves));
+      if (mNeck) setMNeck(cmToIn(mNeck));
     } else {
       // imperial -> metric
       if (mWeight) setMWeight(lbsToKg(mWeight));
+      if (mHeight) setMHeight(inToCm(mHeight));
       if (mWaist) setMWaist(inToCm(mWaist));
       if (mChest) setMChest(inToCm(mChest));
       if (mArm) setMArm(inToCm(mArm));
+      if (mShoulders) setMShoulders(inToCm(mShoulders));
+      if (mHips) setMHips(inToCm(mHips));
+      if (mThighs) setMThighs(inToCm(mThighs));
+      if (mCalves) setMCalves(inToCm(mCalves));
+      if (mNeck) setMNeck(inToCm(mNeck));
     }
     handleUnitSystemChange(targetUnit);
   };
@@ -433,21 +491,50 @@ export const FitnessTracker = ({ selectedDate }) => {
 
   const handleMetricSubmit = async (e) => {
     e.preventDefault();
-    if (!mWeight && !mWaist) return;
+    if (
+      !mWeight &&
+      !mHeight &&
+      !mWaist &&
+      !mBodyFat &&
+      !mChest &&
+      !mArm &&
+      !mShoulders &&
+      !mHips &&
+      !mThighs &&
+      !mCalves &&
+      !mNeck
+    ) {
+      return;
+    }
 
     setSavingMetric(true);
     try {
-      const weightInKg = unitSystem === 'imperial' ? lbsToKg(mWeight) : (mWeight ? Number(mWeight) : undefined);
-      const waistInCm = unitSystem === 'imperial' ? inToCm(mWaist) : (mWaist ? Number(mWaist) : undefined);
-      const chestInCm = unitSystem === 'imperial' ? inToCm(mChest) : (mChest ? Number(mChest) : undefined);
-      const armInCm = unitSystem === 'imperial' ? inToCm(mArm) : (mArm ? Number(mArm) : undefined);
+      const isImp = unitSystem === 'imperial';
+      const weightInKg = isImp ? lbsToKg(mWeight) : (mWeight ? Number(mWeight) : undefined);
+      const heightInCm = isImp ? inToCm(mHeight) : (mHeight ? Number(mHeight) : undefined);
+      const waistInCm = isImp ? inToCm(mWaist) : (mWaist ? Number(mWaist) : undefined);
+      const chestInCm = isImp ? inToCm(mChest) : (mChest ? Number(mChest) : undefined);
+      const armInCm = isImp ? inToCm(mArm) : (mArm ? Number(mArm) : undefined);
+      const shouldersInCm = isImp ? inToCm(mShoulders) : (mShoulders ? Number(mShoulders) : undefined);
+      const hipsInCm = isImp ? inToCm(mHips) : (mHips ? Number(mHips) : undefined);
+      const thighsInCm = isImp ? inToCm(mThighs) : (mThighs ? Number(mThighs) : undefined);
+      const calvesInCm = isImp ? inToCm(mCalves) : (mCalves ? Number(mCalves) : undefined);
+      const neckInCm = isImp ? inToCm(mNeck) : (mNeck ? Number(mNeck) : undefined);
+      const bodyFatNum = mBodyFat !== '' && mBodyFat !== null && mBodyFat !== undefined ? Number(mBodyFat) : undefined;
 
       const payload = {
         date: mDate,
-        weightKg: weightInKg ? Number(weightInKg) : undefined,
-        waistCm: waistInCm ? Number(waistInCm) : undefined,
-        chestCm: chestInCm ? Number(chestInCm) : undefined,
-        armCm: armInCm ? Number(armInCm) : undefined,
+        weightKg: weightInKg !== undefined && weightInKg !== '' ? Number(weightInKg) : undefined,
+        heightCm: heightInCm !== undefined && heightInCm !== '' ? Number(heightInCm) : undefined,
+        waistCm: waistInCm !== undefined && waistInCm !== '' ? Number(waistInCm) : undefined,
+        bodyFatPercent: bodyFatNum !== undefined && !isNaN(bodyFatNum) ? Number(bodyFatNum) : undefined,
+        chestCm: chestInCm !== undefined && chestInCm !== '' ? Number(chestInCm) : undefined,
+        armCm: armInCm !== undefined && armInCm !== '' ? Number(armInCm) : undefined,
+        shouldersCm: shouldersInCm !== undefined && shouldersInCm !== '' ? Number(shouldersInCm) : undefined,
+        hipsCm: hipsInCm !== undefined && hipsInCm !== '' ? Number(hipsInCm) : undefined,
+        thighsCm: thighsInCm !== undefined && thighsInCm !== '' ? Number(thighsCm) : undefined,
+        calvesCm: calvesInCm !== undefined && calvesInCm !== '' ? Number(calvesInCm) : undefined,
+        neckCm: neckInCm !== undefined && neckInCm !== '' ? Number(neckInCm) : undefined,
         notes: mNotes.trim(),
       };
 
@@ -465,11 +552,8 @@ export const FitnessTracker = ({ selectedDate }) => {
         setIsMetricModalOpen(false);
         if (res.data) setBodyMetrics((prev) => [...prev.filter((m) => m.date !== mDate), res.data]);
       }
-      setMWeight('');
-      setMWaist('');
-      setMChest('');
-      setMArm('');
-      setMNotes('');
+      openCreateMetricModal();
+      setIsMetricModalOpen(false);
       fetchData(false);
     } catch (err) {
       console.error('Failed to log body metric', err);
@@ -512,11 +596,35 @@ export const FitnessTracker = ({ selectedDate }) => {
   const totalWorkoutMinutes = workouts.reduce((sum, w) => sum + (w.durationMinutes || 0), 0);
   const latestWeight = bodyMetrics.slice().reverse().find((m) => m.weightKg)?.weightKg;
 
-  const chartData = bodyMetrics.map((m) => ({
-    date: m.date.slice(5),
-    weight: unitSystem === 'imperial' ? kgToLbs(m.weightKg) : m.weightKg,
-    waist: unitSystem === 'imperial' ? cmToIn(m.waistCm) : m.waistCm,
-  }));
+  // Compute full multi-metric chart data
+  const chartData = useMemo(() => {
+    return bodyMetrics.map((m) => {
+      const isImp = unitSystem === 'imperial';
+      return {
+        date: m.date.slice(5),
+        fullDate: m.date,
+        weight: m.weightKg !== undefined && m.weightKg !== null ? (isImp ? kgToLbs(m.weightKg) : m.weightKg) : null,
+        waist: m.waistCm !== undefined && m.waistCm !== null ? (isImp ? cmToIn(m.waistCm) : m.waistCm) : null,
+        height: m.heightCm !== undefined && m.heightCm !== null ? (isImp ? cmToIn(m.heightCm) : m.heightCm) : null,
+        bodyFat: m.bodyFatPercent !== undefined && m.bodyFatPercent !== null ? m.bodyFatPercent : null,
+        chest: m.chestCm !== undefined && m.chestCm !== null ? (isImp ? cmToIn(m.chestCm) : m.chestCm) : null,
+        arms: m.armCm !== undefined && m.armCm !== null ? (isImp ? cmToIn(m.armCm) : m.armCm) : null,
+        shoulders: m.shouldersCm !== undefined && m.shouldersCm !== null ? (isImp ? cmToIn(m.shouldersCm) : m.shouldersCm) : null,
+        hips: m.hipsCm !== undefined && m.hipsCm !== null ? (isImp ? cmToIn(m.hipsCm) : m.hipsCm) : null,
+        thighs: m.thighsCm !== undefined && m.thighsCm !== null ? (isImp ? cmToIn(m.thighsCm) : m.thighsCm) : null,
+        calves: m.calvesCm !== undefined && m.calvesCm !== null ? (isImp ? cmToIn(m.calvesCm) : m.calvesCm) : null,
+        neck: m.neckCm !== undefined && m.neckCm !== null ? (isImp ? cmToIn(m.neckCm) : m.neckCm) : null,
+      };
+    });
+  }, [bodyMetrics, unitSystem]);
+
+  // Determine active metrics that actually have at least one valid data point across the dataset
+  const activeMetrics = useMemo(() => {
+    const keys = Object.keys(METRIC_CONFIG);
+    return keys.filter((k) =>
+      chartData.some((d) => d[k] !== null && d[k] !== undefined && !isNaN(d[k]))
+    );
+  }, [chartData]);
 
   return (
     <div className="space-y-6 sm:space-y-8 animate-fade-in">
@@ -657,8 +765,8 @@ export const FitnessTracker = ({ selectedDate }) => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-7">
         <Card
           hover
-          title="Weight & Waist Progress"
-          subtitle="Sparse data line trend"
+          title="Body Measurements Progress"
+          subtitle="Interactive multi-metric trends and sparse data tracking"
           icon={LineChartIcon}
           className="lg:col-span-2"
           badge={
@@ -688,77 +796,155 @@ export const FitnessTracker = ({ selectedDate }) => {
             </div>
           }
         >
-          {chartData.length === 0 ? (
-            <div className="h-56 flex flex-col items-center justify-center text-xs text-secondary italic bg-subtle/50 rounded-xl border border-dashed border-theme mt-2">
-              <Scale className="w-8 h-8 text-muted mb-2 stroke-1" />
-              No body metric records to plot.
+          {activeMetrics.length === 0 ? (
+            <div className="h-64 flex flex-col items-center justify-center text-xs text-secondary italic bg-subtle/50 rounded-2xl border border-dashed border-theme mt-2 p-6 text-center">
+              <Scale className="w-10 h-10 text-muted mb-2 stroke-1" />
+              <p className="font-bold text-primary text-sm not-italic">No measurements recorded yet</p>
+              <p className="text-secondary mt-1 max-w-xs">
+                Log your weight, height, waist, or body circumferences to visualize your physical transformation trajectory.
+              </p>
+              <Button
+                variant="outline"
+                size="sm"
+                icon={Plus}
+                onClick={openCreateMetricModal}
+                className="mt-4"
+              >
+                Log First Measurement
+              </Button>
             </div>
           ) : (
-            <div className="h-60 w-full mt-2">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={chartData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#888888" opacity={0.15} />
-                  <XAxis dataKey="date" stroke="#888888" fontSize={11} />
-                  <YAxis stroke="#888888" fontSize={11} domain={['dataMin - 2', 'dataMax + 2']} />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: 'var(--color-surface)',
-                      borderColor: 'var(--color-border)',
-                      borderRadius: '12px',
-                      fontSize: '12px',
-                    }}
-                  />
-                  <Legend />
-                  <Line
-                    type="monotone"
-                    dataKey="weight"
-                    name={`Weight (${unitSystem === 'metric' ? 'kg' : 'lbs'})`}
-                    stroke="var(--color-accent)"
-                    strokeWidth={2.5}
-                    dot={{ r: 4 }}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="waist"
-                    name={`Waist (${unitSystem === 'metric' ? 'cm' : 'in'})`}
-                    stroke="#10B981"
-                    strokeWidth={2}
-                    dot={{ r: 3 }}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
+            <div className="space-y-3 mt-1">
+              {/* Interactive Metric Filter Pill Buttons */}
+              <div className="flex items-center gap-1.5 flex-wrap pb-1">
+                <button
+                  type="button"
+                  onClick={() => setSelectedGraphMetric('all')}
+                  className={`px-2.5 py-1 text-xs font-bold rounded-xl transition-all cursor-pointer border ${
+                    selectedGraphMetric === 'all'
+                      ? 'bg-accent text-white border-accent shadow-xs'
+                      : 'bg-subtle text-secondary border-theme hover:text-primary hover:bg-surface'
+                  }`}
+                >
+                  All Data ({activeMetrics.length})
+                </button>
+                {activeMetrics.map((key) => {
+                  const cfg = METRIC_CONFIG[key];
+                  const isSelected = selectedGraphMetric === key;
+                  return (
+                    <button
+                      key={key}
+                      type="button"
+                      onClick={() => setSelectedGraphMetric(key)}
+                      className={`px-2.5 py-1 text-xs font-bold rounded-xl transition-all cursor-pointer border flex items-center gap-1.5 ${
+                        isSelected
+                          ? 'bg-surface text-primary border-accent shadow-xs'
+                          : 'bg-subtle text-secondary border-theme hover:text-primary hover:bg-surface'
+                      }`}
+                    >
+                      <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: cfg.color }} />
+                      <span>{cfg.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Multi-Line Recharts Plot */}
+              <div className="h-64 sm:h-72 w-full mt-2">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#888888" opacity={0.12} />
+                    <XAxis dataKey="date" stroke="#888888" fontSize={11} tickLine={false} />
+                    <YAxis stroke="#888888" fontSize={11} tickLine={false} domain={['dataMin - 2', 'dataMax + 2']} />
+                    <Tooltip
+                      content={({ active, payload, label }) => {
+                        if (active && payload && payload.length) {
+                          const fullDate = payload[0]?.payload?.fullDate || label;
+                          return (
+                            <div className="bg-surface/98 dark:bg-surface/95 backdrop-blur-xl border border-theme rounded-2xl shadow-xl p-3 text-xs space-y-1.5 min-w-[180px]">
+                              <span className="font-bold text-primary block pb-1 border-b border-subtle">
+                                {formatDisplayDate(fullDate)}
+                              </span>
+                              <div className="space-y-1">
+                                {payload.map((entry) => {
+                                  const cfg = METRIC_CONFIG[entry.dataKey];
+                                  if (!cfg || entry.value === null || entry.value === undefined) return null;
+                                  const unit = unitSystem === 'imperial' ? cfg.unitImperial : cfg.unitMetric;
+                                  return (
+                                    <div key={entry.dataKey} className="flex items-center justify-between gap-3">
+                                      <span className="flex items-center gap-1.5 font-medium text-secondary">
+                                        <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: cfg.color }} />
+                                        {cfg.label}:
+                                      </span>
+                                      <span className="font-extrabold text-primary">
+                                        {entry.value} {unit}
+                                      </span>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          );
+                        }
+                        return null;
+                      }}
+                    />
+                    <Legend
+                      formatter={(val) => <span className="text-xs font-semibold text-primary">{val}</span>}
+                    />
+                    {activeMetrics.map((key) => {
+                      const cfg = METRIC_CONFIG[key];
+                      const isVisible = selectedGraphMetric === 'all' || selectedGraphMetric === key;
+                      if (!isVisible) return null;
+                      const unit = unitSystem === 'imperial' ? cfg.unitImperial : cfg.unitMetric;
+                      return (
+                        <Line
+                          key={key}
+                          type="monotone"
+                          dataKey={key}
+                          name={`${cfg.label} (${unit})`}
+                          stroke={cfg.color}
+                          strokeWidth={2.5}
+                          dot={{ r: 3.5, strokeWidth: 1 }}
+                          activeDot={{ r: 6 }}
+                          connectNulls
+                        />
+                      );
+                    })}
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
             </div>
           )}
         </Card>
 
-        <Card hover title="Measurement Log" subtitle="Recent metrics recorded" icon={Scale}>
+        {/* Recent Measurement Log History Card */}
+        <Card
+          hover
+          title="Measurement Log"
+          subtitle="Recent metrics recorded"
+          icon={Scale}
+          action={
+            <Button variant="ghost" size="xs" icon={Plus} onClick={openCreateMetricModal}>
+              Log
+            </Button>
+          }
+        >
           {bodyMetrics.length === 0 ? (
             <p className="text-xs text-secondary italic py-4">No measurements logged yet.</p>
           ) : (
-            <div className="space-y-3 mt-2">
+            <div className="space-y-3 mt-1 max-h-[380px] overflow-y-auto pr-1">
               {bodyMetrics
                 .slice()
                 .reverse()
-                .slice(0, 6)
+                .slice(0, 10)
                 .map((m, idx) => (
                   <div
                     key={m._id || idx}
-                    className="p-3 rounded-xl bg-subtle border border-theme flex items-center justify-between gap-2"
+                    className="p-3.5 rounded-2xl bg-subtle border border-theme flex flex-col justify-between gap-2.5 transition-all hover:border-theme-strong"
                   >
-                    <div>
+                    <div className="flex items-center justify-between">
                       <span className="text-xs font-bold text-primary block">{formatDisplayDate(m.date)}</span>
-                      <span className="text-[11px] text-secondary">
-                        {m.waistCm ? `Waist: ${unitSystem === 'metric' ? `${m.waistCm}cm` : `${cmToIn(m.waistCm)}in`} ` : ''}
-                        {m.chestCm ? `Chest: ${unitSystem === 'metric' ? `${m.chestCm}cm` : `${cmToIn(m.chestCm)}in`} ` : ''}
-                        {m.armCm ? `Arm: ${unitSystem === 'metric' ? `${m.armCm}cm` : `${cmToIn(m.armCm)}in`}` : ''}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {m.weightKg && (
-                        <span className="text-sm font-extrabold text-accent">
-                          {unitSystem === 'metric' ? `${m.weightKg} kg` : `${kgToLbs(m.weightKg)} lbs`}
-                        </span>
-                      )}
                       <div className="flex items-center gap-1.5">
                         <button
                           type="button"
@@ -778,6 +964,70 @@ export const FitnessTracker = ({ selectedDate }) => {
                         </button>
                       </div>
                     </div>
+
+                    <div className="flex flex-wrap gap-1.5 text-[11px]">
+                      {m.weightKg && (
+                        <span className="px-2 py-0.5 rounded-lg bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 font-bold">
+                          Weight: {unitSystem === 'metric' ? `${m.weightKg} kg` : `${kgToLbs(m.weightKg)} lbs`}
+                        </span>
+                      )}
+                      {m.heightCm && (
+                        <span className="px-2 py-0.5 rounded-lg bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-500/20 font-semibold">
+                          Height: {unitSystem === 'metric' ? `${m.heightCm} cm` : `${cmToIn(m.heightCm)} in`}
+                        </span>
+                      )}
+                      {m.waistCm && (
+                        <span className="px-2 py-0.5 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 font-semibold">
+                          Waist: {unitSystem === 'metric' ? `${m.waistCm} cm` : `${cmToIn(m.waistCm)} in`}
+                        </span>
+                      )}
+                      {m.bodyFatPercent !== undefined && m.bodyFatPercent !== null && (
+                        <span className="px-2 py-0.5 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 font-semibold">
+                          BF: {m.bodyFatPercent}%
+                        </span>
+                      )}
+                      {m.chestCm && (
+                        <span className="px-2 py-0.5 rounded-lg bg-pink-500/10 text-pink-600 dark:text-pink-400 border border-pink-500/20 font-semibold">
+                          Chest: {unitSystem === 'metric' ? `${m.chestCm} cm` : `${cmToIn(m.chestCm)} in`}
+                        </span>
+                      )}
+                      {m.armCm && (
+                        <span className="px-2 py-0.5 rounded-lg bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20 font-semibold">
+                          Arms: {unitSystem === 'metric' ? `${m.armCm} cm` : `${cmToIn(m.armCm)} in`}
+                        </span>
+                      )}
+                      {m.shouldersCm && (
+                        <span className="px-2 py-0.5 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 font-semibold">
+                          Shoulders: {unitSystem === 'metric' ? `${m.shouldersCm} cm` : `${cmToIn(m.shouldersCm)} in`}
+                        </span>
+                      )}
+                      {m.hipsCm && (
+                        <span className="px-2 py-0.5 rounded-lg bg-teal-500/10 text-teal-600 dark:text-teal-400 border border-teal-500/20 font-semibold">
+                          Hips: {unitSystem === 'metric' ? `${m.hipsCm} cm` : `${cmToIn(m.hipsCm)} in`}
+                        </span>
+                      )}
+                      {m.thighsCm && (
+                        <span className="px-2 py-0.5 rounded-lg bg-orange-500/10 text-orange-600 dark:text-orange-400 border border-orange-500/20 font-semibold">
+                          Thighs: {unitSystem === 'metric' ? `${m.thighsCm} cm` : `${cmToIn(m.thighsCm)} in`}
+                        </span>
+                      )}
+                      {m.calvesCm && (
+                        <span className="px-2 py-0.5 rounded-lg bg-lime-500/10 text-lime-600 dark:text-lime-400 border border-lime-500/20 font-semibold">
+                          Calves: {unitSystem === 'metric' ? `${m.calvesCm} cm` : `${cmToIn(m.calvesCm)} in`}
+                        </span>
+                      )}
+                      {m.neckCm && (
+                        <span className="px-2 py-0.5 rounded-lg bg-violet-500/10 text-violet-600 dark:text-violet-400 border border-violet-500/20 font-semibold">
+                          Neck: {unitSystem === 'metric' ? `${m.neckCm} cm` : `${cmToIn(m.neckCm)} in`}
+                        </span>
+                      )}
+                    </div>
+
+                    {m.notes && (
+                      <p className="text-[11px] text-secondary italic border-t border-subtle/80 pt-1.5">
+                        "{m.notes}"
+                      </p>
+                    )}
                   </div>
                 ))}
             </div>
@@ -1267,136 +1517,6 @@ export const FitnessTracker = ({ selectedDate }) => {
             </Button>
             <Button type="submit" variant="primary" loading={savingWorkout}>
               {editingWorkoutId ? 'Update Workout' : 'Save Exercise'}
-            </Button>
-          </div>
-        </form>
-      </Modal>
-
-      {/* Body Metric Modal */}
-      <Modal
-        isOpen={isMetricModalOpen}
-        onClose={() => setIsMetricModalOpen(false)}
-        title={editingMetricId ? 'Edit Body Measurements' : 'Log Weight & Measurements'}
-        subtitle={editingMetricId ? 'Update logged physical metrics' : 'Track physical metrics and calculate accurate calorie burns'}
-      >
-        <form onSubmit={handleMetricSubmit} className="space-y-4 pb-1">
-          {/* Unit System Toggle */}
-          <div>
-            <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5">
-              Unit Preference
-            </label>
-            <div className="grid grid-cols-2 gap-2 p-1 bg-subtle rounded-xl border border-theme">
-              <button
-                type="button"
-                onClick={() => handleToggleModalUnit('metric')}
-                className={`py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
-                  unitSystem === 'metric'
-                    ? 'bg-surface text-primary shadow-xs'
-                    : 'text-secondary hover:text-primary'
-                }`}
-              >
-                <span>⚖️</span> Metric (kg, cm)
-              </button>
-              <button
-                type="button"
-                onClick={() => handleToggleModalUnit('imperial')}
-                className={`py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
-                  unitSystem === 'imperial'
-                    ? 'bg-surface text-primary shadow-xs'
-                    : 'text-secondary hover:text-primary'
-                }`}
-              >
-                <span>📏</span> Imperial (lbs, in)
-              </button>
-            </div>
-          </div>
-
-          <DateInput
-            label="Measurement Date"
-            value={mDate}
-            onChange={setMDate}
-            required
-          />
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5">
-                Weight ({unitSystem === 'metric' ? 'kg' : 'lbs'})
-              </label>
-              <input
-                type="number"
-                step="0.1"
-                placeholder={unitSystem === 'metric' ? 'e.g. 74.5' : 'e.g. 164.2'}
-                value={mWeight}
-                onChange={(e) => setMWeight(e.target.value)}
-                className="input-base text-sm"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5">
-                Waist Circumference ({unitSystem === 'metric' ? 'cm' : 'inches'})
-              </label>
-              <input
-                type="number"
-                step="0.1"
-                placeholder={unitSystem === 'metric' ? 'e.g. 82' : 'e.g. 32.3'}
-                value={mWaist}
-                onChange={(e) => setMWaist(e.target.value)}
-                className="input-base text-sm"
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5">
-                Chest ({unitSystem === 'metric' ? 'cm' : 'inches'}, optional)
-              </label>
-              <input
-                type="number"
-                step="0.1"
-                placeholder={unitSystem === 'metric' ? 'e.g. 102' : 'e.g. 40.2'}
-                value={mChest}
-                onChange={(e) => setMChest(e.target.value)}
-                className="input-base text-sm"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5">
-                Arms ({unitSystem === 'metric' ? 'cm' : 'inches'}, optional)
-              </label>
-              <input
-                type="number"
-                step="0.1"
-                placeholder={unitSystem === 'metric' ? 'e.g. 36' : 'e.g. 14.2'}
-                value={mArm}
-                onChange={(e) => setMArm(e.target.value)}
-                className="input-base text-sm"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5">
-              Notes (Optional)
-            </label>
-            <input
-              type="text"
-              placeholder="e.g. Fasted morning weigh-in"
-              value={mNotes}
-              onChange={(e) => setMNotes(e.target.value)}
-              className="input-base text-sm"
-            />
-          </div>
-
-          <div className="flex justify-end gap-3 pt-3 border-t border-subtle mt-2">
-            <Button variant="secondary" onClick={() => setIsMetricModalOpen(false)}>
-              Cancel
-            </Button>
-            <Button type="submit" variant="primary" loading={savingMetric}>
-              {editingMetricId ? 'Update Measurements' : 'Save Measurements'}
             </Button>
           </div>
         </form>

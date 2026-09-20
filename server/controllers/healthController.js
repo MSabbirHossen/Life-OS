@@ -648,16 +648,37 @@ export const getBodyMetrics = async (req, res) => {
 
 export const createBodyMetric = async (req, res) => {
   try {
-    const { date, weightKg, waistCm, chestCm, armCm, notes } = req.body;
+    const {
+      date,
+      weightKg,
+      heightCm,
+      waistCm,
+      bodyFatPercent,
+      chestCm,
+      armCm,
+      shouldersCm,
+      hipsCm,
+      thighsCm,
+      calvesCm,
+      neckCm,
+      notes,
+    } = req.body;
     if (!date) return res.status(400).json({ message: 'Date is required' });
 
     const metric = await BodyMetric.findOneAndUpdate(
       { userId: req.user._id, date },
       {
-        weightKg: weightKg ? Number(weightKg) : undefined,
-        waistCm: waistCm ? Number(waistCm) : undefined,
-        chestCm: chestCm ? Number(chestCm) : undefined,
-        armCm: armCm ? Number(armCm) : undefined,
+        weightKg: weightKg !== undefined && weightKg !== null && weightKg !== '' ? Number(weightKg) : undefined,
+        heightCm: heightCm !== undefined && heightCm !== null && heightCm !== '' ? Number(heightCm) : undefined,
+        waistCm: waistCm !== undefined && waistCm !== null && waistCm !== '' ? Number(waistCm) : undefined,
+        bodyFatPercent: bodyFatPercent !== undefined && bodyFatPercent !== null && bodyFatPercent !== '' ? Number(bodyFatPercent) : undefined,
+        chestCm: chestCm !== undefined && chestCm !== null && chestCm !== '' ? Number(chestCm) : undefined,
+        armCm: armCm !== undefined && armCm !== null && armCm !== '' ? Number(armCm) : undefined,
+        shouldersCm: shouldersCm !== undefined && shouldersCm !== null && shouldersCm !== '' ? Number(shouldersCm) : undefined,
+        hipsCm: hipsCm !== undefined && hipsCm !== null && hipsCm !== '' ? Number(hipsCm) : undefined,
+        thighsCm: thighsCm !== undefined && thighsCm !== null && thighsCm !== '' ? Number(thighsCm) : undefined,
+        calvesCm: calvesCm !== undefined && calvesCm !== null && calvesCm !== '' ? Number(calvesCm) : undefined,
+        neckCm: neckCm !== undefined && neckCm !== null && neckCm !== '' ? Number(neckCm) : undefined,
         notes: notes?.trim() || '',
       },
       { new: true, upsert: true }
@@ -674,12 +695,34 @@ export const updateBodyMetric = async (req, res) => {
     const metric = await BodyMetric.findOne({ _id: req.params.id, userId: req.user._id });
     if (!metric) return res.status(404).json({ message: 'Body metric not found' });
 
-    const { date, weightKg, waistCm, chestCm, armCm, notes } = req.body;
+    const {
+      date,
+      weightKg,
+      heightCm,
+      waistCm,
+      bodyFatPercent,
+      chestCm,
+      armCm,
+      shouldersCm,
+      hipsCm,
+      thighsCm,
+      calvesCm,
+      neckCm,
+      notes,
+    } = req.body;
+
     if (date) metric.date = date;
-    if (weightKg !== undefined) metric.weightKg = weightKg ? Number(weightKg) : undefined;
-    if (waistCm !== undefined) metric.waistCm = waistCm ? Number(waistCm) : undefined;
-    if (chestCm !== undefined) metric.chestCm = chestCm ? Number(chestCm) : undefined;
-    if (armCm !== undefined) metric.armCm = armCm ? Number(armCm) : undefined;
+    if (weightKg !== undefined) metric.weightKg = weightKg !== null && weightKg !== '' ? Number(weightKg) : undefined;
+    if (heightCm !== undefined) metric.heightCm = heightCm !== null && heightCm !== '' ? Number(heightCm) : undefined;
+    if (waistCm !== undefined) metric.waistCm = waistCm !== null && waistCm !== '' ? Number(waistCm) : undefined;
+    if (bodyFatPercent !== undefined) metric.bodyFatPercent = bodyFatPercent !== null && bodyFatPercent !== '' ? Number(bodyFatPercent) : undefined;
+    if (chestCm !== undefined) metric.chestCm = chestCm !== null && chestCm !== '' ? Number(chestCm) : undefined;
+    if (armCm !== undefined) metric.armCm = armCm !== null && armCm !== '' ? Number(armCm) : undefined;
+    if (shouldersCm !== undefined) metric.shouldersCm = shouldersCm !== null && shouldersCm !== '' ? Number(shouldersCm) : undefined;
+    if (hipsCm !== undefined) metric.hipsCm = hipsCm !== null && hipsCm !== '' ? Number(hipsCm) : undefined;
+    if (thighsCm !== undefined) metric.thighsCm = thighsCm !== null && thighsCm !== '' ? Number(thighsCm) : undefined;
+    if (calvesCm !== undefined) metric.calvesCm = calvesCm !== null && calvesCm !== '' ? Number(calvesCm) : undefined;
+    if (neckCm !== undefined) metric.neckCm = neckCm !== null && neckCm !== '' ? Number(neckCm) : undefined;
     if (notes !== undefined) metric.notes = notes.trim();
 
     await metric.save();
