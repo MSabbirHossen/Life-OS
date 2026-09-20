@@ -42,12 +42,36 @@ const TARGET_COLORS = {
   Sports: 'emerald',
 };
 
+// Unit Conversion Constants & Helpers
+const KG_TO_LBS = 2.20462;
+const CM_TO_IN = 0.393701;
+const IN_TO_CM = 2.54;
+
+const kgToLbs = (kg) => (kg !== undefined && kg !== null && kg !== '' ? Number((Number(kg) * KG_TO_LBS).toFixed(1)) : '');
+const lbsToKg = (lbs) => (lbs !== undefined && lbs !== null && lbs !== '' ? Number((Number(lbs) / KG_TO_LBS).toFixed(2)) : '');
+const cmToIn = (cm) => (cm !== undefined && cm !== null && cm !== '' ? Number((Number(cm) * CM_TO_IN).toFixed(1)) : '');
+const inToCm = (inches) => (inches !== undefined && inches !== null && inches !== '' ? Number((Number(inches) * IN_TO_CM).toFixed(1)) : '');
+
 export const FitnessTracker = ({ selectedDate }) => {
   const currentDate = selectedDate || getFormattedDate();
 
   const [workouts, setWorkouts] = useState([]);
   const [bodyMetrics, setBodyMetrics] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  // Unit System State ('metric' = kg, cm | 'imperial' = lbs, in)
+  const [unitSystem, setUnitSystem] = useState(
+    () => localStorage.getItem('lifeos_fitness_unit_system') || 'metric'
+  );
+
+  const handleUnitSystemChange = (newUnit) => {
+    setUnitSystem(newUnit);
+    try {
+      localStorage.setItem('lifeos_fitness_unit_system', newUnit);
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   // Modals
   const [isWorkoutModalOpen, setIsWorkoutModalOpen] = useState(false);
@@ -215,12 +239,37 @@ export const FitnessTracker = ({ selectedDate }) => {
   const handleEditMetric = (metric) => {
     setEditingMetricId(metric._id);
     setMDate(metric.date || currentDate);
-    setMWeight(metric.weightKg !== undefined && metric.weightKg !== null ? metric.weightKg : '');
-    setMWaist(metric.waistCm !== undefined && metric.waistCm !== null ? metric.waistCm : '');
-    setMChest(metric.chestCm !== undefined && metric.chestCm !== null ? metric.chestCm : '');
-    setMArm(metric.armCm !== undefined && metric.armCm !== null ? metric.armCm : '');
+    if (unitSystem === 'imperial') {
+      setMWeight(metric.weightKg ? kgToLbs(metric.weightKg) : '');
+      setMWaist(metric.waistCm ? cmToIn(metric.waistCm) : '');
+      setMChest(metric.chestCm ? cmToIn(metric.chestCm) : '');
+      setMArm(metric.armCm ? cmToIn(metric.armCm) : '');
+    } else {
+      setMWeight(metric.weightKg !== undefined && metric.weightKg !== null ? metric.weightKg : '');
+      setMWaist(metric.waistCm !== undefined && metric.waistCm !== null ? metric.waistCm : '');
+      setMChest(metric.chestCm !== undefined && metric.chestCm !== null ? metric.chestCm : '');
+      setMArm(metric.armCm !== undefined && metric.armCm !== null ? metric.armCm : '');
+    }
     setMNotes(metric.notes || '');
     setIsMetricModalOpen(true);
+  };
+
+  const handleToggleModalUnit = (targetUnit) => {
+    if (targetUnit === unitSystem) return;
+    if (targetUnit === 'imperial') {
+      // metric -> imperial
+      if (mWeight) setMWeight(kgToLbs(mWeight));
+      if (mWaist) setMWaist(cmToIn(mWaist));
+      if (mChest) setMChest(cmToIn(mChest));
+      if (mArm) setMArm(cmToIn(mArm));
+    } else {
+      // imperial -> metric
+      if (mWeight) setMWeight(lbsToKg(mWeight));
+      if (mWaist) setMWaist(inToCm(mWaist));
+      if (mChest) setMChest(inToCm(mChest));
+      if (mArm) setMArm(inToCm(mArm));
+    }
+    handleUnitSystemChange(targetUnit);
   };
 
   const handleWorkoutSubmit = async (e) => {
@@ -277,12 +326,17 @@ export const FitnessTracker = ({ selectedDate }) => {
 
     setSavingMetric(true);
     try {
+      const weightInKg = unitSystem === 'imperial' ? lbsToKg(mWeight) : (mWeight ? Number(mWeight) : undefined);
+      const waistInCm = unitSystem === 'imperial' ? inToCm(mWaist) : (mWaist ? Number(mWaist) : undefined);
+      const chestInCm = unitSystem === 'imperial' ? inToCm(mChest) : (mChest ? Number(mChest) : undefined);
+      const armInCm = unitSystem === 'imperial' ? inToCm(mArm) : (mArm ? Number(mArm) : undefined);
+
       const payload = {
         date: mDate,
-        weightKg: mWeight ? Number(mWeight) : undefined,
-        waistCm: mWaist ? Number(mWaist) : undefined,
-        chestCm: mChest ? Number(mChest) : undefined,
-        armCm: mArm ? Number(mArm) : undefined,
+        weightKg: weightInKg ? Number(weightInKg) : undefined,
+        waistCm: waistInCm ? Number(waistInCm) : undefined,
+        chestCm: chestInCm ? Number(chestInCm) : undefined,
+        armCm: armInCm ? Number(armInCm) : undefined,
         notes: mNotes.trim(),
       };
 
@@ -349,8 +403,8 @@ export const FitnessTracker = ({ selectedDate }) => {
 
   const chartData = bodyMetrics.map((m) => ({
     date: m.date.slice(5),
-    weight: m.weightKg,
-    waist: m.waistCm,
+    weight: unitSystem === 'imperial' ? kgToLbs(m.weightKg) : m.weightKg,
+    waist: unitSystem === 'imperial' ? cmToIn(m.waistCm) : m.waistCm,
   }));
 
   return (
@@ -496,6 +550,32 @@ export const FitnessTracker = ({ selectedDate }) => {
           subtitle="Sparse data line trend"
           icon={LineChartIcon}
           className="lg:col-span-2"
+          badge={
+            <div className="flex bg-subtle p-0.5 rounded-xl border border-theme">
+              <button
+                type="button"
+                onClick={() => handleUnitSystemChange('metric')}
+                className={`px-2.5 py-1 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                  unitSystem === 'metric'
+                    ? 'bg-surface text-primary shadow-xs'
+                    : 'text-secondary hover:text-primary'
+                }`}
+              >
+                kg / cm
+              </button>
+              <button
+                type="button"
+                onClick={() => handleUnitSystemChange('imperial')}
+                className={`px-2.5 py-1 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                  unitSystem === 'imperial'
+                    ? 'bg-surface text-primary shadow-xs'
+                    : 'text-secondary hover:text-primary'
+                }`}
+              >
+                lbs / in
+              </button>
+            </div>
+          }
         >
           {chartData.length === 0 ? (
             <div className="h-56 flex flex-col items-center justify-center text-xs text-secondary italic bg-subtle/50 rounded-xl border border-dashed border-theme mt-2">
@@ -521,7 +601,7 @@ export const FitnessTracker = ({ selectedDate }) => {
                   <Line
                     type="monotone"
                     dataKey="weight"
-                    name="Weight (kg)"
+                    name={`Weight (${unitSystem === 'metric' ? 'kg' : 'lbs'})`}
                     stroke="var(--color-accent)"
                     strokeWidth={2.5}
                     dot={{ r: 4 }}
@@ -529,7 +609,7 @@ export const FitnessTracker = ({ selectedDate }) => {
                   <Line
                     type="monotone"
                     dataKey="waist"
-                    name="Waist (cm)"
+                    name={`Waist (${unitSystem === 'metric' ? 'cm' : 'in'})`}
                     stroke="#10B981"
                     strokeWidth={2}
                     dot={{ r: 3 }}
@@ -557,20 +637,22 @@ export const FitnessTracker = ({ selectedDate }) => {
                     <div>
                       <span className="text-xs font-bold text-primary block">{formatDisplayDate(m.date)}</span>
                       <span className="text-[11px] text-secondary">
-                        {m.waistCm ? `Waist: ${m.waistCm}cm ` : ''}
-                        {m.chestCm ? `Chest: ${m.chestCm}cm ` : ''}
-                        {m.armCm ? `Arm: ${m.armCm}cm` : ''}
+                        {m.waistCm ? `Waist: ${unitSystem === 'metric' ? `${m.waistCm}cm` : `${cmToIn(m.waistCm)}in`} ` : ''}
+                        {m.chestCm ? `Chest: ${unitSystem === 'metric' ? `${m.chestCm}cm` : `${cmToIn(m.chestCm)}in`} ` : ''}
+                        {m.armCm ? `Arm: ${unitSystem === 'metric' ? `${m.armCm}cm` : `${cmToIn(m.armCm)}in`}` : ''}
                       </span>
                     </div>
                     <div className="flex items-center gap-2">
                       {m.weightKg && (
-                        <span className="text-sm font-extrabold text-accent">{m.weightKg} kg</span>
+                        <span className="text-sm font-extrabold text-accent">
+                          {unitSystem === 'metric' ? `${m.weightKg} kg` : `${kgToLbs(m.weightKg)} lbs`}
+                        </span>
                       )}
-                      <div className="flex items-center gap-0.5">
+                      <div className="flex items-center gap-1.5">
                         <button
                           type="button"
                           onClick={() => handleEditMetric(m)}
-                          className="p-1 rounded-lg text-secondary hover:text-accent hover:bg-accent/10 transition-colors cursor-pointer"
+                          className="p-1.5 rounded-lg bg-surface/90 dark:bg-surface/90 backdrop-blur-xs border border-theme/60 text-secondary hover:text-accent hover:border-accent/40 hover:bg-accent/10 shadow-xs transition-all cursor-pointer"
                           title="Edit Measurement"
                         >
                           <Edit2 className="w-3.5 h-3.5" />
@@ -578,7 +660,7 @@ export const FitnessTracker = ({ selectedDate }) => {
                         <button
                           type="button"
                           onClick={() => setDeleteMetricId(m._id)}
-                          className="p-1 rounded-lg text-secondary hover:text-rose-600 hover:bg-rose-500/10 transition-colors cursor-pointer"
+                          className="p-1.5 rounded-lg bg-surface/90 dark:bg-surface/90 backdrop-blur-xs border border-theme/60 text-secondary hover:text-rose-600 hover:border-rose-500/40 hover:bg-rose-500/10 shadow-xs transition-all cursor-pointer"
                           title="Delete Measurement"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -828,7 +910,38 @@ export const FitnessTracker = ({ selectedDate }) => {
         title={editingMetricId ? 'Edit Body Measurements' : 'Log Weight & Measurements'}
         subtitle={editingMetricId ? 'Update logged physical metrics' : 'Track physical metrics and calculate accurate calorie burns'}
       >
-        <form onSubmit={handleMetricSubmit} className="space-y-4">
+        <form onSubmit={handleMetricSubmit} className="space-y-4 pb-1">
+          {/* Unit System Toggle */}
+          <div>
+            <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5">
+              Unit Preference
+            </label>
+            <div className="grid grid-cols-2 gap-2 p-1 bg-subtle rounded-xl border border-theme">
+              <button
+                type="button"
+                onClick={() => handleToggleModalUnit('metric')}
+                className={`py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                  unitSystem === 'metric'
+                    ? 'bg-surface text-primary shadow-xs'
+                    : 'text-secondary hover:text-primary'
+                }`}
+              >
+                <span>⚖️</span> Metric (kg, cm)
+              </button>
+              <button
+                type="button"
+                onClick={() => handleToggleModalUnit('imperial')}
+                className={`py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                  unitSystem === 'imperial'
+                    ? 'bg-surface text-primary shadow-xs'
+                    : 'text-secondary hover:text-primary'
+                }`}
+              >
+                <span>📏</span> Imperial (lbs, in)
+              </button>
+            </div>
+          </div>
+
           <DateInput
             label="Measurement Date"
             value={mDate}
@@ -839,29 +952,29 @@ export const FitnessTracker = ({ selectedDate }) => {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5">
-                Weight (kg)
+                Weight ({unitSystem === 'metric' ? 'kg' : 'lbs'})
               </label>
               <input
                 type="number"
                 step="0.1"
-                placeholder="e.g. 74.5"
+                placeholder={unitSystem === 'metric' ? 'e.g. 74.5' : 'e.g. 164.2'}
                 value={mWeight}
                 onChange={(e) => setMWeight(e.target.value)}
-                className="input-base"
+                className="input-base text-sm"
               />
             </div>
 
             <div>
               <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5">
-                Waist Circumference (cm)
+                Waist Circumference ({unitSystem === 'metric' ? 'cm' : 'inches'})
               </label>
               <input
                 type="number"
                 step="0.1"
-                placeholder="e.g. 82"
+                placeholder={unitSystem === 'metric' ? 'e.g. 82' : 'e.g. 32.3'}
                 value={mWaist}
                 onChange={(e) => setMWaist(e.target.value)}
-                className="input-base"
+                className="input-base text-sm"
               />
             </div>
           </div>
@@ -869,29 +982,29 @@ export const FitnessTracker = ({ selectedDate }) => {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5">
-                Chest (cm, optional)
+                Chest ({unitSystem === 'metric' ? 'cm' : 'inches'}, optional)
               </label>
               <input
                 type="number"
                 step="0.1"
-                placeholder="e.g. 102"
+                placeholder={unitSystem === 'metric' ? 'e.g. 102' : 'e.g. 40.2'}
                 value={mChest}
                 onChange={(e) => setMChest(e.target.value)}
-                className="input-base"
+                className="input-base text-sm"
               />
             </div>
 
             <div>
               <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5">
-                Arms (cm, optional)
+                Arms ({unitSystem === 'metric' ? 'cm' : 'inches'}, optional)
               </label>
               <input
                 type="number"
                 step="0.1"
-                placeholder="e.g. 36"
+                placeholder={unitSystem === 'metric' ? 'e.g. 36' : 'e.g. 14.2'}
                 value={mArm}
                 onChange={(e) => setMArm(e.target.value)}
-                className="input-base"
+                className="input-base text-sm"
               />
             </div>
           </div>
@@ -905,11 +1018,11 @@ export const FitnessTracker = ({ selectedDate }) => {
               placeholder="e.g. Fasted morning weigh-in"
               value={mNotes}
               onChange={(e) => setMNotes(e.target.value)}
-              className="input-base"
+              className="input-base text-sm"
             />
           </div>
 
-          <div className="flex justify-end gap-3 pt-3 border-t border-subtle">
+          <div className="flex justify-end gap-3 pt-3 border-t border-subtle mt-2">
             <Button variant="secondary" onClick={() => setIsMetricModalOpen(false)}>
               Cancel
             </Button>
