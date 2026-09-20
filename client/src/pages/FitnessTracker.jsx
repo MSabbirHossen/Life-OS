@@ -1522,6 +1522,313 @@ export const FitnessTracker = ({ selectedDate }) => {
         </form>
       </Modal>
 
+      {/* Body Metric Modal */}
+      <Modal
+        isOpen={isMetricModalOpen}
+        onClose={() => setIsMetricModalOpen(false)}
+        title={editingMetricId ? 'Edit Body Measurements' : 'Log Body Measurements'}
+        subtitle={
+          editingMetricId
+            ? 'Update weight, height, body fat %, and body circumferences'
+            : 'Track weight, height, body fat %, and physical dimensions with live multi-metric progress charts'
+        }
+        maxWidth="max-w-2xl"
+      >
+        <form onSubmit={handleMetricSubmit} className="space-y-4">
+          {/* Unit System Switcher inside Modal */}
+          <div className="flex bg-subtle p-1 rounded-xl border border-theme">
+            <button
+              type="button"
+              onClick={() => handleToggleModalUnit('metric')}
+              className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                unitSystem === 'metric'
+                  ? 'bg-surface text-primary card-shadow ring-1 ring-accent/20'
+                  : 'text-secondary hover:text-primary'
+              }`}
+            >
+              <span>⚖️</span> Metric (kg, cm)
+            </button>
+            <button
+              type="button"
+              onClick={() => handleToggleModalUnit('imperial')}
+              className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                unitSystem === 'imperial'
+                  ? 'bg-surface text-primary card-shadow ring-1 ring-accent/20'
+                  : 'text-secondary hover:text-primary'
+              }`}
+            >
+              <span>📏</span> Imperial (lbs, in)
+            </button>
+          </div>
+
+          <DateInput
+            label="Measurement Date"
+            value={mDate}
+            onChange={setMDate}
+            required
+          />
+
+          {/* Section 1: Core Body Vitals */}
+          <div className="space-y-3 p-3.5 bg-subtle/50 rounded-2xl border border-theme">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-extrabold text-secondary uppercase tracking-wider flex items-center gap-1.5">
+                <Scale className="w-3.5 h-3.5 text-accent" /> Core Body Vitals
+              </span>
+              <span className="text-[10px] text-accent font-bold">Primary & Essential</span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {/* Weight */}
+              <div className="p-2.5 rounded-xl bg-surface border border-theme shadow-xs">
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-[10px] font-bold text-secondary uppercase tracking-wider">
+                    Weight ({unitSystem === 'metric' ? 'kg' : 'lbs'})
+                  </label>
+                  <span className="text-[9px] text-accent font-bold">Primary</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <input
+                    type="number"
+                    step="0.1"
+                    placeholder="e.g. 74.5"
+                    value={mWeight}
+                    onChange={(e) => setMWeight(e.target.value)}
+                    className="w-full bg-subtle/60 border border-theme rounded-lg px-2.5 py-1.5 text-xs font-bold text-primary focus:outline-none focus:border-accent"
+                  />
+                  <div className="flex flex-col gap-0.5 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => setMWeight((prev) => (prev ? (Number(prev) + 0.5).toFixed(1) : '70.5'))}
+                      className="px-1.5 py-0.5 text-[9px] font-bold rounded bg-subtle hover:bg-surface border border-theme text-secondary hover:text-primary cursor-pointer"
+                      title="Add 0.5"
+                    >
+                      +0.5
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setMWeight((prev) => (prev && Number(prev) > 0.5 ? (Number(prev) - 0.5).toFixed(1) : '69.5'))}
+                      className="px-1.5 py-0.5 text-[9px] font-bold rounded bg-subtle hover:bg-surface border border-theme text-secondary hover:text-primary cursor-pointer"
+                      title="Subtract 0.5"
+                    >
+                      -0.5
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Height */}
+              <div className="p-2.5 rounded-xl bg-surface border border-theme shadow-xs">
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-[10px] font-bold text-secondary uppercase tracking-wider">
+                    Height ({unitSystem === 'metric' ? 'cm' : 'in'})
+                  </label>
+                  <span className="text-[9px] text-secondary font-semibold">Optional</span>
+                </div>
+                <input
+                  type="number"
+                  step="0.5"
+                  placeholder={unitSystem === 'metric' ? 'e.g. 178' : 'e.g. 70'}
+                  value={mHeight}
+                  onChange={(e) => setMHeight(e.target.value)}
+                  className="w-full bg-subtle/60 border border-theme rounded-lg px-2.5 py-1.5 text-xs font-bold text-primary focus:outline-none focus:border-accent"
+                />
+              </div>
+
+              {/* Body Fat % */}
+              <div className="p-2.5 rounded-xl bg-surface border border-theme shadow-xs">
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-[10px] font-bold text-secondary uppercase tracking-wider">
+                    Body Fat %
+                  </label>
+                  <span className="text-[9px] text-secondary font-semibold">Optional</span>
+                </div>
+                <input
+                  type="number"
+                  step="0.1"
+                  min="3"
+                  max="60"
+                  placeholder="e.g. 15.5"
+                  value={mBodyFat}
+                  onChange={(e) => setMBodyFat(e.target.value)}
+                  className="w-full bg-subtle/60 border border-theme rounded-lg px-2.5 py-1.5 text-xs font-bold text-primary focus:outline-none focus:border-accent"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Section 2: Upper Body Circumferences */}
+          <div className="space-y-3 p-3.5 bg-subtle/50 rounded-2xl border border-theme">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-extrabold text-secondary uppercase tracking-wider flex items-center gap-1.5">
+                <Activity className="w-3.5 h-3.5 text-indigo-500" /> Upper Body Circumferences
+              </span>
+              <span className="text-[10px] text-secondary font-semibold">
+                Unit: {unitSystem === 'metric' ? 'cm' : 'inches'} (Optional)
+              </span>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+              {/* Chest */}
+              <div className="p-2 rounded-xl bg-surface border border-theme shadow-xs">
+                <label className="block text-[10px] font-bold text-secondary uppercase tracking-wider mb-1">
+                  Chest
+                </label>
+                <input
+                  type="number"
+                  step="0.1"
+                  placeholder={unitSystem === 'metric' ? 'e.g. 98' : 'e.g. 38.5'}
+                  value={mChest}
+                  onChange={(e) => setMChest(e.target.value)}
+                  className="w-full bg-subtle/60 border border-theme rounded-lg px-2 py-1 text-xs font-bold text-primary focus:outline-none focus:border-accent"
+                />
+              </div>
+
+              {/* Waist */}
+              <div className="p-2 rounded-xl bg-surface border border-theme shadow-xs">
+                <label className="block text-[10px] font-bold text-secondary uppercase tracking-wider mb-1">
+                  Waist
+                </label>
+                <input
+                  type="number"
+                  step="0.1"
+                  placeholder={unitSystem === 'metric' ? 'e.g. 82' : 'e.g. 32.3'}
+                  value={mWaist}
+                  onChange={(e) => setMWaist(e.target.value)}
+                  className="w-full bg-subtle/60 border border-theme rounded-lg px-2 py-1 text-xs font-bold text-primary focus:outline-none focus:border-accent"
+                />
+              </div>
+
+              {/* Arms / Biceps */}
+              <div className="p-2 rounded-xl bg-surface border border-theme shadow-xs">
+                <label className="block text-[10px] font-bold text-secondary uppercase tracking-wider mb-1">
+                  Arms / Biceps
+                </label>
+                <input
+                  type="number"
+                  step="0.1"
+                  placeholder={unitSystem === 'metric' ? 'e.g. 36' : 'e.g. 14.2'}
+                  value={mArm}
+                  onChange={(e) => setMArm(e.target.value)}
+                  className="w-full bg-subtle/60 border border-theme rounded-lg px-2 py-1 text-xs font-bold text-primary focus:outline-none focus:border-accent"
+                />
+              </div>
+
+              {/* Shoulders */}
+              <div className="p-2 rounded-xl bg-surface border border-theme shadow-xs">
+                <label className="block text-[10px] font-bold text-secondary uppercase tracking-wider mb-1">
+                  Shoulders
+                </label>
+                <input
+                  type="number"
+                  step="0.1"
+                  placeholder={unitSystem === 'metric' ? 'e.g. 115' : 'e.g. 45.2'}
+                  value={mShoulders}
+                  onChange={(e) => setMShoulders(e.target.value)}
+                  className="w-full bg-subtle/60 border border-theme rounded-lg px-2 py-1 text-xs font-bold text-primary focus:outline-none focus:border-accent"
+                />
+              </div>
+
+              {/* Neck */}
+              <div className="p-2 rounded-xl bg-surface border border-theme shadow-xs sm:col-span-2">
+                <label className="block text-[10px] font-bold text-secondary uppercase tracking-wider mb-1">
+                  Neck
+                </label>
+                <input
+                  type="number"
+                  step="0.1"
+                  placeholder={unitSystem === 'metric' ? 'e.g. 38' : 'e.g. 15.0'}
+                  value={mNeck}
+                  onChange={(e) => setMNeck(e.target.value)}
+                  className="w-full bg-subtle/60 border border-theme rounded-lg px-2 py-1 text-xs font-bold text-primary focus:outline-none focus:border-accent"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Section 3: Lower Body Circumferences */}
+          <div className="space-y-3 p-3.5 bg-subtle/50 rounded-2xl border border-theme">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-extrabold text-secondary uppercase tracking-wider flex items-center gap-1.5">
+                <Zap className="w-3.5 h-3.5 text-teal-500" /> Lower Body Circumferences
+              </span>
+              <span className="text-[10px] text-secondary font-semibold">
+                Unit: {unitSystem === 'metric' ? 'cm' : 'inches'} (Optional)
+              </span>
+            </div>
+
+            <div className="grid grid-cols-3 gap-2.5">
+              {/* Hips */}
+              <div className="p-2 rounded-xl bg-surface border border-theme shadow-xs">
+                <label className="block text-[10px] font-bold text-secondary uppercase tracking-wider mb-1">
+                  Hips
+                </label>
+                <input
+                  type="number"
+                  step="0.1"
+                  placeholder={unitSystem === 'metric' ? 'e.g. 96' : 'e.g. 37.8'}
+                  value={mHips}
+                  onChange={(e) => setMHips(e.target.value)}
+                  className="w-full bg-subtle/60 border border-theme rounded-lg px-2 py-1 text-xs font-bold text-primary focus:outline-none focus:border-accent"
+                />
+              </div>
+
+              {/* Thighs */}
+              <div className="p-2 rounded-xl bg-surface border border-theme shadow-xs">
+                <label className="block text-[10px] font-bold text-secondary uppercase tracking-wider mb-1">
+                  Thighs
+                </label>
+                <input
+                  type="number"
+                  step="0.1"
+                  placeholder={unitSystem === 'metric' ? 'e.g. 56' : 'e.g. 22.0'}
+                  value={mThighs}
+                  onChange={(e) => setMThighs(e.target.value)}
+                  className="w-full bg-subtle/60 border border-theme rounded-lg px-2 py-1 text-xs font-bold text-primary focus:outline-none focus:border-accent"
+                />
+              </div>
+
+              {/* Calves */}
+              <div className="p-2 rounded-xl bg-surface border border-theme shadow-xs">
+                <label className="block text-[10px] font-bold text-secondary uppercase tracking-wider mb-1">
+                  Calves
+                </label>
+                <input
+                  type="number"
+                  step="0.1"
+                  placeholder={unitSystem === 'metric' ? 'e.g. 37' : 'e.g. 14.5'}
+                  value={mCalves}
+                  onChange={(e) => setMCalves(e.target.value)}
+                  className="w-full bg-subtle/60 border border-theme rounded-lg px-2 py-1 text-xs font-bold text-primary focus:outline-none focus:border-accent"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Section 4: Notes */}
+          <div>
+            <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5">
+              Notes (Optional)
+            </label>
+            <input
+              type="text"
+              placeholder="e.g. Morning weigh-in after fasting, post-workout pump"
+              value={mNotes}
+              onChange={(e) => setMNotes(e.target.value)}
+              className="input-base text-xs"
+            />
+          </div>
+
+          <div className="flex justify-end gap-3 pt-3 border-t border-subtle">
+            <Button variant="secondary" onClick={() => setIsMetricModalOpen(false)}>
+              Cancel
+            </Button>
+            <Button type="submit" variant="primary" loading={savingMetric}>
+              {editingMetricId ? 'Update Measurements' : 'Save Measurements'}
+            </Button>
+          </div>
+        </form>
+      </Modal>
+
       {/* Delete Confirmation Modal for Workout */}
       <Modal
         isOpen={!!deleteWorkoutId}
