@@ -66,7 +66,7 @@ export const Header = ({ onOpenMobileMenu, selectedDate, setSelectedDate }) => {
   const isToday = currentDate === getFormattedDate();
 
   return (
-    <header className="h-16 glass-header px-3 sm:px-4 lg:px-8 flex items-center justify-between sticky top-0 z-30 card-shadow gap-2">
+    <header className="h-16 solid-header bg-surface px-3 sm:px-4 lg:px-8 flex items-center justify-between sticky top-0 z-30 card-shadow gap-2">
       {/* Left: Mobile Menu & Date Control Pill */}
       <div className="flex items-center gap-1.5 sm:gap-3 min-w-0">
         <button
@@ -87,15 +87,15 @@ export const Header = ({ onOpenMobileMenu, selectedDate, setSelectedDate }) => {
             {isRTL ? <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> : <ChevronLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" />}
           </button>
 
-          <div className="flex items-center gap-1 sm:gap-2 px-1 sm:px-2 py-0.5 min-w-0">
+          <div className="flex items-center gap-1 sm:gap-2 px-1 sm:px-1.5 py-0.5 min-w-0">
             <Calendar className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-accent shrink-0 hidden xs:inline" />
             <input
               type="date"
               value={currentDate}
               onChange={(e) => setSelectedDate(e.target.value)}
-              className="bg-transparent text-primary focus:outline-none cursor-pointer text-[11px] sm:text-xs font-semibold max-w-[95px] xs:max-w-[110px] sm:max-w-none"
+              className="bg-transparent text-primary focus:outline-none cursor-pointer text-xs font-bold w-[108px] sm:w-[125px] p-0"
             />
-            <span className="hidden sm:inline text-secondary font-medium text-xs border-l rtl:border-l-0 rtl:border-r border-theme pl-2 rtl:pl-0 rtl:pr-2 whitespace-nowrap">
+            <span className="hidden md:inline text-secondary font-medium text-xs border-l rtl:border-l-0 rtl:border-r border-theme pl-2 rtl:pl-0 rtl:pr-2 whitespace-nowrap">
               {formatDisplayDate(currentDate)}
             </span>
           </div>

@@ -10,6 +10,7 @@ import {
   Utensils,
   Wallet,
   Compass,
+  Moon,
   CheckSquare,
   Target,
   FileText,
@@ -46,6 +47,7 @@ export const Sidebar = ({ isCollapsed, setIsCollapsed, isMobileOpen, setIsMobile
       items: [
         { name: 'Finance', path: '/finance', icon: Wallet },
         { name: t('nav.adhkar', 'Islamic & Deen'), path: '/islamic', icon: Compass },
+        { name: t('nav.islamicFasting', 'Fasting (Sawm)'), path: '/islamic-fasting', icon: Moon },
         { name: t('nav.qada', 'Qada Matrix'), path: '/qada-matrix', icon: Sparkles },
         { name: t('nav.habits', 'Habits'), path: '/habits', icon: CheckSquare },
         { name: 'Goals', path: '/goals', icon: Target },
@@ -66,7 +68,7 @@ export const Sidebar = ({ isCollapsed, setIsCollapsed, isMobileOpen, setIsMobile
       {/* Mobile Backdrop */}
       {isMobileOpen && (
         <div
-          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-xs lg:hidden transition-opacity"
+          className="fixed inset-0 z-40 bg-black/60 lg:hidden transition-opacity"
           onClick={() => setIsMobileOpen(false)}
         />
       )}

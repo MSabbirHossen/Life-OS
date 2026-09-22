@@ -32,28 +32,28 @@ export const Card = ({
   return (
     <div
       onClick={handleClick}
-      className={`relative group bg-surface/95 dark:bg-surface/90 backdrop-blur-sm border border-theme rounded-2xl card-shadow flex flex-col transition-all duration-300 ${
-        hover || onClick ? 'hover:shadow-lg hover:shadow-black/5 dark:hover:shadow-black/20 hover:border-theme-strong hover:-translate-y-0.5' : ''
+      className={`relative group bg-surface border border-theme rounded-2xl card-shadow flex flex-col transition-all duration-200 ${
+        hover || onClick ? 'hover:shadow-md hover:border-theme-strong hover:-translate-y-0.5' : ''
       } ${onClick ? 'cursor-pointer' : ''} ${noPadding ? '' : 'p-4 sm:p-5 md:p-6'} ${className}`}
     >
-      <div className="flex-1 min-w-0">
+      <div className="flex-1 min-w-0 flex flex-col">
         {(title || action || Icon || badge) && (
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 mb-4 pb-3 border-b border-subtle/80">
-            <div className="flex items-center gap-3 min-w-0">
+          <div className="flex items-center justify-between gap-2.5 sm:gap-3 mb-4 pb-3 border-b border-subtle/80 shrink-0">
+            <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
               {Icon && (
                 <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-accent/10 dark:bg-accent/15 border border-accent/20 flex items-center justify-center text-accent shrink-0 shadow-xs transition-transform duration-200 group-hover:scale-105">
                   <Icon className="w-4 h-4" />
                 </div>
               )}
-              <div className="min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  {title && <h3 className="text-sm sm:text-base font-bold text-primary truncate tracking-tight">{title}</h3>}
-                  {badge && <span>{badge}</span>}
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2 min-w-0">
+                  {title && <h3 className="text-sm font-bold text-primary truncate tracking-tight">{title}</h3>}
+                  {badge && <span className="shrink-0">{badge}</span>}
                 </div>
                 {subtitle && <p className="text-xs text-secondary mt-0.5 truncate">{subtitle}</p>}
               </div>
             </div>
-            {action && <div className="shrink-0 flex items-center gap-2 self-start sm:self-auto flex-wrap">{action}</div>}
+            {action && <div className="shrink-0 flex items-center gap-2">{action}</div>}
           </div>
         )}
         {children}

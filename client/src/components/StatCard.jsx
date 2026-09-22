@@ -31,21 +31,15 @@ export const StatCard = ({
   };
 
   const selectedColor = colorMap[color] || colorMap.indigo;
-  const selectedGlow = glowMap[color] || glowMap.indigo;
 
   return (
-    <Card hover onClick={onClick} className={`relative overflow-hidden ${className}`}>
-      {/* Subtle Ambient Radial Glow */}
-      <div
-        className={`absolute -right-8 -bottom-8 w-28 h-28 rounded-full bg-gradient-to-br ${selectedGlow} blur-xl pointer-events-none opacity-60 dark:opacity-40`}
-      />
-
-      <div className="relative z-10 flex items-start justify-between gap-4">
+    <Card hover onClick={onClick} className={`bg-surface border border-theme ${className}`}>
+      <div className="flex items-start justify-between gap-4">
         <div className="min-w-0 flex-1">
           <span className="text-xs font-bold text-secondary uppercase tracking-wider block truncate">
             {title}
           </span>
-          <div className="text-2xl sm:text-3xl font-black text-primary tracking-tight mt-1 truncate">
+          <div className="text-2xl sm:text-3xl font-extrabold text-primary tracking-tight mt-1 truncate">
             {value}
           </div>
           <div className="flex items-center gap-2 mt-1.5 flex-wrap">
