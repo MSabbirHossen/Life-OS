@@ -26,7 +26,7 @@ export const StreakWidget = ({ compact = false, className = '' }) => {
   const fetchStreak = async () => {
     try {
       const today = getFormattedDate();
-      const res = await api.get(`/dashboard?date=${today}`);
+      const res = await api.get(`/dashboard/summary?date=${today}`);
       const s = res.data?.summary?.streak;
       if (s) {
         setStreakData({
