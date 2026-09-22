@@ -66,6 +66,7 @@ export const LanguageProvider = ({ children }) => {
     () => ({
       language,
       setLanguage,
+      changeLanguage: setLanguage,
       direction,
       isRTL: direction === 'rtl',
       currentLangObj,
