@@ -27,8 +27,19 @@ import {
 } from 'lucide-react';
 import api from '../utils/api';
 import { DateInput } from '../components/DateInput';
+import { getFormattedDate, formatDisplayDate } from '../utils/dateHelpers';
+import { notifyStreakUpdate } from '../utils/streakEvents';
 
 const ALL_PRAYERS = ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha', 'Witr'];
+const DAILY_5_PRAYERS = ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
+
+const SALAH_STATUSES = [
+  { label: 'On Time', value: 'onTime', variant: 'success' },
+  { label: "Jama'ah", value: 'jamaah', variant: 'primary' },
+  { label: 'Late', value: 'late', variant: 'warning' },
+  { label: 'Missed', value: 'missed', variant: 'danger' },
+  { label: 'Qada', value: 'qada', variant: 'purple' },
+];
 
 const PRAYER_META = {
   Fajr: { icon: Sunrise, subtitle: 'Dawn prayer' },
@@ -39,8 +50,10 @@ const PRAYER_META = {
   Witr: { icon: Sparkles, subtitle: 'Wajib prayer' },
 };
 
-export const QadaMatrix = () => {
+export const QadaMatrix = ({ selectedDate }) => {
   const { t, isRTL } = useLanguage();
+  const activeDate = selectedDate || getFormattedDate();
+  const [salahLogs, setSalahLogs] = useState([]);
   const [qadaData, setQadaData] = useState([]);
   const [vows, setVows] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -73,22 +86,49 @@ export const QadaMatrix = () => {
 
   const fetchQadaData = useCallback(async () => {
     try {
-      const [qadaRes, vowsRes] = await Promise.all([
+      const [salahRes, qadaRes, vowsRes] = await Promise.all([
+        api.get(`/islamic/salah?date=${activeDate}`),
         api.get('/islamic/qada'),
         api.get('/islamic/vows'),
       ]);
+      setSalahLogs(salahRes.data || []);
       setQadaData(qadaRes.data || []);
       setVows(vowsRes.data || []);
     } catch (err) {
-      console.error('Failed to fetch Qada data', err);
+      console.error('Failed to fetch Qada and Salah data', err);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [activeDate]);
 
   useEffect(() => {
     fetchQadaData();
   }, [fetchQadaData]);
+
+  const handleUpdateSalah = async (prayerName, status) => {
+    setSalahLogs((prev) => {
+      const exists = prev.some((l) => (l.prayerName || l.salah) === prayerName);
+      if (exists) {
+        return prev.map((l) =>
+          (l.prayerName || l.salah) === prayerName ? { ...l, status } : l
+        );
+      }
+      return [...prev, { prayerName, salah: prayerName, status, date: activeDate }];
+    });
+
+    try {
+      await api.post('/islamic/salah', {
+        date: activeDate,
+        prayerName,
+        salah: prayerName,
+        status,
+      });
+      notifyStreakUpdate();
+    } catch (err) {
+      console.error('Failed to update salah log', err);
+      fetchQadaData();
+    }
+  };
 
   const handleStep = async (prayerName, increment) => {
     // Optimistic UI update
@@ -383,6 +423,78 @@ export const QadaMatrix = () => {
         />
       </div>
 
+      {/* Today's 5 Daily Prayers (Salah) Interactive Cockpit */}
+      <Card
+        hover
+        title={t('islamic.salahPrayers', "Today's 5 Daily Prayers (Salah)")}
+        subtitle={`${t('islamic.salahPrayersSubtitle', 'Click any status button to instantly toggle and record prayer for')} ${formatDisplayDate(activeDate)}`}
+        icon={Compass}
+        badge={
+          <Badge
+            variant={
+              salahLogs.filter((l) => l.status && l.status !== 'missed' && l.status !== 'unlogged').length === 5
+                ? 'success'
+                : 'primary'
+            }
+            size="xs"
+          >
+            {salahLogs.filter((l) => l.status && l.status !== 'missed' && l.status !== 'unlogged').length} / 5 Done Today
+          </Badge>
+        }
+      >
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-2.5 mt-2">
+          {DAILY_5_PRAYERS.map((prayerName, idx) => {
+            const currentLog = salahLogs.find((l) => (l.prayerName || l.salah) === prayerName);
+            const currentStatus = currentLog?.status || 'unlogged';
+            const isLastOnMobile = idx === 4;
+
+            return (
+              <div
+                key={prayerName}
+                className={`p-3 sm:p-3.5 rounded-2xl bg-subtle/80 border border-theme flex flex-col justify-between space-y-2.5 transition-all hover:border-theme-strong ${
+                  isLastOnMobile ? 'col-span-2 sm:col-span-1' : ''
+                }`}
+              >
+                <div className="flex items-center justify-between sm:flex-col sm:items-start gap-1">
+                  <span className="font-extrabold text-sm text-primary tracking-tight">{prayerName}</span>
+                  {currentStatus !== 'unlogged' ? (
+                    <Badge
+                      variant={
+                        SALAH_STATUSES.find((s) => s.value === currentStatus)?.variant || 'neutral'
+                      }
+                      size="xs"
+                    >
+                      {SALAH_STATUSES.find((s) => s.value === currentStatus)?.label}
+                    </Badge>
+                  ) : (
+                    <span className="text-[10px] text-muted font-semibold">Pending</span>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-1 gap-1 pt-1">
+                  {SALAH_STATUSES.map((st) => {
+                    const isSelected = currentStatus === st.value;
+                    return (
+                      <button
+                        key={st.value}
+                        type="button"
+                        onClick={() => handleUpdateSalah(prayerName, st.value)}
+                        className={`py-1.5 px-1.5 text-[10px] font-bold rounded-lg transition-all duration-150 cursor-pointer border text-center ${isSelected
+                          ? 'bg-accent text-white border-accent shadow-xs scale-102 font-extrabold'
+                          : 'bg-surface text-secondary border-theme hover:text-primary hover:bg-subtle'
+                          }`}
+                      >
+                        {st.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </Card>
+
       {/* Interactive Qada Salah Matrix Section */}
       <div className="space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -453,7 +565,7 @@ export const QadaMatrix = () => {
                     <button
                       type="button"
                       onClick={() => handleOpenEdit(record)}
-                      className="p-1.5 rounded-lg bg-surface/90 dark:bg-surface/90 backdrop-blur-xs border border-theme/60 text-secondary hover:text-accent hover:border-accent/40 hover:bg-accent/10 shadow-xs transition-all cursor-pointer"
+                      className="p-1.5 rounded-lg bg-surface border border-theme text-secondary hover:text-accent hover:border-accent/40 hover:bg-accent/10 shadow-xs transition-all cursor-pointer"
                       title={`Edit ${prayer} baseline or dates`}
                     >
                       <Edit2 className="w-3.5 h-3.5" />
@@ -789,180 +901,213 @@ export const QadaMatrix = () => {
           <Modal
             isOpen={true}
             onClose={() => setIsCalculatorOpen(false)}
-            title={t('qada.lifetimeQadaCalc')}
-            subtitle={t('qada.lifetimeQadaSubtitle')}
-            maxWidth="lg"
+            title={t('qada.lifetimeQadaCalc', 'Lifetime Qada Calculator (Qada-e-Umri)')}
+            subtitle={t('qada.lifetimeQadaSubtitle', 'Calculate missed prayers based on obligation dates and apply directly to your ledger')}
+            maxWidth="5xl"
           >
             <form onSubmit={handleApplyCalculator} className="space-y-4">
-              {/* Islamic Guidance Info */}
-              <div className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-xs text-secondary flex items-start gap-2.5">
-                <Compass className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
-                <div>
-                  <p className="font-bold text-primary">{t('qada.fiqhMethodTitle')}</p>
-                  <p className="mt-1 text-[11px] leading-relaxed">
-                    {t('qada.fiqhMethodDesc')}
-                  </p>
+              {/* Islamic Guidance Info Banner */}
+              <div className="p-2.5 sm:p-3 rounded-xl bg-emerald-500/[0.08] border border-emerald-500/20 text-xs text-secondary flex items-center gap-2.5">
+                <div className="w-7 h-7 rounded-lg bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                  <Compass className="w-4 h-4" />
                 </div>
+                <p className="text-[11px] leading-relaxed text-secondary">
+                  <strong className="text-primary font-bold">{t('qada.fiqhMethodTitle', 'Islamic Fiqh Rule')}:</strong>{' '}
+                  {t('qada.fiqhMethodDesc', 'Set Start Date when prayers became obligatory upon puberty (Bulugh), and End Date when regular daily prayers resumed.')}
+                </p>
               </div>
 
-              {/* Date Inputs Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                <DateInput
-                  id="calc-start-date"
-                  label={t('qada.startDate')}
-                  value={calcStartDate}
-                  onChange={setCalcStartDate}
-                  required
-                />
-                <DateInput
-                  id="calc-end-date"
-                  label={t('qada.endDate')}
-                  value={calcEndDate}
-                  onChange={setCalcEndDate}
-                  required
-                />
-              </div>
+              {/* Main 2-Column Responsive Layout */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
+                {/* Left Column: Calculation Parameters */}
+                <div className="space-y-3.5 p-3.5 rounded-2xl bg-subtle border border-theme">
+                  <span className="text-[11px] font-extrabold text-secondary uppercase tracking-wider block">
+                    1. Obligation Timeline
+                  </span>
 
-              {/* Quick Duration Shortcuts */}
-              <div className="flex items-center gap-1.5 flex-wrap">
-                <span className="text-[10px] text-secondary font-bold uppercase tracking-wider">{t('qada.quickDuration')}</span>
-                {[
-                  { label: '6 Months', months: 6 },
-                  { label: '1 Year', months: 12 },
-                  { label: '2 Years', months: 24 },
-                  { label: '3 Years', months: 36 },
-                  { label: '5 Years', months: 60 },
-                  { label: '10 Years', months: 120 },
-                ].map((preset) => (
-                  <button
-                    key={preset.label}
-                    type="button"
-                    onClick={() => setCalcQuickRange(preset.months)}
-                    className="px-2.5 py-1 text-[11px] font-semibold rounded-lg bg-subtle border border-theme hover:border-emerald-500 hover:text-emerald-500 transition-colors cursor-pointer"
-                  >
-                    {preset.label}
-                  </button>
-                ))}
-              </div>
-
-              {/* Excused Days Deduction */}
-              <div>
-                <div className="flex items-center justify-between mb-1">
-                  <label className="text-xs font-bold text-secondary">
-                    {t('qada.excusedDays')}
-                  </label>
-                  <span className="text-[10px] text-secondary">{t('qada.excusedDaysDesc')}</span>
-                </div>
-                <input
-                  type="number"
-                  min="0"
-                  max={rawDays || undefined}
-                  value={calcExcusedDays}
-                  onChange={(e) => setCalcExcusedDays(e.target.value)}
-                  className="input-base"
-                  placeholder="e.g. 0 (optional)"
-                />
-              </div>
-
-              {/* Live Calculation Summary Banner */}
-              {rawDays > 0 ? (
-                <div className="p-4 rounded-2xl bg-subtle border border-theme space-y-3">
-                  <div className="flex items-center justify-between flex-wrap gap-2">
-                    <span className="text-xs font-bold text-secondary uppercase tracking-wider">
-                      {t('qada.calcSummary')}
-                    </span>
-                    <Badge variant="success" size="xs">
-                      {formatDuration(netDays)}
-                    </Badge>
+                  {/* Date Inputs */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    <DateInput
+                      id="calc-start-date"
+                      label={t('qada.startDate', 'Start Date')}
+                      value={calcStartDate}
+                      onChange={setCalcStartDate}
+                      required
+                    />
+                    <DateInput
+                      id="calc-end-date"
+                      label={t('qada.endDate', 'End Date')}
+                      value={calcEndDate}
+                      onChange={setCalcEndDate}
+                      required
+                    />
                   </div>
 
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                    <div className="p-3 rounded-xl bg-surface border border-theme">
-                      <span className="text-[11px] text-secondary block font-medium">{t('qada.calendarDuration')}</span>
-                      <span className="text-base font-extrabold text-primary">{rawDays} {t('qada.days')}</span>
-                    </div>
-                    <div className="p-3 rounded-xl bg-surface border border-theme">
-                      <span className="text-[11px] text-secondary block font-medium">{t('qada.netDaysOwed')}</span>
-                      <span className="text-base font-extrabold text-emerald-600 dark:text-emerald-400">{netDays} {t('qada.days')}</span>
-                    </div>
-                    <div className="p-3 rounded-xl bg-surface border border-theme col-span-2 sm:col-span-1">
-                      <span className="text-[11px] text-secondary block font-medium">{t('qada.owedPerPrayer')}</span>
-                      <span className="text-base font-extrabold text-accent">{netDays} {t('qada.prayers')}</span>
+                  {/* Quick Duration Shortcuts */}
+                  <div>
+                    <span className="text-[10px] text-secondary font-bold uppercase tracking-wider block mb-1.5">
+                      {t('qada.quickDuration', 'Quick Duration Preset')}
+                    </span>
+                    <div className="grid grid-cols-3 sm:grid-cols-6 gap-1">
+                      {[
+                        { label: '6M', months: 6 },
+                        { label: '1Y', months: 12 },
+                        { label: '2Y', months: 24 },
+                        { label: '3Y', months: 36 },
+                        { label: '5Y', months: 60 },
+                        { label: '10Y', months: 120 },
+                      ].map((preset) => (
+                        <button
+                          key={preset.label}
+                          type="button"
+                          onClick={() => setCalcQuickRange(preset.months)}
+                          className="py-1 text-[11px] font-bold rounded-lg bg-surface border border-theme hover:border-emerald-500/50 hover:text-emerald-500 transition-all active:scale-95 text-center cursor-pointer shadow-2xs"
+                        >
+                          {preset.label}
+                        </button>
+                      ))}
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between pt-2 border-t border-theme text-xs">
-                    <span className="text-secondary font-medium">
-                      {t('qada.totalAcrossSelected')} ({calcSelectedPrayers.length}):
-                    </span>
-                    <span className="text-base font-black text-rose-600 dark:text-rose-400">
-                      {totalAllPrayers.toLocaleString()} {t('qada.prayers')}
-                    </span>
-                  </div>
-                </div>
-              ) : (
-                <div className="py-6 text-center text-xs text-secondary italic bg-subtle/50 rounded-xl border border-dashed border-theme">
-                  {t('qada.selectDatesPrompt')}
-                </div>
-              )}
-
-              {/* Prayers to Apply */}
-              <div className="space-y-2 pt-1">
-                <div className="flex items-center justify-between">
-                  <label className="text-xs font-bold text-secondary">
-                    {t('qada.applyToSelected')}
-                  </label>
-                  <button
-                    type="button"
-                    onClick={toggleAllPrayers}
-                    className="text-[11px] font-bold text-accent hover:underline cursor-pointer"
-                  >
-                    {calcSelectedPrayers.length === ALL_PRAYERS.length ? t('qada.deselectAll') : t('qada.selectAll')}
-                  </button>
-                </div>
-
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                  {ALL_PRAYERS.map((p) => {
-                    const isChecked = calcSelectedPrayers.includes(p);
-                    return (
-                      <label
-                        key={p}
-                        className={`flex items-center gap-2 p-2.5 rounded-xl border cursor-pointer transition-all ${isChecked
-                          ? 'bg-emerald-500/10 border-emerald-500/30 text-primary font-bold'
-                          : 'bg-subtle/40 border-theme text-secondary'
-                          }`}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={isChecked}
-                          onChange={() => togglePrayer(p)}
-                          className="rounded border-theme text-emerald-500 focus:ring-emerald-500 cursor-pointer"
-                        />
-                        <span className="text-xs">{p}</span>
-                        {p === 'Witr' && (
-                          <Badge variant="purple" size="xs" className="ml-auto text-[9px]">{t('qada.wajib')}</Badge>
-                        )}
+                  {/* Excused Days Deduction */}
+                  <div>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="text-xs font-bold text-secondary uppercase tracking-wider">
+                        {t('qada.excusedDays', 'Excused Days')}
                       </label>
-                    );
-                  })}
+                      <span className="text-[10px] text-muted">{t('qada.excusedDaysDesc', 'Haiz, illness, travel')}</span>
+                    </div>
+                    <div className="relative">
+                      <input
+                        type="number"
+                        min="0"
+                        max={rawDays || undefined}
+                        value={calcExcusedDays}
+                        onChange={(e) => setCalcExcusedDays(e.target.value)}
+                        className="input-base text-sm font-semibold pr-14"
+                        placeholder="0"
+                      />
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-secondary pointer-events-none">
+                        days
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Right Column: Live Results & Prayers Selection */}
+                <div className="space-y-3.5 p-3.5 rounded-2xl bg-subtle border border-theme flex flex-col justify-between">
+                  <div className="space-y-3">
+                    <span className="text-[11px] font-extrabold text-secondary uppercase tracking-wider block">
+                      2. Calculation Summary & Target
+                    </span>
+
+                    {/* Live Calculation Preview Banner */}
+                    {rawDays > 0 ? (
+                      <div className="p-3 rounded-xl bg-surface border border-theme space-y-2 card-shadow">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[11px] font-bold text-secondary uppercase tracking-wider">
+                            {t('qada.calcSummary', 'Calculated Output')}
+                          </span>
+                          <Badge variant="success" size="xs">
+                            {formatDuration(netDays)}
+                          </Badge>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-2">
+                          <div className="p-2 rounded-lg bg-subtle border border-theme/60">
+                            <span className="text-[10px] text-secondary font-medium block">Total Timeline</span>
+                            <span className="text-sm font-extrabold text-primary">{rawDays} days</span>
+                          </div>
+                          <div className="p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
+                            <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium block">Net Owed per Prayer</span>
+                            <span className="text-sm font-extrabold text-emerald-600 dark:text-emerald-400">{netDays} prayers</span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center justify-between pt-1.5 border-t border-subtle text-xs">
+                          <span className="text-secondary font-medium">
+                            Total across {calcSelectedPrayers.length} selected:
+                          </span>
+                          <span className="text-sm font-black text-rose-600 dark:text-rose-400">
+                            {totalAllPrayers.toLocaleString()} prayers
+                          </span>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="py-4 px-3 text-center text-xs text-secondary italic bg-surface/80 rounded-xl border border-dashed border-theme">
+                        {t('qada.selectDatesPrompt', 'Select valid Start and End dates to calculate totals.')}
+                      </div>
+                    )}
+
+                    {/* Prayers to Apply */}
+                    <div className="space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <label className="text-xs font-bold text-secondary uppercase tracking-wider">
+                          {t('qada.applyToSelected', 'Apply to Selected Prayers:')}
+                        </label>
+                        <button
+                          type="button"
+                          onClick={toggleAllPrayers}
+                          className="text-[11px] font-bold text-accent hover:underline cursor-pointer"
+                        >
+                          {calcSelectedPrayers.length === ALL_PRAYERS.length ? t('qada.deselectAll', 'Deselect All') : t('qada.selectAll', 'Select All')}
+                        </button>
+                      </div>
+
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
+                        {ALL_PRAYERS.map((p) => {
+                          const isChecked = calcSelectedPrayers.includes(p);
+                          return (
+                            <label
+                              key={p}
+                              className={`flex items-center gap-1.5 p-2 rounded-xl border cursor-pointer transition-all select-none text-xs ${isChecked
+                                ? 'bg-emerald-500/15 border-emerald-500/40 text-primary font-bold shadow-2xs'
+                                : 'bg-surface border-theme text-secondary hover:text-primary hover:border-[var(--color-border-hover)]'
+                                }`}
+                            >
+                              <input
+                                type="checkbox"
+                                checked={isChecked}
+                                onChange={() => togglePrayer(p)}
+                                className="rounded border-theme text-emerald-500 focus:ring-emerald-500 cursor-pointer w-3.5 h-3.5"
+                              />
+                              <span className="truncate">{p}</span>
+                              {p === 'Witr' && (
+                                <Badge variant="purple" size="xs" className="ml-auto text-[8px] py-0 px-1">
+                                  {t('qada.wajib', 'Wajib')}
+                                </Badge>
+                              )}
+                            </label>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              {/* Actions */}
-              <div className="flex justify-end gap-2 pt-3 border-t border-theme">
-                <Button variant="ghost" size="md" type="button" onClick={() => setIsCalculatorOpen(false)}>
-                  {t('common.cancel')}
-                </Button>
-                <Button
-                  variant="primary"
-                  size="md"
-                  type="submit"
-                  loading={savingCalc}
-                  disabled={netDays <= 0 || calcSelectedPrayers.length === 0}
-                  icon={CheckCircle2}
-                >
-                  {t('qada.applyDaysToSelected')}
-                </Button>
+              {/* Actions Footer */}
+              <div className="flex items-center justify-between pt-3 border-t border-subtle">
+                <span className="text-xs text-secondary font-medium hidden sm:inline">
+                  {netDays > 0 && calcSelectedPrayers.length > 0
+                    ? `Ready to add +${netDays} days to ${calcSelectedPrayers.length} prayer categories`
+                    : 'Configure parameters above'}
+                </span>
+                <div className="flex items-center gap-2.5 ml-auto">
+                  <Button variant="secondary" size="md" type="button" onClick={() => setIsCalculatorOpen(false)}>
+                    {t('common.cancel', 'Cancel')}
+                  </Button>
+                  <Button
+                    variant="gradient"
+                    size="md"
+                    type="submit"
+                    loading={savingCalc}
+                    disabled={netDays <= 0 || calcSelectedPrayers.length === 0}
+                    icon={CheckCircle2}
+                  >
+                    {t('qada.applyDaysToSelected', 'Apply Days to Selected Prayers')}
+                  </Button>
+                </div>
               </div>
             </form>
           </Modal>
@@ -976,39 +1121,43 @@ export const QadaMatrix = () => {
           setIsVowModalOpen(false);
           setEditingVowId(null);
         }}
-        title={editingVowId ? t('qada.editSpiritualVow') : t('qada.recordNewVow')}
-        maxWidth="md"
+        title={editingVowId ? t('qada.editSpiritualVow', 'Edit Spiritual Vow (Nazr / Niyyah)') : t('qada.recordNewVow', 'Record New Spiritual Vow (Nazr / Niyyah)')}
+        subtitle="Set a dedicated spiritual resolution or milestone to anchor your prayer consistency"
+        maxWidth="xl"
       >
-        <form onSubmit={handleSaveVow} className="space-y-4">
+        <form onSubmit={handleSaveVow} className="space-y-4 pt-1">
           <div>
-            <label className="block text-xs font-bold text-secondary mb-1">
-              {t('qada.vowDescriptionReq')}
+            <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5">
+              {t('qada.vowDescriptionReq', 'Vow Description / Resolution')} <span className="text-rose-500">*</span>
             </label>
             <input
               type="text"
               value={vowDescription}
               onChange={(e) => setVowDescription(e.target.value)}
               placeholder="e.g. Pray 2 Rakat Nafl every night, complete 100 Qada Fajr"
-              className="input-base"
+              className="input-base font-semibold"
               required
             />
           </div>
-          <div className="grid grid-cols-2 gap-3">
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             <DateInput
-              label={t('common.target')}
+              label={t('common.target', 'Target Date')}
               value={vowTargetDate}
               onChange={setVowTargetDate}
             />
-            <div>
-              <label className="block text-xs font-bold text-secondary mb-1">
-                {t('qada.relatedSalah')}
-              </label>
+            <div className="space-y-1.5">
+              <div className="h-6 flex items-center justify-between">
+                <label className="block text-xs font-bold text-secondary uppercase tracking-wider">
+                  {t('qada.relatedSalah', 'Related Salah')}
+                </label>
+              </div>
               <select
                 value={vowRelatedSalah}
                 onChange={(e) => setVowRelatedSalah(e.target.value)}
-                className="select-base"
+                className="select-base font-medium"
               >
-                <option value="All">{t('qada.allPrayers')}</option>
+                <option value="All">{t('qada.allPrayers', 'All Prayers')}</option>
                 {ALL_PRAYERS.map((p) => (
                   <option key={p} value={p}>
                     {p}
@@ -1017,20 +1166,22 @@ export const QadaMatrix = () => {
               </select>
             </div>
           </div>
+
           <div>
-            <label className="block text-xs font-bold text-secondary mb-1">
-              {t('qada.vowNotes')}
+            <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5">
+              {t('qada.vowNotes', 'Personal Notes / Intention')}
             </label>
             <textarea
               value={vowNotes}
               onChange={(e) => setVowNotes(e.target.value)}
-              placeholder={t('qada.vowNotesPlaceholder')}
-              className="textarea-base min-h-[60px]"
+              placeholder={t('qada.vowNotesPlaceholder', 'Specific conditions, prayer reminders, or spiritual motivation...')}
+              className="textarea-base min-h-[80px]"
             />
           </div>
-          <div className="flex justify-end gap-2 pt-3 border-t border-theme">
+
+          <div className="flex justify-end gap-2.5 pt-3 border-t border-subtle">
             <Button
-              variant="ghost"
+              variant="secondary"
               size="md"
               type="button"
               onClick={() => {
@@ -1038,10 +1189,10 @@ export const QadaMatrix = () => {
                 setEditingVowId(null);
               }}
             >
-              {t('common.cancel')}
+              {t('common.cancel', 'Cancel')}
             </Button>
             <Button variant="gradient" size="md" type="submit" loading={savingVow}>
-              {editingVowId ? t('islamic.updateVow') : t('islamic.saveVow')}
+              {editingVowId ? t('islamic.updateVow', 'Update Vow') : t('islamic.saveVow', 'Save Vow')}
             </Button>
           </div>
         </form>
