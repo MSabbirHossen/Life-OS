@@ -495,14 +495,14 @@ export const HabitsTracker = ({ selectedDate }) => {
                     <div className="flex items-center gap-1.5">
                       <button
                         onClick={() => handleEditHabit(habit)}
-                        className="p-1.5 rounded-lg bg-surface/90 dark:bg-surface/90 backdrop-blur-xs border border-theme/60 text-secondary hover:text-accent hover:border-accent/40 hover:bg-accent/10 shadow-xs transition-all cursor-pointer"
+                        className="p-1.5 rounded-lg bg-surface border border-theme text-secondary hover:text-accent hover:border-accent/40 hover:bg-accent/10 shadow-xs transition-all cursor-pointer"
                         title="Edit Habit"
                       >
                         <Edit2 className="w-3.5 h-3.5" />
                       </button>
                       <button
                         onClick={() => setDeleteId(habit._id)}
-                        className="p-1.5 rounded-lg bg-surface/90 dark:bg-surface/90 backdrop-blur-xs border border-theme/60 text-secondary hover:text-rose-600 hover:border-rose-500/40 hover:bg-rose-500/10 shadow-xs transition-all cursor-pointer"
+                        className="p-1.5 rounded-lg bg-surface border border-theme text-secondary hover:text-rose-600 hover:border-rose-500/40 hover:bg-rose-500/10 shadow-xs transition-all cursor-pointer"
                         title="Delete Habit"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
@@ -788,7 +788,7 @@ export const HabitsTracker = ({ selectedDate }) => {
           )}
           <div>
             <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5">
-              {t('common.appName')} - {t('habits.title')}
+              {t('habits.habitName', 'Habit Name')}
             </label>
             <input
               type="text"
