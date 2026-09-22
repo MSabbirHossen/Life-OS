@@ -89,7 +89,7 @@ export const MacroDocumentationModal = ({ isOpen, onClose }) => {
     >
       <div className="space-y-4 text-xs pb-1">
         {/* Navigation Tabs */}
-        <div className="grid grid-cols-3 gap-1.5 p-1 bg-subtle/80 backdrop-blur-xs rounded-2xl border border-theme">
+        <div className="grid grid-cols-3 gap-1.5 p-1 bg-subtle rounded-2xl border border-theme">
           <button
             type="button"
             onClick={() => setActiveTab('macros')}
@@ -309,7 +309,7 @@ export const MacroDocumentationModal = ({ isOpen, onClose }) => {
         {activeTab === 'calculator' && (
           <div className="space-y-3.5 animate-fade-in">
             {/* Step 1: BMR */}
-            <div className="p-4 rounded-2xl bg-surface/90 backdrop-blur-xs border border-indigo-500/20 shadow-xs space-y-2.5">
+            <div className="p-4 rounded-2xl bg-surface border border-indigo-500/20 shadow-xs space-y-2.5">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <div className="w-6 h-6 rounded-lg bg-indigo-500 text-white flex items-center justify-center text-xs font-extrabold shadow-xs shadow-indigo-500/30">
@@ -349,7 +349,7 @@ export const MacroDocumentationModal = ({ isOpen, onClose }) => {
             </div>
 
             {/* Step 2: TDEE */}
-            <div className="p-4 rounded-2xl bg-surface/90 backdrop-blur-xs border border-emerald-500/20 shadow-xs space-y-2.5">
+            <div className="p-4 rounded-2xl bg-surface border border-emerald-500/20 shadow-xs space-y-2.5">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <div className="w-6 h-6 rounded-lg bg-emerald-500 text-white flex items-center justify-center text-xs font-extrabold shadow-xs shadow-emerald-500/30">
@@ -393,7 +393,7 @@ export const MacroDocumentationModal = ({ isOpen, onClose }) => {
             </div>
 
             {/* Step 3: Goals */}
-            <div className="p-4 rounded-2xl bg-surface/90 backdrop-blur-xs border border-amber-500/20 shadow-xs space-y-2.5">
+            <div className="p-4 rounded-2xl bg-surface border border-amber-500/20 shadow-xs space-y-2.5">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <div className="w-6 h-6 rounded-lg bg-amber-500 text-white flex items-center justify-center text-xs font-extrabold shadow-xs shadow-amber-500/30">
@@ -471,7 +471,7 @@ export const MacroDocumentationModal = ({ isOpen, onClose }) => {
                     href={doc.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className={`group relative p-3.5 rounded-2xl bg-surface/90 backdrop-blur-xs border ${theme.border} bg-gradient-to-r ${theme.gradient} transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md ${theme.glow} flex items-center justify-between gap-3 text-left cursor-pointer`}
+                    className={`group relative p-3.5 rounded-2xl bg-surface border ${theme.border} bg-gradient-to-r ${theme.gradient} transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md ${theme.glow} flex items-center justify-between gap-3 text-left cursor-pointer`}
                   >
                     <div className="flex items-start gap-3 min-w-0 flex-1">
                       {/* Icon Container */}
