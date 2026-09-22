@@ -276,6 +276,36 @@ export const FitnessTracker = ({ selectedDate }) => {
     }
   }, [wTrackingType, wDuration, wMet, wTarget, wSets, wReps, wWeight, latestUserWeight]);
 
+  // Live BMI & Weight Status Calculation
+  const liveBmi = useMemo(() => {
+    if (!mWeight || !mHeight) return null;
+    const w = parseFloat(mWeight);
+    const h = parseFloat(mHeight);
+    if (isNaN(w) || isNaN(h) || w <= 0 || h <= 0) return null;
+    const weightKg = unitSystem === 'metric' ? w : w * 0.453592;
+    const heightM = unitSystem === 'metric' ? h / 100 : (h * 2.54) / 100;
+    if (heightM <= 0) return null;
+    const bmiVal = weightKg / (heightM * heightM);
+    if (isNaN(bmiVal) || !isFinite(bmiVal)) return null;
+    let label = 'Normal';
+    let badgeClass = 'text-emerald-500 bg-emerald-500/10 border-emerald-500/30';
+    if (bmiVal < 18.5) {
+      label = 'Underweight';
+      badgeClass = 'text-blue-500 bg-blue-500/10 border-blue-500/30';
+    } else if (bmiVal >= 25 && bmiVal < 30) {
+      label = 'Overweight';
+      badgeClass = 'text-amber-500 bg-amber-500/10 border-amber-500/30';
+    } else if (bmiVal >= 30) {
+      label = 'Obese';
+      badgeClass = 'text-rose-500 bg-rose-500/10 border-rose-500/30';
+    }
+    return {
+      bmi: bmiVal.toFixed(1),
+      label,
+      badgeClass,
+    };
+  }, [mWeight, mHeight, unitSystem]);
+
   // Autocomplete Workout Types Search
   useEffect(() => {
     if (!wName.trim() || wName.length < 2 || selectedWorkoutType) {
@@ -712,14 +742,14 @@ export const FitnessTracker = ({ selectedDate }) => {
                   <div className="flex items-center gap-1.5">
                     <button
                       onClick={() => handleEditWorkout(w)}
-                      className="p-1.5 rounded-lg bg-surface/90 dark:bg-surface/90 backdrop-blur-xs border border-theme/60 text-secondary hover:text-accent hover:border-accent/40 hover:bg-accent/10 shadow-xs transition-all cursor-pointer"
+                      className="p-1.5 rounded-lg bg-surface border border-theme text-secondary hover:text-accent hover:border-accent/40 hover:bg-accent/10 shadow-xs transition-all cursor-pointer"
                       title="Edit Workout"
                     >
                       <Edit2 className="w-3.5 h-3.5" />
                     </button>
                     <button
                       onClick={() => setDeleteWorkoutId(w._id)}
-                      className="p-1.5 rounded-lg bg-surface/90 dark:bg-surface/90 backdrop-blur-xs border border-theme/60 text-secondary hover:text-rose-600 hover:border-rose-500/40 hover:bg-rose-500/10 shadow-xs transition-all cursor-pointer"
+                      className="p-1.5 rounded-lg bg-surface border border-theme text-secondary hover:text-rose-600 hover:border-rose-500/40 hover:bg-rose-500/10 shadow-xs transition-all cursor-pointer"
                       title="Delete Workout"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
@@ -778,22 +808,20 @@ export const FitnessTracker = ({ selectedDate }) => {
               <button
                 type="button"
                 onClick={() => handleUnitSystemChange('metric')}
-                className={`px-2.5 py-1 text-xs font-bold rounded-lg transition-all cursor-pointer ${
-                  unitSystem === 'metric'
-                    ? 'bg-surface text-primary shadow-xs'
-                    : 'text-secondary hover:text-primary'
-                }`}
+                className={`px-2.5 py-1 text-xs font-bold rounded-lg transition-all cursor-pointer ${unitSystem === 'metric'
+                  ? 'bg-surface text-primary shadow-xs'
+                  : 'text-secondary hover:text-primary'
+                  }`}
               >
                 kg / cm
               </button>
               <button
                 type="button"
                 onClick={() => handleUnitSystemChange('imperial')}
-                className={`px-2.5 py-1 text-xs font-bold rounded-lg transition-all cursor-pointer ${
-                  unitSystem === 'imperial'
-                    ? 'bg-surface text-primary shadow-xs'
-                    : 'text-secondary hover:text-primary'
-                }`}
+                className={`px-2.5 py-1 text-xs font-bold rounded-lg transition-all cursor-pointer ${unitSystem === 'imperial'
+                  ? 'bg-surface text-primary shadow-xs'
+                  : 'text-secondary hover:text-primary'
+                  }`}
               >
                 lbs / in
               </button>
@@ -824,11 +852,10 @@ export const FitnessTracker = ({ selectedDate }) => {
                 <button
                   type="button"
                   onClick={() => setSelectedGraphMetric('all')}
-                  className={`px-2.5 py-1 text-xs font-bold rounded-xl transition-all cursor-pointer border ${
-                    selectedGraphMetric === 'all'
-                      ? 'bg-accent text-white border-accent shadow-xs'
-                      : 'bg-subtle text-secondary border-theme hover:text-primary hover:bg-surface'
-                  }`}
+                  className={`px-2.5 py-1 text-xs font-bold rounded-xl transition-all cursor-pointer border ${selectedGraphMetric === 'all'
+                    ? 'bg-accent text-white border-accent shadow-xs'
+                    : 'bg-subtle text-secondary border-theme hover:text-primary hover:bg-surface'
+                    }`}
                 >
                   All Data ({activeMetrics.length})
                 </button>
@@ -840,11 +867,10 @@ export const FitnessTracker = ({ selectedDate }) => {
                       key={key}
                       type="button"
                       onClick={() => setSelectedGraphMetric(key)}
-                      className={`px-2.5 py-1 text-xs font-bold rounded-xl transition-all cursor-pointer border flex items-center gap-1.5 ${
-                        isSelected
-                          ? 'bg-surface text-primary border-accent shadow-xs'
-                          : 'bg-subtle text-secondary border-theme hover:text-primary hover:bg-surface'
-                      }`}
+                      className={`px-2.5 py-1 text-xs font-bold rounded-xl transition-all cursor-pointer border flex items-center gap-1.5 ${isSelected
+                        ? 'bg-surface text-primary border-accent shadow-xs'
+                        : 'bg-subtle text-secondary border-theme hover:text-primary hover:bg-surface'
+                        }`}
                     >
                       <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: cfg.color }} />
                       <span>{cfg.label}</span>
@@ -865,7 +891,7 @@ export const FitnessTracker = ({ selectedDate }) => {
                         if (active && payload && payload.length) {
                           const fullDate = payload[0]?.payload?.fullDate || label;
                           return (
-                            <div className="bg-surface/98 dark:bg-surface/95 backdrop-blur-xl border border-theme rounded-2xl shadow-xl p-3 text-xs space-y-1.5 min-w-[180px]">
+                            <div className="bg-surface border border-theme rounded-2xl shadow-xl p-3 text-xs space-y-1.5 min-w-[180px]">
                               <span className="font-bold text-primary block pb-1 border-b border-subtle">
                                 {formatDisplayDate(fullDate)}
                               </span>
@@ -953,7 +979,7 @@ export const FitnessTracker = ({ selectedDate }) => {
                         <button
                           type="button"
                           onClick={() => handleEditMetric(m)}
-                          className="p-1.5 rounded-lg bg-surface/90 dark:bg-surface/90 backdrop-blur-xs border border-theme/60 text-secondary hover:text-accent hover:border-accent/40 hover:bg-accent/10 shadow-xs transition-all cursor-pointer"
+                          className="p-1.5 rounded-lg bg-surface border border-theme text-secondary hover:text-accent hover:border-accent/40 hover:bg-accent/10 shadow-xs transition-all cursor-pointer"
                           title="Edit Measurement"
                         >
                           <Edit2 className="w-3.5 h-3.5" />
@@ -961,7 +987,7 @@ export const FitnessTracker = ({ selectedDate }) => {
                         <button
                           type="button"
                           onClick={() => setDeleteMetricId(m._id)}
-                          className="p-1.5 rounded-lg bg-surface/90 dark:bg-surface/90 backdrop-blur-xs border border-theme/60 text-secondary hover:text-rose-600 hover:border-rose-500/40 hover:bg-rose-500/10 shadow-xs transition-all cursor-pointer"
+                          className="p-1.5 rounded-lg bg-surface border border-theme text-secondary hover:text-rose-600 hover:border-rose-500/40 hover:bg-rose-500/10 shadow-xs transition-all cursor-pointer"
                           title="Delete Measurement"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -1045,51 +1071,53 @@ export const FitnessTracker = ({ selectedDate }) => {
         onClose={() => setIsWorkoutModalOpen(false)}
         title={editingWorkoutId ? t('fitness.editWorkout') : t('fitness.logWorkout')}
         subtitle={editingWorkoutId ? t('fitness.editWorkoutSubtitle') : t('fitness.logWorkoutSubtitle')}
-        maxWidth="max-w-2xl"
+        maxWidth="max-w-6xl"
       >
         <form onSubmit={handleWorkoutSubmit} className="space-y-4">
-          {/* Tracking Type Mode Switcher */}
-          <div className="flex bg-subtle p-1 rounded-xl border border-theme">
-            <button
-              type="button"
-              onClick={() => {
-                setWTrackingType('sets_reps');
-                if (wTarget === 'Cardio' || wTarget === 'Flexibility') setWTarget('Muscle');
-                if (!wSets) setWSets(3);
-                if (!wReps) setWReps(10);
-              }}
-              className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
-                wTrackingType === 'sets_reps'
-                  ? 'bg-surface text-primary card-shadow ring-1 ring-accent/20'
-                  : 'text-secondary hover:text-primary'
-              }`}
-            >
-              <span>🏋️</span> {t('fitness.setsAndReps')}
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setWTrackingType('duration');
-                if (wTarget === 'Muscle') setWTarget('Cardio');
-                if (!wDuration) setWDuration(30);
-              }}
-              className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
-                wTrackingType === 'duration'
-                  ? 'bg-surface text-primary card-shadow ring-1 ring-accent/20'
-                  : 'text-secondary hover:text-primary'
-              }`}
-            >
-              <span>⏱️</span> {t('fitness.timeAndDuration')}
-            </button>
-          </div>
+          {/* Top Row: Tracking Type Mode Switcher + Target Category + Workout Date */}
+          <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-end">
+            <div className="sm:col-span-5">
+              <label className="block text-[11px] font-bold text-secondary uppercase tracking-wider mb-1.5">
+                Tracking Mode
+              </label>
+              <div className="flex bg-subtle p-1 rounded-xl border border-theme">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setWTrackingType('sets_reps');
+                    if (wTarget === 'Cardio' || wTarget === 'Flexibility') setWTarget('Muscle');
+                    if (!wSets) setWSets(3);
+                    if (!wReps) setWReps(10);
+                  }}
+                  className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer flex items-center justify-center gap-1.5 ${wTrackingType === 'sets_reps'
+                    ? 'bg-surface text-primary card-shadow ring-1 ring-accent/20'
+                    : 'text-secondary hover:text-primary'
+                    }`}
+                >
+                  <span>🏋️</span> {t('fitness.setsAndReps')}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setWTrackingType('duration');
+                    if (wTarget === 'Muscle') setWTarget('Cardio');
+                    if (!wDuration) setWDuration(30);
+                  }}
+                  className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer flex items-center justify-center gap-1.5 ${wTrackingType === 'duration'
+                    ? 'bg-surface text-primary card-shadow ring-1 ring-accent/20'
+                    : 'text-secondary hover:text-primary'
+                    }`}
+                >
+                  <span>⏱️</span> {t('fitness.timeAndDuration')}
+                </button>
+              </div>
+            </div>
 
-          {/* Date & Target Category Pills */}
-          <div className="space-y-3">
-            <div>
-              <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5">
+            <div className="sm:col-span-4">
+              <label className="block text-[11px] font-bold text-secondary uppercase tracking-wider mb-1.5">
                 {t('fitness.targetCategory')}
               </label>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              <div className="grid grid-cols-4 gap-1">
                 {TARGET_TYPES.map((tCat) => {
                   const conf = TARGET_CONFIG[tCat] || { icon: '🎯', label: tCat, color: 'indigo' };
                   const isSelected = wTarget === tCat;
@@ -1108,411 +1136,384 @@ export const FitnessTracker = ({ selectedDate }) => {
                           if (!wReps) setWReps(10);
                         }
                       }}
-                      className={`flex items-center justify-center gap-2 py-2 px-3 rounded-xl border text-xs font-bold transition-all duration-200 cursor-pointer ${
-                        isSelected
-                          ? 'bg-accent/15 border-accent text-accent shadow-sm shadow-accent/20 ring-1 ring-accent/30'
-                          : 'bg-surface hover:bg-subtle border-theme text-secondary hover:text-primary'
-                      }`}
+                      className={`flex items-center justify-center gap-1 py-1.5 px-1 rounded-xl border text-[11px] font-bold transition-all duration-200 cursor-pointer ${isSelected
+                        ? 'bg-accent/15 border-accent text-accent shadow-xs ring-1 ring-accent/30'
+                        : 'bg-surface hover:bg-subtle border-theme text-secondary hover:text-primary'
+                        }`}
                     >
-                      <span className="text-base">{conf.icon}</span>
-                      <span>{tCat}</span>
+                      <span>{conf.icon}</span>
+                      <span className="truncate">{tCat}</span>
                     </button>
                   );
                 })}
               </div>
             </div>
 
-            <DateInput
-              label={t('fitness.workoutDate')}
-              value={wDate}
-              onChange={setWDate}
-              required
-            />
-          </div>
-
-          {/* Autocomplete Exercise Search Input & Quick Staples */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <label className="block text-xs font-bold text-secondary uppercase tracking-wider">
-                {t('fitness.searchServerLib')}
-              </label>
-              {selectedWorkoutType && (
-                <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1">
-                  <CheckCircle2 className="w-3 h-3" />
-                  {t('fitness.autoDeducedFrom')} {selectedWorkoutType.source || t('fitness.verifiedLibrary')}
-                </span>
-              )}
-            </div>
-
-            <div className="relative">
-              <div className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-secondary">
-                <Search className="w-4 h-4" />
-              </div>
-              <input
-                type="text"
+            <div className="sm:col-span-3">
+              <DateInput
+                label={t('fitness.workoutDate')}
+                value={wDate}
+                onChange={setWDate}
                 required
-                placeholder={t('fitness.searchExercisePlaceholder')}
-                value={wName}
-                onChange={(e) => {
-                  setWName(e.target.value);
-                  setSelectedWorkoutType(null);
-                  setShowWSuggestions(true);
-                }}
-                onFocus={() => {
-                  if (wSuggestions.length > 0) setShowWSuggestions(true);
-                }}
-                className="input-base pl-10 pr-10"
               />
-              {wName && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setWName('');
-                    setSelectedWorkoutType(null);
-                    setShowWSuggestions(false);
-                  }}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-secondary hover:text-primary transition-colors cursor-pointer"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              )}
-              {searchingSuggestions && (
-                <div className="absolute right-3.5 top-1/2 -translate-y-1/2">
-                  <div className="w-4 h-4 border-2 border-accent border-t-transparent rounded-full animate-spin" />
-                </div>
-              )}
             </div>
-
-            {/* Popular Staples Quick Chips */}
-            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar pt-0.5">
-              <span className="text-[10px] font-bold text-secondary uppercase shrink-0 mr-1 flex items-center gap-1">
-                <Sparkles className="w-3 h-3 text-accent" /> {t('calories.staples')}
-              </span>
-              {POPULAR_WORKOUT_STAPLES.map((staple) => {
-                const isCurrent = selectedWorkoutType?.name === staple.name || wName === staple.name;
-                return (
-                  <button
-                    type="button"
-                    key={staple.name}
-                    onClick={() => handleSelectWorkoutType(staple)}
-                    className={`shrink-0 flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold border transition-all cursor-pointer ${
-                      isCurrent
-                        ? 'bg-accent/15 border-accent text-accent shadow-xs'
-                        : 'bg-subtle/70 hover:bg-subtle border-theme text-secondary hover:text-primary'
-                    }`}
-                  >
-                    <span>{staple.icon}</span>
-                    <span>{staple.name}</span>
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Custom Exercise Guidance Banner */}
-            {!selectedWorkoutType && wName.trim().length >= 2 && wSuggestions.length === 0 && !searchingSuggestions && (
-              <div className="p-2.5 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-start gap-2 text-[11px] text-indigo-700 dark:text-indigo-300">
-                <Sparkles className="w-3.5 h-3.5 text-indigo-500 shrink-0 mt-0.5" />
-                <div>
-                  <span className="font-bold block">{t('fitness.newCustomExercise')}</span>
-                  <span className="text-secondary text-[10px]">
-                    {t('fitness.customExerciseDesc')}
-                  </span>
-                </div>
-              </div>
-            )}
-
-            {/* Suggestions Dropdown */}
-            {showWSuggestions && wSuggestions.length > 0 && (
-              <div className="absolute left-0 right-0 mt-1.5 bg-surface border border-theme rounded-2xl card-shadow z-30 max-h-60 overflow-y-auto divide-y divide-theme/40 shadow-xl">
-                {wSuggestions.map((wt, idx) => (
-                  <div
-                    key={wt._id || idx}
-                    onClick={() => handleSelectWorkoutType(wt)}
-                    className="p-3 hover:bg-subtle cursor-pointer flex items-center justify-between text-xs transition-colors group"
-                  >
-                    <div>
-                      <div className="flex items-center gap-1.5">
-                        <span className="font-bold text-primary group-hover:text-accent transition-colors">
-                          {wt.name}
-                        </span>
-                        {wt.equipment && (
-                          <span className="text-[9px] px-1.5 py-0.2 rounded bg-subtle text-secondary border border-theme">
-                            {wt.equipment}
-                          </span>
-                        )}
-                      </div>
-                      <span className="text-[11px] text-secondary font-medium">
-                        {wt.trackingType === 'duration'
-                          ? `⏱️ ${wt.defaultDuration || 30} ${t('common.minutes')}`
-                          : `🏋️ ${wt.defaultSets || 3} ${t('fitness.sets')} × ${wt.defaultReps || 10} ${t('fitness.reps')} ${wt.defaultWeight ? `@ ${wt.defaultWeight}kg` : ''}`}
-                        {wt.met ? ` · MET: ${wt.met}` : ''}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <Badge variant={TARGET_COLORS[wt.target] || 'neutral'} size="xs">
-                        {wt.target || 'Exercise'}
-                      </Badge>
-                      {wt.source && (
-                        <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-surface border border-theme text-secondary font-medium">
-                          {wt.source}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                ))}
-
-                {/* Direct Custom Selection Option */}
-                {wName.trim().length >= 2 && (
-                  <div
-                    onClick={() => {
-                      setSelectedWorkoutType({ name: wName.trim(), isCustom: true });
-                      setShowWSuggestions(false);
-                    }}
-                    className="p-2.5 bg-accent/5 hover:bg-accent/10 cursor-pointer flex items-center justify-between text-xs text-accent font-bold transition-colors"
-                  >
-                    <span className="flex items-center gap-1.5">
-                      <Sparkles className="w-3.5 h-3.5" />
-                      {t('fitness.setCustomExercise')} "{wName}"
-                    </span>
-                    <Badge variant="primary" size="xs">{t('fitness.customBadge')}</Badge>
-                  </div>
-                )}
-              </div>
-            )}
           </div>
 
-          {/* Exercise Numeric Parameters (Sets & Reps vs Duration) */}
-          {wTrackingType === 'sets_reps' ? (
-            <div className="space-y-3 p-4 bg-subtle/50 rounded-2xl border border-theme">
-              <div className="flex items-center justify-between">
-                <span className="text-[11px] font-extrabold text-secondary uppercase tracking-wider flex items-center gap-1.5">
-                  <Dumbbell className="w-3.5 h-3.5 text-accent" /> {t('fitness.setsAndReps')}
-                </span>
-                {(!wSets || !wReps) && (
-                  <span className="text-[10px] text-amber-600 dark:text-amber-400 font-bold flex items-center gap-1">
-                    <Info className="w-3 h-3" /> {t('fitness.missingSetsOrReps')}
-                  </span>
-                )}
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                {/* Sets */}
-                <div className="p-2.5 rounded-xl bg-surface border border-theme shadow-xs">
-                  <label className="block text-[10px] font-bold text-secondary uppercase tracking-wider mb-1">
-                    {t('fitness.sets')}
+          {/* Main 2-Column Grid: Left (Exercise & Numeric Inputs) | Right (Estimation & Notes) */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5 items-stretch">
+            {/* Left Column: Exercise Search & Sets/Reps/Duration Parameters */}
+            <div className="space-y-3 flex flex-col justify-between">
+              {/* Autocomplete Exercise Search Input & Quick Staples */}
+              <div className="space-y-1.5 relative">
+                <div className="flex items-center justify-between">
+                  <label className="block text-[11px] font-bold text-secondary uppercase tracking-wider">
+                    {t('fitness.searchServerLib')}
                   </label>
+                  {selectedWorkoutType && (
+                    <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1">
+                      <CheckCircle2 className="w-3 h-3" />
+                      {selectedWorkoutType.source || t('fitness.verifiedLibrary')}
+                    </span>
+                  )}
+                </div>
+
+                <div className="relative">
+                  <div className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-secondary z-10">
+                    <Search className="w-4 h-4" />
+                  </div>
                   <input
-                    type="number"
-                    min="1"
+                    type="text"
                     required
-                    value={wSets}
-                    onChange={(e) => setWSets(e.target.value)}
-                    placeholder="e.g. 3"
-                    className="w-full bg-subtle/60 border border-theme rounded-lg px-2.5 py-1.5 text-xs font-bold text-primary focus:outline-none focus:border-accent"
+                    placeholder={t('fitness.searchExercisePlaceholder')}
+                    value={wName}
+                    onChange={(e) => {
+                      setWName(e.target.value);
+                      setSelectedWorkoutType(null);
+                      setShowWSuggestions(true);
+                    }}
+                    onFocus={() => {
+                      if (wSuggestions.length > 0) setShowWSuggestions(true);
+                    }}
+                    className="input-base input-with-icon-left input-with-icon-right text-xs py-2"
+                    style={{ paddingLeft: '2.5rem', paddingRight: '2.5rem' }}
                   />
-                  <div className="flex items-center gap-1 mt-2">
-                    {[3, 4, 5].map((s) => (
-                      <button
-                        type="button"
-                        key={s}
-                        onClick={() => setWSets(s)}
-                        className={`flex-1 py-0.5 text-[10px] font-bold rounded border transition-all cursor-pointer ${
-                          Number(wSets) === s
-                            ? 'bg-accent text-white border-accent'
-                            : 'bg-subtle text-secondary hover:text-primary border-theme'
-                        }`}
-                      >
-                        {s}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Reps */}
-                <div className="p-2.5 rounded-xl bg-surface border border-theme shadow-xs">
-                  <label className="block text-[10px] font-bold text-secondary uppercase tracking-wider mb-1">
-                    {t('fitness.reps')}
-                  </label>
-                  <input
-                    type="number"
-                    min="1"
-                    required
-                    value={wReps}
-                    onChange={(e) => setWReps(e.target.value)}
-                    placeholder="e.g. 10"
-                    className="w-full bg-subtle/60 border border-theme rounded-lg px-2.5 py-1.5 text-xs font-bold text-primary focus:outline-none focus:border-accent"
-                  />
-                  <div className="flex items-center gap-1 mt-2">
-                    {[8, 10, 12, 15].map((r) => (
-                      <button
-                        type="button"
-                        key={r}
-                        onClick={() => setWReps(r)}
-                        className={`flex-1 py-0.5 text-[10px] font-bold rounded border transition-all cursor-pointer ${
-                          Number(wReps) === r
-                            ? 'bg-accent text-white border-accent'
-                            : 'bg-subtle text-secondary hover:text-primary border-theme'
-                        }`}
-                      >
-                        {r}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Weight */}
-                <div className="p-2.5 rounded-xl bg-surface border border-theme shadow-xs">
-                  <label className="block text-[10px] font-bold text-secondary uppercase tracking-wider mb-1">
-                    {t('fitness.weight')} ({unitSystem === 'metric' ? 'kg' : 'lbs'})
-                  </label>
-                  <input
-                    type="number"
-                    step="0.5"
-                    placeholder="e.g. 20"
-                    value={wWeight}
-                    onChange={(e) => setWWeight(e.target.value)}
-                    className="w-full bg-subtle/60 border border-theme rounded-lg px-2.5 py-1.5 text-xs font-bold text-primary focus:outline-none focus:border-accent"
-                  />
-                  <div className="flex items-center gap-1 mt-2">
-                    {[0, 20, 40, 60, 80].map((wtVal) => (
-                      <button
-                        type="button"
-                        key={wtVal}
-                        onClick={() => setWWeight(wtVal)}
-                        className={`flex-1 py-0.5 text-[10px] font-bold rounded border transition-all cursor-pointer ${
-                          String(wWeight) === String(wtVal)
-                            ? 'bg-accent text-white border-accent'
-                            : 'bg-subtle text-secondary hover:text-primary border-theme'
-                        }`}
-                      >
-                        {wtVal}{wtVal === 0 ? ' (BW)' : ''}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Incomplete Strength Prompt */}
-              {(!wSets || !wReps) && (
-                <div className="p-2 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-start gap-2 text-[10px] text-amber-700 dark:text-amber-300">
-                  <Info className="w-3.5 h-3.5 text-amber-500 shrink-0 mt-0.5" />
-                  <span>
-                    {t('fitness.missingSetsOrReps')}
-                  </span>
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="space-y-3 p-4 bg-subtle/50 rounded-2xl border border-theme">
-              <div className="flex items-center justify-between">
-                <span className="text-[11px] font-extrabold text-secondary uppercase tracking-wider flex items-center gap-1.5">
-                  <Timer className="w-3.5 h-3.5 text-rose-500" /> {t('fitness.timeAndDuration')}
-                </span>
-                {!wDuration && (
-                  <span className="text-[10px] text-amber-600 dark:text-amber-400 font-bold flex items-center gap-1">
-                    <Info className="w-3 h-3" /> {t('fitness.missingDuration')}
-                  </span>
-                )}
-              </div>
-
-              <div className="p-2.5 rounded-xl bg-surface border border-theme shadow-xs">
-                <div className="flex items-center justify-between mb-1">
-                  <label className="block text-[10px] font-bold text-secondary uppercase tracking-wider">
-                    {t('fitness.durationMinutes')}
-                  </label>
-                  <span className="text-[9px] text-secondary font-semibold">{t('common.minutes')}</span>
-                </div>
-                <input
-                  type="number"
-                  min="1"
-                  required
-                  value={wDuration}
-                  onChange={(e) => setWDuration(e.target.value)}
-                  placeholder="e.g. 30"
-                  className="w-full bg-subtle/60 border border-theme rounded-lg px-2.5 py-1.5 text-xs font-bold text-primary focus:outline-none focus:border-rose-500"
-                />
-
-                <div className="flex items-center gap-1.5 mt-2">
-                  {[15, 20, 30, 45, 60].map((d) => (
+                  {wName && (
                     <button
                       type="button"
-                      key={d}
-                      onClick={() => setWDuration(d)}
-                      className={`flex-1 py-1 text-[10px] font-bold rounded border transition-all cursor-pointer ${
-                        Number(wDuration) === d
-                          ? 'bg-rose-500 text-white border-rose-500 shadow-xs'
-                          : 'bg-subtle text-secondary hover:text-primary border-theme'
-                      }`}
+                      onClick={() => {
+                        setWName('');
+                        setSelectedWorkoutType(null);
+                        setShowWSuggestions(false);
+                      }}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-secondary hover:text-primary transition-colors cursor-pointer"
                     >
-                      {d} {t('common.minutes')}
+                      <X className="w-3.5 h-3.5" />
                     </button>
-                  ))}
+                  )}
+                  {searchingSuggestions && (
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                      <div className="w-3.5 h-3.5 border-2 border-accent border-t-transparent rounded-full animate-spin" />
+                    </div>
+                  )}
                 </div>
+
+                {/* Popular Staples Quick Chips */}
+                <div className="flex items-center gap-1 overflow-x-auto pb-1 no-scrollbar pt-0.5">
+                  <span className="text-[10px] font-bold text-secondary uppercase shrink-0 mr-1 flex items-center gap-0.5">
+                    <Sparkles className="w-2.5 h-2.5 text-accent" /> {t('calories.staples')}
+                  </span>
+                  {POPULAR_WORKOUT_STAPLES.map((staple) => {
+                    const isCurrent = selectedWorkoutType?.name === staple.name || wName === staple.name;
+                    return (
+                      <button
+                        type="button"
+                        key={staple.name}
+                        onClick={() => handleSelectWorkoutType(staple)}
+                        className={`shrink-0 flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] font-semibold border transition-all cursor-pointer ${isCurrent
+                          ? 'bg-accent/15 border-accent text-accent shadow-xs font-bold'
+                          : 'bg-subtle/70 hover:bg-subtle border-theme text-secondary hover:text-primary'
+                          }`}
+                      >
+                        <span>{staple.icon}</span>
+                        <span>{staple.name}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Suggestions Dropdown */}
+                {showWSuggestions && wSuggestions.length > 0 && (
+                  <div className="absolute left-0 right-0 top-full mt-1 bg-surface border border-theme rounded-2xl card-shadow z-40 max-h-52 overflow-y-auto divide-y divide-theme/40 shadow-2xl">
+                    {wSuggestions.map((wt, idx) => (
+                      <div
+                        key={wt._id || idx}
+                        onClick={() => handleSelectWorkoutType(wt)}
+                        className="p-2.5 hover:bg-subtle cursor-pointer flex items-center justify-between text-xs transition-colors group"
+                      >
+                        <div>
+                          <div className="flex items-center gap-1.5">
+                            <span className="font-bold text-primary group-hover:text-accent transition-colors">
+                              {wt.name}
+                            </span>
+                            {wt.equipment && (
+                              <span className="text-[9px] px-1.5 py-0.2 rounded bg-subtle text-secondary border border-theme">
+                                {wt.equipment}
+                              </span>
+                            )}
+                          </div>
+                          <span className="text-[10px] text-secondary font-medium">
+                            {wt.trackingType === 'duration'
+                              ? `⏱️ ${wt.defaultDuration || 30} ${t('common.minutes')}`
+                              : `🏋️ ${wt.defaultSets || 3}s × ${wt.defaultReps || 10}r ${wt.defaultWeight ? `@ ${wt.defaultWeight}kg` : ''}`}
+                            {wt.met ? ` · MET: ${wt.met}` : ''}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <Badge variant={TARGET_COLORS[wt.target] || 'neutral'} size="xs">
+                            {wt.target || 'Exercise'}
+                          </Badge>
+                          {wt.source && (
+                            <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-surface border border-theme text-secondary font-medium">
+                              {wt.source}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+
+                    {wName.trim().length >= 2 && (
+                      <div
+                        onClick={() => {
+                          setSelectedWorkoutType({ name: wName.trim(), isCustom: true });
+                          setShowWSuggestions(false);
+                        }}
+                        className="p-2 bg-accent/5 hover:bg-accent/10 cursor-pointer flex items-center justify-between text-xs text-accent font-bold transition-colors"
+                      >
+                        <span className="flex items-center gap-1.5 text-xs">
+                          <Sparkles className="w-3.5 h-3.5" />
+                          {t('fitness.setCustomExercise')} "{wName}"
+                        </span>
+                        <Badge variant="primary" size="xs">{t('fitness.customBadge')}</Badge>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
-              {/* Incomplete Duration Prompt */}
-              {!wDuration && (
-                <div className="p-2 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-start gap-2 text-[10px] text-amber-700 dark:text-amber-300">
-                  <Info className="w-3.5 h-3.5 text-amber-500 shrink-0 mt-0.5" />
-                  <span>
-                    {t('fitness.missingDuration')}
-                  </span>
+              {/* Exercise Numeric Parameters (Sets & Reps vs Duration) */}
+              {wTrackingType === 'sets_reps' ? (
+                <div className="p-3 bg-subtle/40 rounded-2xl border border-theme space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-extrabold text-secondary uppercase tracking-wider flex items-center gap-1.5">
+                      <Dumbbell className="w-3.5 h-3.5 text-accent" /> {t('fitness.setsAndReps')}
+                    </span>
+                    {(!wSets || !wReps) && (
+                      <span className="text-[10px] text-amber-600 dark:text-amber-400 font-bold flex items-center gap-1">
+                        <Info className="w-3 h-3" /> {t('fitness.missingSetsOrReps')}
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-2">
+                    {/* Sets */}
+                    <div className="p-2 rounded-xl bg-surface shadow-xs">
+                      <label className="block text-[10px] font-bold text-secondary uppercase tracking-wider mb-1">
+                        {t('fitness.sets')}
+                      </label>
+                      <input
+                        type="number"
+                        min="1"
+                        required
+                        value={wSets}
+                        onChange={(e) => setWSets(e.target.value)}
+                        placeholder="e.g. 3"
+                        className="w-full bg-subtle/60 border border-theme rounded-lg px-2 py-1 text-xs font-bold text-primary focus:outline-none focus:border-accent"
+                      />
+                      <div className="flex items-center gap-1 mt-1.5">
+                        {[3, 4, 5].map((s) => (
+                          <button
+                            type="button"
+                            key={s}
+                            onClick={() => setWSets(s)}
+                            className={`flex-1 py-0.5 text-[10px] font-bold rounded border transition-all cursor-pointer ${Number(wSets) === s
+                              ? 'bg-accent text-white border-accent'
+                              : 'bg-subtle text-secondary hover:text-primary border-theme'
+                              }`}
+                          >
+                            {s}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Reps */}
+                    <div className="p-2 rounded-xl bg-surface shadow-xs">
+                      <label className="block text-[10px] font-bold text-secondary uppercase tracking-wider mb-1">
+                        {t('fitness.reps')}
+                      </label>
+                      <input
+                        type="number"
+                        min="1"
+                        required
+                        value={wReps}
+                        onChange={(e) => setWReps(e.target.value)}
+                        placeholder="e.g. 10"
+                        className="w-full bg-subtle/60 border border-theme rounded-lg px-2 py-1 text-xs font-bold text-primary focus:outline-none focus:border-accent"
+                      />
+                      <div className="flex items-center gap-0.5 mt-1.5">
+                        {[8, 10, 12, 15].map((r) => (
+                          <button
+                            type="button"
+                            key={r}
+                            onClick={() => setWReps(r)}
+                            className={`flex-1 py-0.5 text-[10px] font-bold rounded border transition-all cursor-pointer ${Number(wReps) === r
+                              ? 'bg-accent text-white border-accent'
+                              : 'bg-subtle text-secondary hover:text-primary border-theme'
+                              }`}
+                          >
+                            {r}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Weight */}
+                    <div className="p-2 rounded-xl bg-surface shadow-xs">
+                      <label className="block text-[10px] font-bold text-secondary uppercase tracking-wider mb-1 truncate">
+                        {t('fitness.weight')} ({unitSystem === 'metric' ? 'kg' : 'lbs'})
+                      </label>
+                      <input
+                        type="number"
+                        step="0.5"
+                        placeholder="e.g. 20"
+                        value={wWeight}
+                        onChange={(e) => setWWeight(e.target.value)}
+                        className="w-full bg-subtle/60 border border-theme rounded-lg px-2 py-1 text-xs font-bold text-primary focus:outline-none focus:border-accent"
+                      />
+                      <div className="flex items-center gap-0.5 mt-1.5">
+                        {[0, 20, 40, 60, 80].map((wtVal) => (
+                          <button
+                            type="button"
+                            key={wtVal}
+                            onClick={() => setWWeight(wtVal)}
+                            className={`flex-1 py-0.5 text-[10px] font-bold rounded border transition-all cursor-pointer ${String(wWeight) === String(wtVal)
+                              ? 'bg-accent text-white border-accent'
+                              : 'bg-subtle text-secondary hover:text-primary border-theme'
+                              }`}
+                          >
+                            {wtVal === 0 ? 'BW' : wtVal}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="p-3 bg-subtle/40 rounded-2xl border border-theme space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-extrabold text-secondary uppercase tracking-wider flex items-center gap-1.5">
+                      <Timer className="w-3.5 h-3.5 text-rose-500" /> {t('fitness.timeAndDuration')}
+                    </span>
+                    {!wDuration && (
+                      <span className="text-[10px] text-amber-600 dark:text-amber-400 font-bold flex items-center gap-1">
+                        <Info className="w-3 h-3" /> {t('fitness.missingDuration')}
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="p-2.5 rounded-xl bg-surface border border-theme shadow-xs">
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="block text-[10px] font-bold text-secondary uppercase tracking-wider">
+                        {t('fitness.durationMinutes')}
+                      </label>
+                      <span className="text-[9px] text-secondary font-semibold">{t('common.minutes')}</span>
+                    </div>
+                    <input
+                      type="number"
+                      min="1"
+                      required
+                      value={wDuration}
+                      onChange={(e) => setWDuration(e.target.value)}
+                      placeholder="e.g. 30"
+                      className="w-full bg-subtle/60 border border-theme rounded-lg px-2.5 py-1.5 text-xs font-bold text-primary focus:outline-none focus:border-rose-500"
+                    />
+
+                    <div className="flex items-center gap-1.5 mt-2">
+                      {[15, 20, 30, 45, 60].map((d) => (
+                        <button
+                          type="button"
+                          key={d}
+                          onClick={() => setWDuration(d)}
+                          className={`flex-1 py-1 text-[10px] font-bold rounded border transition-all cursor-pointer ${Number(wDuration) === d
+                            ? 'bg-rose-500 text-white border-rose-500 shadow-xs'
+                            : 'bg-subtle text-secondary hover:text-primary border-theme'
+                            }`}
+                        >
+                          {d}m
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
-          )}
 
-          {/* Live Calorie Burn Estimation HUD */}
-          <div className="p-4 bg-gradient-to-br from-surface to-subtle rounded-2xl border border-theme shadow-sm space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Flame className="w-4 h-4 text-rose-500" />
-                <span className="text-xs font-bold text-secondary uppercase tracking-wider">
-                  {t('fitness.liveCalorieEstimation')}
-                </span>
-                <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-rose-500/10 text-rose-600 dark:text-rose-400 font-extrabold border border-rose-500/20">
-                  {wTrackingType === 'sets_reps'
-                    ? `${wSets || 0}s × ${wReps || 0}r ${wWeight ? `@ ${wWeight}kg` : ''}`
-                    : `${wDuration || 0} ${t('common.minutes')}`}
-                </span>
+            {/* Right Column: Live Calorie Estimation & Notes */}
+            <div className="space-y-3 flex flex-col justify-between">
+              {/* Live Calorie Burn Estimation HUD */}
+              <div className="p-3.5 bg-gradient-to-br from-surface to-subtle rounded-2xl border border-theme shadow-xs space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5">
+                    <Flame className="w-4 h-4 text-rose-500" />
+                    <span className="text-[11px] font-bold text-secondary uppercase tracking-wider">
+                      {t('fitness.liveCalorieEstimation')}
+                    </span>
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-rose-500/10 text-rose-600 dark:text-rose-400 font-extrabold border border-rose-500/20">
+                      {wTrackingType === 'sets_reps'
+                        ? `${wSets || 0}s × ${wReps || 0}r ${wWeight ? `@ ${wWeight}kg` : ''}`
+                        : `${wDuration || 0} ${t('common.minutes')}`}
+                    </span>
+                  </div>
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-2xl font-black text-rose-600 dark:text-rose-400 tracking-tight">
+                      ~{estimatedCalories}
+                    </span>
+                    <span className="text-xs font-bold text-secondary">{t('common.calories')}</span>
+                  </div>
+                </div>
+
+                <p className="text-[11px] text-secondary">
+                  Formula based on MET {wMet || 6.0} and your weight ({latestUserWeight} kg).
+                </p>
+
+                <div>
+                  <label className="block text-[10px] font-bold text-secondary mb-1">
+                    {t('fitness.customCalorieOverride')}
+                  </label>
+                  <input
+                    type="number"
+                    placeholder={`Auto: ${estimatedCalories} kcal`}
+                    value={wCalories}
+                    onChange={(e) => setWCalories(e.target.value)}
+                    className="input-base text-xs py-1.5"
+                  />
+                </div>
               </div>
-              <div className="flex items-baseline gap-1">
-                <span className="text-2xl font-black text-rose-600 dark:text-rose-400 tracking-tight">
-                  ~{estimatedCalories}
-                </span>
-                <span className="text-xs font-bold text-secondary">{t('common.calories')}</span>
+
+              {/* Notes Input */}
+              <div className="p-3 bg-subtle/40 rounded-2xl border border-theme space-y-1">
+                <label className="block text-[11px] font-bold text-secondary uppercase tracking-wider">
+                  {t('common.notes')} ({t('common.optional')})
+                </label>
+                <input
+                  type="text"
+                  placeholder={t('fitness.notesPlaceholder')}
+                  value={wNotes}
+                  onChange={(e) => setWNotes(e.target.value)}
+                  className="input-base text-xs py-2"
+                />
               </div>
             </div>
-
-            <p className="text-[11px] text-secondary">
-              Formula based on MET {wMet || 6.0} and your weight ({latestUserWeight} kg).
-            </p>
-
-            <div>
-              <label className="block text-[10px] font-bold text-secondary mb-1">
-                {t('fitness.customCalorieOverride')}
-              </label>
-              <input
-                type="number"
-                placeholder={`Auto: ${estimatedCalories} kcal`}
-                value={wCalories}
-                onChange={(e) => setWCalories(e.target.value)}
-                className="input-base text-xs py-1.5"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5">
-              {t('common.notes')} ({t('common.optional')})
-            </label>
-            <input
-              type="text"
-              placeholder={t('fitness.notesPlaceholder')}
-              value={wNotes}
-              onChange={(e) => setWNotes(e.target.value)}
-              className="input-base"
-            />
           </div>
 
           <div className="flex justify-end gap-3 pt-3 border-t border-subtle">
@@ -1530,304 +1531,355 @@ export const FitnessTracker = ({ selectedDate }) => {
       <Modal
         isOpen={isMetricModalOpen}
         onClose={() => setIsMetricModalOpen(false)}
-        title={editingMetricId ? t('fitness.editMeasurements') : t('fitness.logMeasurements')}
+        title={
+          editingMetricId
+            ? t('fitness.editMeasurements', 'Edit Body Measurements')
+            : t('fitness.logMeasurements', 'Log Body Measurements')
+        }
         subtitle={
           editingMetricId
-            ? t('fitness.editMeasurementsSubtitle')
-            : t('fitness.logMeasurementsSubtitle')
+            ? t('fitness.updateDimensionsDescription', 'Update your recorded body metrics and composition details')
+            : t('fitness.logMeasurementsSubtitle', 'Track weight, height, body fat %, and physical dimensions with live multi-metric progress charts')
         }
-        maxWidth="max-w-2xl"
+        maxWidth="max-w-4xl"
       >
-        <form onSubmit={handleMetricSubmit} className="space-y-4">
-          {/* Unit System Switcher inside Modal */}
-          <div className="flex bg-subtle p-1 rounded-xl border border-theme">
-            <button
-              type="button"
-              onClick={() => handleToggleModalUnit('metric')}
-              className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
-                unitSystem === 'metric'
-                  ? 'bg-surface text-primary card-shadow ring-1 ring-accent/20'
-                  : 'text-secondary hover:text-primary'
-              }`}
-            >
-              <span>⚖️</span> {t('fitness.metricUnit')}
-            </button>
-            <button
-              type="button"
-              onClick={() => handleToggleModalUnit('imperial')}
-              className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
-                unitSystem === 'imperial'
-                  ? 'bg-surface text-primary card-shadow ring-1 ring-accent/20'
-                  : 'text-secondary hover:text-primary'
-              }`}
-            >
-              <span>📏</span> {t('fitness.imperialUnit')}
-            </button>
-          </div>
-
-          <DateInput
-            label={t('fitness.workoutDate')}
-            value={mDate}
-            onChange={setMDate}
-            required
-          />
-
-          {/* Section 1: Core Body Vitals */}
-          <div className="space-y-3 p-3.5 bg-subtle/50 rounded-2xl border border-theme">
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-extrabold text-secondary uppercase tracking-wider flex items-center gap-1.5">
-                <Scale className="w-3.5 h-3.5 text-accent" /> {t('fitness.coreBodyVitals')}
+        <form onSubmit={handleMetricSubmit} className="space-y-3.5">
+          {/* Top Bar: Unit Switcher & Date */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 p-2.5 bg-subtle/40 rounded-2xl border border-theme">
+            {/* Unit Switcher */}
+            <div className="flex flex-col items-center gap-2">
+              <span className="text-[11px] font-bold text-secondary uppercase tracking-wider shrink-0">
+                {t('fitness.system', 'System')}:
               </span>
-              <span className="text-[10px] text-accent font-bold">{t('fitness.primaryEssential')}</span>
+              <div className=" flex bg-surface/80 p-0.5 rounded-xl border border-theme shadow-xs">
+                <button
+                  type="button"
+                  onClick={() => handleToggleModalUnit('metric')}
+                  className={`px-3 py-1 text-xs font-bold rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${unitSystem === 'metric'
+                    ? 'bg-accent text-accent-contrast card-shadow'
+                    : 'text-secondary hover:text-primary'
+                    }`}
+                >
+                  <span>⚖️</span> {t('fitness.metricUnit', 'Metric (kg, cm)')}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleToggleModalUnit('imperial')}
+                  className={`px-3 py-1 text-xs font-bold rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${unitSystem === 'imperial'
+                    ? 'bg-accent text-accent-contrast card-shadow'
+                    : 'text-secondary hover:text-primary'
+                    }`}
+                >
+                  <span>📏</span> {t('fitness.imperialUnit', 'Imperial (lbs, in)')}
+                </button>
+              </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              {/* Weight */}
-              <div className="p-2.5 rounded-xl bg-surface border border-theme shadow-xs">
-                <div className="flex items-center justify-between mb-1">
-                  <label className="block text-[10px] font-bold text-secondary uppercase tracking-wider">
-                    {t('fitness.weight')} ({unitSystem === 'metric' ? 'kg' : 'lbs'})
-                  </label>
-                  <span className="text-[9px] text-accent font-bold">{t('fitness.primary')}</span>
+            {/* Date Input */}
+            <div className="w-full sm:w-56 shrink-0">
+              <DateInput
+                value={mDate}
+                onChange={setMDate}
+                required
+              />
+            </div>
+          </div>
+
+          {/* Main 2-Column Grid: Left (Core Vitals + Live BMI HUD + Notes) | Right (Circumferences Matrix) */}
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-3.5 items-stretch">
+            {/* Left Column (5 Cols): Core Vitals & Notes */}
+            <div className="md:col-span-5 flex flex-col justify-between space-y-3">
+              {/* Core Body Vitals Card */}
+              <div className="p-3 bg-subtle/30 rounded-2xl border border-theme space-y-2.5 flex-1 flex flex-col justify-between">
+                <div className="flex items-center justify-between pb-1.5 border-b border-theme/60">
+                  <span className="text-[11px] font-extrabold text-primary uppercase tracking-wider flex items-center gap-1.5">
+                    <Scale className="w-3.5 h-3.5 text-accent" /> {t('fitness.coreBodyVitals', 'Core Body Vitals')}
+                  </span>
+                  <span className="text-[10px] text-accent font-bold px-1.5 py-0.5 rounded-md bg-accent/10">
+                    {t('fitness.primaryEssential', 'Primary')}
+                  </span>
                 </div>
-                <div className="flex items-center gap-1">
-                  <input
-                    type="number"
-                    step="0.1"
-                    placeholder="e.g. 74.5"
-                    value={mWeight}
-                    onChange={(e) => setMWeight(e.target.value)}
-                    className="w-full bg-subtle/60 border border-theme rounded-lg px-2.5 py-1.5 text-xs font-bold text-primary focus:outline-none focus:border-accent"
-                  />
-                  <div className="flex flex-col gap-0.5 shrink-0">
-                    <button
-                      type="button"
-                      onClick={() => setMWeight((prev) => (prev ? (Number(prev) + 0.5).toFixed(1) : '70.5'))}
-                      className="px-1.5 py-0.5 text-[9px] font-bold rounded bg-subtle hover:bg-surface border border-theme text-secondary hover:text-primary cursor-pointer"
-                      title="Add 0.5"
-                    >
-                      +0.5
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setMWeight((prev) => (prev && Number(prev) > 0.5 ? (Number(prev) - 0.5).toFixed(1) : '69.5'))}
-                      className="px-1.5 py-0.5 text-[9px] font-bold rounded bg-subtle hover:bg-surface border border-theme text-secondary hover:text-primary cursor-pointer"
-                      title="Subtract 0.5"
-                    >
-                      -0.5
-                    </button>
+
+                {/* Weight Input (Prominent) */}
+                <div className="p-2 rounded-xl bg-surface border-theme shadow-xs">
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-[10px] font-bold text-secondary uppercase tracking-wider">
+                      {t('fitness.weight', 'Weight')} ({unitSystem === 'metric' ? 'kg' : 'lbs'}) *
+                    </label>
+                    <span className="text-[9px] text-accent font-bold">{t('fitness.primary', 'Primary')}</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <input
+                      type="number"
+                      step="0.1"
+                      placeholder={unitSystem === 'metric' ? 'e.g. 74.5' : 'e.g. 164.2'}
+                      value={mWeight}
+                      onChange={(e) => setMWeight(e.target.value)}
+                      className="w-full bg-subtle/60 border border-theme rounded-lg px-2.5 py-1.5 text-sm font-bold text-primary focus:outline-none focus:border-accent"
+                      required
+                    />
+                    <div className="flex gap-1 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => setMWeight((prev) => (prev ? (Number(prev) + 0.5).toFixed(1) : (unitSystem === 'metric' ? '70.5' : '155.5')))}
+                        className="px-2 py-1 text-[10px] font-bold rounded-lg bg-subtle hover:bg-surface border border-theme text-secondary hover:text-primary transition-colors cursor-pointer"
+                        title="Add 0.5"
+                      >
+                        + 0.5
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setMWeight((prev) => (prev && Number(prev) > 0.5 ? (Number(prev) - 0.5).toFixed(1) : (unitSystem === 'metric' ? '69.5' : '154.5')))}
+                        className="px-2 py-1 text-[10px] font-bold rounded-lg bg-subtle hover:bg-surface border border-theme text-secondary hover:text-primary transition-colors cursor-pointer"
+                        title="Subtract 0.5"
+                      >
+                        - 0.5
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Height & Body Fat % Row */}
+                <div className="grid grid-cols-2 gap-2">
+                  {/* Height */}
+                  <div className="p-2 rounded-xl bg-surface border-theme shadow-xs">
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="block text-[10px] font-bold text-secondary uppercase tracking-wider">
+                        {t('fitness.height', 'Height')} ({unitSystem === 'metric' ? 'cm' : 'in'})
+                      </label>
+                    </div>
+                    <input
+                      type="number"
+                      step="0.5"
+                      placeholder={unitSystem === 'metric' ? 'e.g. 178' : 'e.g. 70'}
+                      value={mHeight}
+                      onChange={(e) => setMHeight(e.target.value)}
+                      className="w-full bg-subtle/60 border border-theme rounded-lg px-2 py-1.5 text-xs font-bold text-primary focus:outline-none focus:border-accent"
+                    />
+                  </div>
+
+                  {/* Body Fat % */}
+                  <div className="p-2 rounded-xl bg-surface border-theme shadow-xs">
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="block text-[10px] font-bold text-secondary uppercase tracking-wider">
+                        {t('fitness.bodyFat', 'Body Fat %')}
+                      </label>
+                    </div>
+                    <input
+                      type="number"
+                      step="0.1"
+                      min="3"
+                      max="60"
+                      placeholder="e.g. 15.5"
+                      value={mBodyFat}
+                      onChange={(e) => setMBodyFat(e.target.value)}
+                      className="w-full bg-subtle/60 border border-theme rounded-lg px-2 py-1.5 text-xs font-bold text-primary focus:outline-none focus:border-accent"
+                    />
+                  </div>
+                </div>
+
+                {/* Live BMI & Health Indicator */}
+                <div className="p-2 rounded-xl bg-surface border-theme/80 flex items-center justify-between">
+                  <div className="flex items-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5 text-accent shrink-0" />
+                    <span className="text-[10px] font-bold text-secondary">
+                      {liveBmi ? 'Computed BMI:' : 'Composition:'}
+                    </span>
+                  </div>
+                  {liveBmi ? (
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-xs font-extrabold text-primary">{liveBmi.bmi}</span>
+                      <span className={`text-[10px] font-bold px-1.5 py-1.5 rounded-md border ${liveBmi.badgeClass}`}>
+                        {liveBmi.label}
+                      </span>
+                    </div>
+                  ) : (
+                    <span className="text-[10px] text-tertiary">
+                      Enter height & weight
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Notes Input */}
+              <div className="p-2.5 bg-subtle/30border-theme">
+                <label className="block text-[10px] font-bold text-secondary uppercase tracking-wider mb-1">
+                  {t('common.notes', 'Notes')} ({t('common.optional', 'Optional')})
+                </label>
+                <input
+                  type="text"
+                  placeholder={t('fitness.measurementNotesPlaceholder', 'e.g. Morning weigh-in after fasting, post-workout pump')}
+                  value={mNotes}
+                  onChange={(e) => setMNotes(e.target.value)}
+                  className="w-full bg-surface border border-theme rounded-xl px-2.5 py-1.5 text-xs text-primary focus:outline-none focus:border-accent"
+                />
+              </div>
+            </div>
+
+            {/* Right Column (7 Cols): Circumferences Matrix */}
+            <div className="md:col-span-7 p-3 bg-subtle/30 rounded-2xl border border-theme flex flex-col justify-between space-y-2.5">
+              <div className="flex items-center justify-between pb-1.5 border-b border-theme/60">
+                <span className="text-[11px] font-extrabold text-primary uppercase tracking-wider flex items-center gap-1.5">
+                  <Activity className="w-3.5 h-3.5 text-indigo-500" /> {t('fitness.bodyDimensions', 'Body Dimensions')}
+                </span>
+                <span className="text-[10px] text-secondary font-semibold">
+                  Unit: {unitSystem === 'metric' ? 'cm' : 'inches'} (Optional)
+                </span>
+              </div>
+
+              {/* Upper Body Circumferences */}
+              <div className="space-y-1.5">
+                <div className="flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-indigo-500"></span>
+                  <span className="text-[10px] font-bold text-secondary uppercase tracking-wider">
+                    {t('fitness.upperBody', 'Upper Body')}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-6 gap-1.5">
+                  {/* Chest */}
+                  <div className="col-span-2 p-1.5 rounded-xl bg-surface border-theme shadow-xs">
+                    <label className="block text-[9px] font-bold text-secondary uppercase tracking-wider mb-0.5">
+                      {t('fitness.chest', 'Chest')}
+                    </label>
+                    <input
+                      type="number"
+                      step="0.1"
+                      placeholder={unitSystem === 'metric' ? 'e.g. 98' : 'e.g. 38.5'}
+                      value={mChest}
+                      onChange={(e) => setMChest(e.target.value)}
+                      className="w-full bg-subtle/60 border border-theme rounded-lg px-2 py-1.5 text-xs font-bold text-primary focus:outline-none focus:border-accent"
+                    />
+                  </div>
+
+                  {/* Waist */}
+                  <div className="col-span-2 p-1.5 rounded-xl bg-surface border-theme shadow-xs">
+                    <label className="block text-[9px] font-bold text-secondary uppercase tracking-wider mb-0.5">
+                      {t('fitness.waist', 'Waist')}
+                    </label>
+                    <input
+                      type="number"
+                      step="0.1"
+                      placeholder={unitSystem === 'metric' ? 'e.g. 82' : 'e.g. 32.3'}
+                      value={mWaist}
+                      onChange={(e) => setMWaist(e.target.value)}
+                      className="w-full bg-subtle/60 border border-theme rounded-lg px-2 py-1.5 text-xs font-bold text-primary focus:outline-none focus:border-accent"
+                    />
+                  </div>
+
+                  {/* Arms / Biceps */}
+                  <div className="col-span-2 p-1.5 rounded-xl bg-surface border-theme shadow-xs">
+                    <label className="block text-[9px] font-bold text-secondary uppercase tracking-wider mb-0.5">
+                      {t('fitness.arms', 'Arms')}
+                    </label>
+                    <input
+                      type="number"
+                      step="0.1"
+                      placeholder={unitSystem === 'metric' ? 'e.g. 36' : 'e.g. 14.2'}
+                      value={mArm}
+                      onChange={(e) => setMArm(e.target.value)}
+                      className="w-full bg-subtle/60 border border-theme rounded-lg px-2 py-1.5 text-xs font-bold text-primary focus:outline-none focus:border-accent"
+                    />
+                  </div>
+
+                  {/* Shoulders */}
+                  <div className="col-span-3 p-1.5 rounded-xl bg-surface border-theme shadow-xs">
+                    <label className="block text-[9px] font-bold text-secondary uppercase tracking-wider mb-0.5">
+                      {t('fitness.shoulders', 'Shoulders')}
+                    </label>
+                    <input
+                      type="number"
+                      step="0.1"
+                      placeholder={unitSystem === 'metric' ? 'e.g. 115' : 'e.g. 45.2'}
+                      value={mShoulders}
+                      onChange={(e) => setMShoulders(e.target.value)}
+                      className="w-full bg-subtle/60 border border-theme rounded-lg px-2 py-1.5 text-xs font-bold text-primary focus:outline-none focus:border-accent"
+                    />
+                  </div>
+
+                  {/* Neck */}
+                  <div className="col-span-3 p-1.5 rounded-xl bg-surface border-theme shadow-xs">
+                    <label className="block text-[9px] font-bold text-secondary uppercase tracking-wider mb-0.5">
+                      {t('fitness.neck', 'Neck')}
+                    </label>
+                    <input
+                      type="number"
+                      step="0.1"
+                      placeholder={unitSystem === 'metric' ? 'e.g. 38' : 'e.g. 15.0'}
+                      value={mNeck}
+                      onChange={(e) => setMNeck(e.target.value)}
+                      className="w-full bg-subtle/60 border border-theme rounded-lg px-2 py-1.5 text-xs font-bold text-primary focus:outline-none focus:border-accent"
+                    />
                   </div>
                 </div>
               </div>
 
-              {/* Height */}
-              <div className="p-2.5 rounded-xl bg-surface border border-theme shadow-xs">
-                <div className="flex items-center justify-between mb-1">
-                  <label className="block text-[10px] font-bold text-secondary uppercase tracking-wider">
-                    {t('fitness.height')} ({unitSystem === 'metric' ? 'cm' : 'in'})
-                  </label>
-                  <span className="text-[9px] text-secondary font-semibold">{t('common.optional')}</span>
+              {/* Lower Body Circumferences */}
+              <div className="space-y-1.5 pt-1 border-t border-theme/40">
+                <div className="flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-teal-500"></span>
+                  <span className="text-[10px] font-bold text-secondary uppercase tracking-wider">
+                    {t('fitness.lowerBody', 'Lower Body')}
+                  </span>
                 </div>
-                <input
-                  type="number"
-                  step="0.5"
-                  placeholder={unitSystem === 'metric' ? 'e.g. 178' : 'e.g. 70'}
-                  value={mHeight}
-                  onChange={(e) => setMHeight(e.target.value)}
-                  className="w-full bg-subtle/60 border border-theme rounded-lg px-2.5 py-1.5 text-xs font-bold text-primary focus:outline-none focus:border-accent"
-                />
-              </div>
 
-              {/* Body Fat % */}
-              <div className="p-2.5 rounded-xl bg-surface border border-theme shadow-xs">
-                <div className="flex items-center justify-between mb-1">
-                  <label className="block text-[10px] font-bold text-secondary uppercase tracking-wider">
-                    {t('fitness.bodyFat')}
-                  </label>
-                  <span className="text-[9px] text-secondary font-semibold">{t('common.optional')}</span>
+                <div className="grid grid-cols-3 gap-1.5">
+                  {/* Hips */}
+                  <div className="p-1.5 rounded-xl bg-surface border-theme shadow-xs">
+                    <label className="block text-[9px] font-bold text-secondary uppercase tracking-wider mb-0.5">
+                      {t('fitness.hips', 'Hips')}
+                    </label>
+                    <input
+                      type="number"
+                      step="0.1"
+                      placeholder={unitSystem === 'metric' ? 'e.g. 96' : 'e.g. 37.8'}
+                      value={mHips}
+                      onChange={(e) => setMHips(e.target.value)}
+                      className="w-full bg-subtle/60 border border-theme rounded-lg px-2 py-1.5 text-xs font-bold text-primary focus:outline-none focus:border-accent"
+                    />
+                  </div>
+
+                  {/* Thighs */}
+                  <div className="p-1.5 rounded-xl bg-surface border-theme shadow-xs">
+                    <label className="block text-[9px] font-bold text-secondary uppercase tracking-wider mb-0.5">
+                      {t('fitness.thighs', 'Thighs')}
+                    </label>
+                    <input
+                      type="number"
+                      step="0.1"
+                      placeholder={unitSystem === 'metric' ? 'e.g. 56' : 'e.g. 22.0'}
+                      value={mThighs}
+                      onChange={(e) => setMThighs(e.target.value)}
+                      className="w-full bg-subtle/60 border border-theme rounded-lg px-2 py-1.5 text-xs font-bold text-primary focus:outline-none focus:border-accent"
+                    />
+                  </div>
+
+                  {/* Calves */}
+                  <div className="p-1.5 rounded-xl bg-surface border-theme shadow-xs">
+                    <label className="block text-[9px] font-bold text-secondary uppercase tracking-wider mb-0.5">
+                      {t('fitness.calves', 'Calves')}
+                    </label>
+                    <input
+                      type="number"
+                      step="0.1"
+                      placeholder={unitSystem === 'metric' ? 'e.g. 37' : 'e.g. 14.5'}
+                      value={mCalves}
+                      onChange={(e) => setMCalves(e.target.value)}
+                      className="w-full bg-subtle/60 border border-theme rounded-lg px-2 py-1.5 text-xs font-bold text-primary focus:outline-none focus:border-accent"
+                    />
+                  </div>
                 </div>
-                <input
-                  type="number"
-                  step="0.1"
-                  min="3"
-                  max="60"
-                  placeholder="e.g. 15.5"
-                  value={mBodyFat}
-                  onChange={(e) => setMBodyFat(e.target.value)}
-                  className="w-full bg-subtle/60 border border-theme rounded-lg px-2.5 py-1.5 text-xs font-bold text-primary focus:outline-none focus:border-accent"
-                />
               </div>
             </div>
           </div>
 
-          {/* Section 2: Upper Body Circumferences */}
-          <div className="space-y-3 p-3.5 bg-subtle/50 rounded-2xl border border-theme">
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-extrabold text-secondary uppercase tracking-wider flex items-center gap-1.5">
-                <Activity className="w-3.5 h-3.5 text-indigo-500" /> {t('fitness.upperBodyCircumferences')}
-              </span>
-              <span className="text-[10px] text-secondary font-semibold">
-                Unit: {unitSystem === 'metric' ? 'cm' : 'inches'} ({t('common.optional')})
-              </span>
-            </div>
-
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-              {/* Chest */}
-              <div className="p-2 rounded-xl bg-surface border border-theme shadow-xs">
-                <label className="block text-[10px] font-bold text-secondary uppercase tracking-wider mb-1">
-                  {t('fitness.chest')}
-                </label>
-                <input
-                  type="number"
-                  step="0.1"
-                  placeholder={unitSystem === 'metric' ? 'e.g. 98' : 'e.g. 38.5'}
-                  value={mChest}
-                  onChange={(e) => setMChest(e.target.value)}
-                  className="w-full bg-subtle/60 border border-theme rounded-lg px-2 py-1 text-xs font-bold text-primary focus:outline-none focus:border-accent"
-                />
-              </div>
-
-              {/* Waist */}
-              <div className="p-2 rounded-xl bg-surface border border-theme shadow-xs">
-                <label className="block text-[10px] font-bold text-secondary uppercase tracking-wider mb-1">
-                  {t('fitness.waist')}
-                </label>
-                <input
-                  type="number"
-                  step="0.1"
-                  placeholder={unitSystem === 'metric' ? 'e.g. 82' : 'e.g. 32.3'}
-                  value={mWaist}
-                  onChange={(e) => setMWaist(e.target.value)}
-                  className="w-full bg-subtle/60 border border-theme rounded-lg px-2 py-1 text-xs font-bold text-primary focus:outline-none focus:border-accent"
-                />
-              </div>
-
-              {/* Arms / Biceps */}
-              <div className="p-2 rounded-xl bg-surface border border-theme shadow-xs">
-                <label className="block text-[10px] font-bold text-secondary uppercase tracking-wider mb-1">
-                  {t('fitness.arms')}
-                </label>
-                <input
-                  type="number"
-                  step="0.1"
-                  placeholder={unitSystem === 'metric' ? 'e.g. 36' : 'e.g. 14.2'}
-                  value={mArm}
-                  onChange={(e) => setMArm(e.target.value)}
-                  className="w-full bg-subtle/60 border border-theme rounded-lg px-2 py-1 text-xs font-bold text-primary focus:outline-none focus:border-accent"
-                />
-              </div>
-
-              {/* Shoulders */}
-              <div className="p-2 rounded-xl bg-surface border border-theme shadow-xs">
-                <label className="block text-[10px] font-bold text-secondary uppercase tracking-wider mb-1">
-                  {t('fitness.shoulders')}
-                </label>
-                <input
-                  type="number"
-                  step="0.1"
-                  placeholder={unitSystem === 'metric' ? 'e.g. 115' : 'e.g. 45.2'}
-                  value={mShoulders}
-                  onChange={(e) => setMShoulders(e.target.value)}
-                  className="w-full bg-subtle/60 border border-theme rounded-lg px-2 py-1 text-xs font-bold text-primary focus:outline-none focus:border-accent"
-                />
-              </div>
-
-              {/* Neck */}
-              <div className="p-2 rounded-xl bg-surface border border-theme shadow-xs sm:col-span-2">
-                <label className="block text-[10px] font-bold text-secondary uppercase tracking-wider mb-1">
-                  {t('fitness.neck')}
-                </label>
-                <input
-                  type="number"
-                  step="0.1"
-                  placeholder={unitSystem === 'metric' ? 'e.g. 38' : 'e.g. 15.0'}
-                  value={mNeck}
-                  onChange={(e) => setMNeck(e.target.value)}
-                  className="w-full bg-subtle/60 border border-theme rounded-lg px-2 py-1 text-xs font-bold text-primary focus:outline-none focus:border-accent"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Section 3: Lower Body Circumferences */}
-          <div className="space-y-3 p-3.5 bg-subtle/50 rounded-2xl border border-theme">
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-extrabold text-secondary uppercase tracking-wider flex items-center gap-1.5">
-                <Zap className="w-3.5 h-3.5 text-teal-500" /> {t('fitness.lowerBodyCircumferences')}
-              </span>
-              <span className="text-[10px] text-secondary font-semibold">
-                Unit: {unitSystem === 'metric' ? 'cm' : 'inches'} ({t('common.optional')})
-              </span>
-            </div>
-
-            <div className="grid grid-cols-3 gap-2.5">
-              {/* Hips */}
-              <div className="p-2 rounded-xl bg-surface border border-theme shadow-xs">
-                <label className="block text-[10px] font-bold text-secondary uppercase tracking-wider mb-1">
-                  {t('fitness.hips')}
-                </label>
-                <input
-                  type="number"
-                  step="0.1"
-                  placeholder={unitSystem === 'metric' ? 'e.g. 96' : 'e.g. 37.8'}
-                  value={mHips}
-                  onChange={(e) => setMHips(e.target.value)}
-                  className="w-full bg-subtle/60 border border-theme rounded-lg px-2 py-1 text-xs font-bold text-primary focus:outline-none focus:border-accent"
-                />
-              </div>
-
-              {/* Thighs */}
-              <div className="p-2 rounded-xl bg-surface border border-theme shadow-xs">
-                <label className="block text-[10px] font-bold text-secondary uppercase tracking-wider mb-1">
-                  {t('fitness.thighs')}
-                </label>
-                <input
-                  type="number"
-                  step="0.1"
-                  placeholder={unitSystem === 'metric' ? 'e.g. 56' : 'e.g. 22.0'}
-                  value={mThighs}
-                  onChange={(e) => setMThighs(e.target.value)}
-                  className="w-full bg-subtle/60 border border-theme rounded-lg px-2 py-1 text-xs font-bold text-primary focus:outline-none focus:border-accent"
-                />
-              </div>
-
-              {/* Calves */}
-              <div className="p-2 rounded-xl bg-surface border border-theme shadow-xs">
-                <label className="block text-[10px] font-bold text-secondary uppercase tracking-wider mb-1">
-                  {t('fitness.calves')}
-                </label>
-                <input
-                  type="number"
-                  step="0.1"
-                  placeholder={unitSystem === 'metric' ? 'e.g. 37' : 'e.g. 14.5'}
-                  value={mCalves}
-                  onChange={(e) => setMCalves(e.target.value)}
-                  className="w-full bg-subtle/60 border border-theme rounded-lg px-2 py-1 text-xs font-bold text-primary focus:outline-none focus:border-accent"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Section 4: Notes */}
-          <div>
-            <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5">
-              {t('common.notes')} ({t('common.optional')})
-            </label>
-            <input
-              type="text"
-              placeholder={t('fitness.measurementNotesPlaceholder')}
-              value={mNotes}
-              onChange={(e) => setMNotes(e.target.value)}
-              className="input-base text-xs"
-            />
-          </div>
-
-          <div className="flex justify-end gap-3 pt-3 border-t border-subtle">
+          {/* Footer Actions */}
+          <div className="flex justify-end gap-2.5 pt-2.5 border-t border-subtle">
             <Button variant="secondary" onClick={() => setIsMetricModalOpen(false)}>
-              {t('common.cancel')}
+              {t('common.cancel', 'Cancel')}
             </Button>
             <Button type="submit" variant="primary" loading={savingMetric}>
-              {editingMetricId ? t('fitness.updateMeasurements') : t('fitness.saveMeasurements')}
+              {editingMetricId ? t('fitness.updateMeasurements', 'Update Measurements') : t('fitness.saveMeasurements', 'Save Measurements')}
             </Button>
           </div>
         </form>
