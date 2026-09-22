@@ -97,10 +97,12 @@ export const Auth = () => {
 
   const { login, register, loginWithGoogle } = useAuth();
   const { effectiveTheme } = useTheme();
+  const { t } = useLanguage();
   const navigate = useNavigate();
 
   const googleBtnContainerRef = useRef(null);
   const tokenClientRef = useRef(null);
+  const isGoogleIdInitializedRef = useRef(false);
 
   const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
@@ -120,6 +122,29 @@ export const Auth = () => {
       setError('Google sign-in failed. Please try again.');
     }
   };
+
+  // Handle Google Token Response from background Google Sign-In button
+  const handleGoogleCredentialResponse = async (response) => {
+    if (!response?.credential) return;
+    setGoogleLoading(true);
+    setError('');
+    try {
+      await loginWithGoogle({
+        credential: response.credential,
+        name: name?.trim() || undefined,
+      });
+      navigate('/dashboard');
+    } catch (err) {
+      handleAuthError(err);
+    } finally {
+      setGoogleLoading(false);
+    }
+  };
+
+  const handleCredentialResponseRef = useRef(handleGoogleCredentialResponse);
+  useEffect(() => {
+    handleCredentialResponseRef.current = handleGoogleCredentialResponse;
+  });
 
   // Initialize Google Identity Services & OAuth2 Token Client
   useEffect(() => {
@@ -179,12 +204,15 @@ export const Auth = () => {
       // 2. Initialize Identity Services (ID Token / One Tap in background)
       if (window.google?.accounts?.id) {
         try {
-          window.google.accounts.id.initialize({
-            client_id: googleClientId,
-            callback: handleGoogleCredentialResponse,
-            auto_select: false,
-            use_fedcm_for_prompt: false,
-          });
+          if (!isGoogleIdInitializedRef.current) {
+            window.google.accounts.id.initialize({
+              client_id: googleClientId,
+              callback: (res) => handleCredentialResponseRef.current?.(res),
+              auto_select: false,
+              use_fedcm_for_prompt: false,
+            });
+            isGoogleIdInitializedRef.current = true;
+          }
 
           if (googleBtnContainerRef.current) {
             googleBtnContainerRef.current.innerHTML = '';
@@ -216,24 +244,6 @@ export const Auth = () => {
       return () => clearInterval(timer);
     }
   }, [googleClientId, isLogin, effectiveTheme]);
-
-  // Handle Google Token Response from background Google Sign-In button
-  const handleGoogleCredentialResponse = async (response) => {
-    if (!response?.credential) return;
-    setGoogleLoading(true);
-    setError('');
-    try {
-      await loginWithGoogle({
-        credential: response.credential,
-        name: name?.trim() || undefined,
-      });
-      navigate('/dashboard');
-    } catch (err) {
-      handleAuthError(err);
-    } finally {
-      setGoogleLoading(false);
-    }
-  };
 
   // Google button click handler (uses OAuth2 token client popup)
   const handleGoogleClick = () => {
