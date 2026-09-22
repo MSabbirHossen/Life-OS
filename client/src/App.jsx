@@ -17,6 +17,7 @@ import { FitnessTracker } from './pages/FitnessTracker';
 import { CalorieTracker } from './pages/CalorieTracker';
 import { FinanceTracker } from './pages/FinanceTracker';
 import { IslamicTracker } from './pages/IslamicTracker';
+import { IslamicFastingTracker } from './pages/IslamicFastingTracker';
 import { QadaMatrix } from './pages/QadaMatrix';
 import { HabitsTracker } from './pages/HabitsTracker';
 import { GoalsTracker } from './pages/GoalsTracker';
@@ -179,6 +180,18 @@ export function App() {
                     <IslamicTracker />
                   </ProtectedRoute>
                 }
+              />
+              <Route
+                path="/islamic-fasting"
+                element={
+                  <ProtectedRoute selectedDate={selectedDate} setSelectedDate={setSelectedDate}>
+                    <IslamicFastingTracker selectedDate={selectedDate} />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/sawm"
+                element={<Navigate to="/islamic-fasting" replace />}
               />
               <Route
                 path="/qada-matrix"
