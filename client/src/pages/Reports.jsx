@@ -188,7 +188,7 @@ export const Reports = () => {
                   <div className="flex items-center gap-1.5">
                     <button
                       onClick={() => setDeleteId(rev._id)}
-                      className="p-1.5 rounded-lg bg-surface/90 dark:bg-surface/90 backdrop-blur-xs border border-theme/60 text-secondary hover:text-rose-600 hover:border-rose-500/40 hover:bg-rose-500/10 shadow-xs transition-all cursor-pointer"
+                      className="p-1.5 rounded-lg bg-surface border border-theme text-secondary hover:text-rose-600 hover:border-rose-500/40 hover:bg-rose-500/10 shadow-xs transition-all cursor-pointer"
                       title={t('common.delete')}
                     >
                       <Trash2 className="w-3.5 h-3.5" />
@@ -262,93 +262,101 @@ export const Reports = () => {
         onClose={() => setIsModalOpen(false)}
         title={t('reports.newReview')}
         subtitle={t('reports.newReviewSubtitle')}
-        maxWidth="max-w-xl"
+        maxWidth="max-w-4xl"
       >
-        <form onSubmit={handleCreateReview} className="space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div>
-              <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5">
-                {t('reports.reviewCycle')}
-              </label>
-              <select
-                value={type}
-                onChange={(e) => setType(e.target.value)}
-                className="select-base"
-              >
-                <option value="weekly">{t('reports.weekly')}</option>
-                <option value="monthly">{t('reports.monthly')}</option>
-              </select>
+        <form onSubmit={handleCreateReview} className="space-y-4 pb-1">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-start">
+            {/* Left Column: Cycle, Dates & Wins */}
+            <div className="md:col-span-6 space-y-3.5">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                <div>
+                  <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5">
+                    {t('reports.reviewCycle')}
+                  </label>
+                  <select
+                    value={type}
+                    onChange={(e) => setType(e.target.value)}
+                    className="select-base text-xs"
+                  >
+                    <option value="weekly">{t('reports.weekly')}</option>
+                    <option value="monthly">{t('reports.monthly')}</option>
+                  </select>
+                </div>
+
+                <DateInput
+                  label={t('reports.startDate')}
+                  value={startDate}
+                  onChange={setStartDate}
+                />
+
+                <DateInput
+                  label={t('reports.endDate')}
+                  value={endDate}
+                  onChange={setEndDate}
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                  <CheckCircle2 className="w-3.5 h-3.5" /> 1. {t('reports.whatWentWell')}
+                </label>
+                <textarea
+                  rows={3}
+                  required
+                  placeholder={t('reports.whatWentWellPlaceholder')}
+                  value={whatWentWell}
+                  onChange={(e) => setWhatWentWell(e.target.value)}
+                  className="textarea-base text-xs min-h-[90px]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5">
+                  {t('reports.actionItems')} ({t('common.optional')})
+                </label>
+                <input
+                  type="text"
+                  placeholder={t('reports.actionItemsPlaceholder')}
+                  value={actionItems}
+                  onChange={(e) => setActionItems(e.target.value)}
+                  className="input-base text-xs"
+                />
+              </div>
             </div>
 
-            <DateInput
-              label={t('reports.startDate')}
-              value={startDate}
-              onChange={setStartDate}
-            />
+            {/* Right Column: Challenges & Solutions */}
+            <div className="md:col-span-6 space-y-3.5">
+              <div>
+                <label className="block text-xs font-bold text-[var(--color-danger)] uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                  <AlertCircle className="w-3.5 h-3.5" /> 2. {t('reports.whatDidntGoWell')}
+                </label>
+                <textarea
+                  rows={3}
+                  required
+                  placeholder={t('reports.whatDidntGoWellPlaceholder')}
+                  value={whatDidntGoWell}
+                  onChange={(e) => setWhatDidntGoWell(e.target.value)}
+                  className="textarea-base text-xs min-h-[90px]"
+                />
+              </div>
 
-            <DateInput
-              label={t('reports.endDate')}
-              value={endDate}
-              onChange={setEndDate}
-            />
+              <div>
+                <label className="block text-xs font-bold text-accent uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5" /> 3. {t('reports.howToImprove')}
+                </label>
+                <textarea
+                  rows={3}
+                  required
+                  placeholder={t('reports.howToImprovePlaceholder')}
+                  value={howToImprove}
+                  onChange={(e) => setHowToImprove(e.target.value)}
+                  className="textarea-base text-xs min-h-[90px]"
+                />
+              </div>
+            </div>
           </div>
 
-          <div>
-            <label className="block text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider mb-1.5">
-              1. {t('reports.whatWentWell')}
-            </label>
-            <textarea
-              rows={2}
-              required
-              placeholder={t('reports.whatWentWellPlaceholder')}
-              value={whatWentWell}
-              onChange={(e) => setWhatWentWell(e.target.value)}
-              className="textarea-base"
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-bold text-[var(--color-danger)] uppercase tracking-wider mb-1.5">
-              2. {t('reports.whatDidntGoWell')}
-            </label>
-            <textarea
-              rows={2}
-              required
-              placeholder={t('reports.whatDidntGoWellPlaceholder')}
-              value={whatDidntGoWell}
-              onChange={(e) => setWhatDidntGoWell(e.target.value)}
-              className="textarea-base"
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-bold text-accent uppercase tracking-wider mb-1.5">
-              3. {t('reports.howToImprove')}
-            </label>
-            <textarea
-              rows={2}
-              required
-              placeholder={t('reports.howToImprovePlaceholder')}
-              value={howToImprove}
-              onChange={(e) => setHowToImprove(e.target.value)}
-              className="textarea-base"
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5">
-              {t('reports.actionItems')} ({t('common.optional')})
-            </label>
-            <input
-              type="text"
-              placeholder={t('reports.actionItemsPlaceholder')}
-              value={actionItems}
-              onChange={(e) => setActionItems(e.target.value)}
-              className="input-base"
-            />
-          </div>
-
-          <div className="flex justify-end gap-3 pt-3 border-t border-subtle">
+          <div className="flex justify-end gap-3 pt-3 border-t border-subtle mt-1">
             <Button variant="secondary" onClick={() => setIsModalOpen(false)}>
               {t('common.cancel')}
             </Button>
