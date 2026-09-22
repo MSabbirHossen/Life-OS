@@ -64,9 +64,11 @@ export const Journal = ({ selectedDate }) => {
     setLoadingPrompt(true);
     try {
       const res = await api.get('/journal/prompt');
-      setPrompt(res.data);
-      if (!editingEntry) {
-        setFormPromptQuestion(res.data.question);
+      if (res.data) {
+        setPrompt(res.data);
+        if (!editingEntry && res.data.question) {
+          setFormPromptQuestion(res.data.question);
+        }
       }
     } catch (err) {
       console.error('Failed to fetch journal prompt', err);
@@ -266,14 +268,14 @@ export const Journal = ({ selectedDate }) => {
                   <div className="flex items-center gap-1.5">
                     <button
                       onClick={() => openEditModal(entry)}
-                      className="p-1.5 rounded-lg bg-surface/90 dark:bg-surface/90 backdrop-blur-xs border border-theme/60 text-secondary hover:text-accent hover:border-accent/40 hover:bg-accent/10 shadow-xs transition-all cursor-pointer"
+                      className="p-1.5 rounded-lg bg-surface border border-theme text-secondary hover:text-accent hover:border-accent/40 hover:bg-accent/10 shadow-xs transition-all cursor-pointer"
                       title={t('common.edit')}
                     >
                       <Edit2 className="w-3.5 h-3.5" />
                     </button>
                     <button
                       onClick={() => setDeleteId(entry._id)}
-                      className="p-1.5 rounded-lg bg-surface/90 dark:bg-surface/90 backdrop-blur-xs border border-theme/60 text-secondary hover:text-rose-600 hover:border-rose-500/40 hover:bg-rose-500/10 shadow-xs transition-all cursor-pointer"
+                      className="p-1.5 rounded-lg bg-surface border border-theme text-secondary hover:text-rose-600 hover:border-rose-500/40 hover:bg-rose-500/10 shadow-xs transition-all cursor-pointer"
                       title={t('common.delete')}
                     >
                       <Trash2 className="w-3.5 h-3.5" />
@@ -351,153 +353,173 @@ export const Journal = ({ selectedDate }) => {
         onClose={() => setIsModalOpen(false)}
         title={editingEntry ? `${t('common.edit')} ${t('reflection.title')}` : t('reflection.newEntry')}
         subtitle={`${t('reflection.recordingThoughtsFor')} ${formatDisplayDate(formDate)}`}
-        maxWidth="max-w-2xl"
+        maxWidth="max-w-4xl"
       >
-        <form onSubmit={handleSubmit} className="space-y-5 pb-1">
-          {/* Date and Moods Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
-            <div className="lg:col-span-5">
-              <DateInput
-                label={t('common.date')}
-                value={formDate}
-                onChange={setFormDate}
-                required
-              />
-            </div>
-            <div className="lg:col-span-7">
-              <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5">
-                {t('reflection.mood')}
-              </label>
-              <div className="flex flex-wrap gap-1.5">
-                {MOOD_OPTIONS.map((m) => {
-                  const isSelected = selectedMoods.includes(m.label);
-                  return (
-                    <button
-                      key={m.label}
-                      type="button"
-                      onClick={() => toggleMood(m.label)}
-                      className={`px-2.5 py-1 rounded-xl text-xs font-semibold flex items-center gap-1.5 border transition-all cursor-pointer select-none ${
-                        isSelected
-                          ? 'bg-accent/15 border-accent text-accent shadow-xs'
-                          : 'bg-subtle text-secondary border-theme hover:text-primary hover:bg-subtle/80'
-                      }`}
-                    >
-                      <span>{m.emoji}</span>
-                      <span>{m.label}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-
-          {/* Guided Prompt Card */}
-          {formPromptQuestion && (
-            <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-indigo-500/10 via-purple-500/5 to-indigo-500/5 border border-indigo-500/25 shadow-xs space-y-2.5">
-              <div className="flex items-center gap-2">
-                <Badge variant="purple" size="xs">
-                  <Sparkles className="w-3 h-3 mr-1 text-purple-500" /> {t('reflection.guidedPrompt')}
-                </Badge>
-              </div>
-              <h4 className="text-sm sm:text-base font-bold text-primary leading-relaxed">
-                "{formPromptQuestion}"
-              </h4>
-              <textarea
-                rows={2}
-                placeholder={t('reflection.writeReflectionPrompt')}
-                value={promptAnswer}
-                onChange={(e) => setPromptAnswer(e.target.value)}
-                className="textarea-base text-sm bg-surface/90 placeholder:text-muted"
-              />
-            </div>
-          )}
-
-          {/* Dual Columns: Highlights & Challenges */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
-                <span>✨</span> {t('reflection.wins')}
-              </label>
-              <textarea
-                rows={2}
-                placeholder={t('reflection.winsPlaceholder')}
-                value={highlights}
-                onChange={(e) => setHighlights(e.target.value)}
-                className="textarea-base min-h-[75px] text-sm"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
-                <span>⚡</span> {t('reflection.obstacles')}
-              </label>
-              <textarea
-                rows={2}
-                placeholder={t('reflection.obstaclesPlaceholder')}
-                value={problemsFaced}
-                onChange={(e) => setProblemsFaced(e.target.value)}
-                className="textarea-base min-h-[75px] text-sm"
-              />
-            </div>
-          </div>
-
-          {/* Gratitude List */}
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <label className="text-xs font-bold text-secondary uppercase tracking-wider flex items-center gap-1.5">
-                <span>🙏</span> {t('reflection.gratitudeList')}
-              </label>
-              <button
-                type="button"
-                onClick={addGratitudeItem}
-                className="inline-flex items-center gap-1 text-xs font-bold text-accent hover:text-accent-hover transition-colors cursor-pointer"
-              >
-                <Plus className="w-3.5 h-3.5" /> {t('reflection.addBlessing')}
-              </button>
-            </div>
-            <div className="space-y-2">
-              {gratitudeList.map((g, idx) => (
-                <div key={idx} className="flex items-center gap-2">
-                  <div className="w-6 h-6 rounded-lg bg-accent/10 border border-accent/20 flex items-center justify-center shrink-0 text-accent font-bold text-[11px]">
-                    #{idx + 1}
-                  </div>
-                  <input
-                    type="text"
-                    placeholder={`${t('reflection.appreciatePlaceholder')} #${idx + 1}...`}
-                    value={g}
-                    onChange={(e) => handleGratitudeChange(idx, e.target.value)}
-                    className="input-base text-sm"
+        <form onSubmit={handleSubmit} className="space-y-4 pb-1">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-start">
+            {/* Left Column: Date, Moods, Wins, Challenges, Tomorrow */}
+            <div className="md:col-span-6 space-y-3.5">
+              <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-start">
+                <div className="sm:col-span-5">
+                  <DateInput
+                    label={t('common.date')}
+                    value={formDate}
+                    onChange={setFormDate}
+                    required
                   />
-                  {gratitudeList.length > 1 && (
-                    <button
-                      type="button"
-                      onClick={() => removeGratitudeItem(idx)}
-                      className="p-2 text-secondary hover:text-rose-600 hover:bg-rose-500/10 rounded-xl transition-colors cursor-pointer shrink-0"
-                      title={t('common.delete')}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  )}
                 </div>
-              ))}
-            </div>
-          </div>
+                <div className="sm:col-span-7">
+                  <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5">
+                    {t('reflection.mood')}
+                  </label>
+                  <div className="flex flex-wrap gap-1.5">
+                    {MOOD_OPTIONS.map((m) => {
+                      const isSelected = selectedMoods.includes(m.label);
+                      return (
+                        <button
+                          key={m.label}
+                          type="button"
+                          onClick={() => handleMoodToggle(m.label)}
+                          className={`px-2.5 py-1 rounded-xl text-xs font-semibold flex items-center gap-1.5 border transition-all cursor-pointer select-none ${
+                            isSelected
+                              ? 'bg-accent/15 border-accent text-accent shadow-xs'
+                              : 'bg-subtle text-secondary border-theme hover:text-primary hover:bg-subtle/80'
+                          }`}
+                        >
+                          <span>{m.emoji}</span>
+                          <span>{m.label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
 
-          {/* Notes for Tomorrow */}
-          <div>
-            <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
-              <span>🎯</span> {t('reflection.tomorrowPlan')}
-            </label>
-            <input
-              type="text"
-              placeholder={t('reflection.tomorrowPlaceholder')}
-              value={notesForTomorrow}
-              onChange={(e) => setNotesForTomorrow(e.target.value)}
-              className="input-base text-sm"
-            />
+              {/* Wins & Highlights */}
+              <div>
+                <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1 flex items-center gap-1.5">
+                  <span>✨</span> {t('reflection.wins')}
+                </label>
+                <textarea
+                  rows={2}
+                  placeholder={t('reflection.winsPlaceholder')}
+                  value={highlights}
+                  onChange={(e) => setHighlights(e.target.value)}
+                  className="textarea-base min-h-[65px] text-xs"
+                />
+              </div>
+
+              {/* Obstacles & Challenges */}
+              <div>
+                <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1 flex items-center gap-1.5">
+                  <span>⚡</span> {t('reflection.obstacles')}
+                </label>
+                <textarea
+                  rows={2}
+                  placeholder={t('reflection.obstaclesPlaceholder')}
+                  value={problemsFaced}
+                  onChange={(e) => setProblemsFaced(e.target.value)}
+                  className="textarea-base min-h-[65px] text-xs"
+                />
+              </div>
+
+              {/* Notes for Tomorrow */}
+              <div>
+                <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-1 flex items-center gap-1.5">
+                  <span>🎯</span> {t('reflection.tomorrowPlan')}
+                </label>
+                <input
+                  type="text"
+                  placeholder={t('reflection.tomorrowPlaceholder')}
+                  value={notesForTomorrow}
+                  onChange={(e) => setNotesForTomorrow(e.target.value)}
+                  className="input-base text-xs"
+                />
+              </div>
+            </div>
+
+            {/* Right Column: Guided Reflection Prompt & Gratitude List */}
+            <div className="md:col-span-6 space-y-3.5">
+              {/* Guided Prompt Card */}
+              {formPromptQuestion ? (
+                <div className="p-3.5 rounded-2xl bg-gradient-to-br from-indigo-500/10 via-purple-500/5 to-indigo-500/5 border border-indigo-500/25 shadow-xs space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Badge variant="purple" size="xs">
+                      <Sparkles className="w-3 h-3 mr-1 text-purple-500" /> {t('reflection.guidedPrompt')}
+                    </Badge>
+                  </div>
+                  <h4 className="text-xs sm:text-sm font-bold text-primary leading-snug">
+                    "{formPromptQuestion}"
+                  </h4>
+                  <textarea
+                    rows={2}
+                    placeholder={t('reflection.writeReflectionPrompt')}
+                    value={promptAnswer}
+                    onChange={(e) => setPromptAnswer(e.target.value)}
+                    className="textarea-base text-xs bg-surface/90 placeholder:text-muted min-h-[55px]"
+                  />
+                </div>
+              ) : (
+                <div className="p-3.5 rounded-2xl bg-subtle/50 border border-theme space-y-1 text-xs">
+                  <label className="block text-xs font-bold text-secondary uppercase tracking-wider">
+                    {t('common.notes')} / Summary
+                  </label>
+                  <textarea
+                    rows={2}
+                    placeholder="Daily overall reflection and summary..."
+                    value={summary}
+                    onChange={(e) => setSummary(e.target.value)}
+                    className="textarea-base text-xs min-h-[65px]"
+                  />
+                </div>
+              )}
+
+              {/* Gratitude List */}
+              <div className="p-3.5 rounded-2xl bg-subtle/40 border border-theme space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold text-secondary uppercase tracking-wider flex items-center gap-1.5">
+                    <span>🙏</span> {t('reflection.gratitudeList')}
+                  </label>
+                  <button
+                    type="button"
+                    onClick={addGratitudeItem}
+                    className="inline-flex items-center gap-1 text-xs font-bold text-accent hover:text-accent-hover transition-colors cursor-pointer"
+                  >
+                    <Plus className="w-3.5 h-3.5" /> {t('reflection.addBlessing')}
+                  </button>
+                </div>
+                <div className="space-y-2 max-h-[180px] overflow-y-auto pr-1">
+                  {gratitudeList.map((g, idx) => (
+                    <div key={idx} className="flex items-center gap-2">
+                      <div className="w-5 h-5 rounded-lg bg-accent/10 border border-accent/20 flex items-center justify-center shrink-0 text-accent font-bold text-[10px]">
+                        #{idx + 1}
+                      </div>
+                      <input
+                        type="text"
+                        placeholder={`${t('reflection.appreciatePlaceholder')} #${idx + 1}...`}
+                        value={g}
+                        onChange={(e) => handleGratitudeChange(idx, e.target.value)}
+                        className="input-base text-xs py-1.5"
+                      />
+                      {gratitudeList.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => removeGratitudeItem(idx)}
+                          className="p-1.5 text-secondary hover:text-rose-600 hover:bg-rose-500/10 rounded-lg transition-colors cursor-pointer shrink-0"
+                          title={t('common.delete')}
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* Action Footer */}
-          <div className="flex items-center justify-end gap-3 pt-4 border-t border-theme/60 mt-2">
+          <div className="flex items-center justify-end gap-3 pt-3 border-t border-theme/60 mt-1">
             <Button variant="ghost" size="md" type="button" onClick={() => setIsModalOpen(false)}>
               {t('common.cancel')}
             </Button>
