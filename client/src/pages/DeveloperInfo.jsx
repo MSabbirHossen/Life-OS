@@ -80,7 +80,7 @@ export const SOCIAL_LINKS = [
 
   // Official Platforms
   {
-    name: 'Protfolio',
+    name: 'Portfolio',
     handle: 'msabbirhossen.github.io',
     subHandle: 'Personal Showcase',
     category: 'Platforms',
@@ -673,22 +673,15 @@ export const DeveloperInfo = ({ isCompact = false }) => {
                   <UserCheck className="w-4 h-4 text-accent" />
                   <span>Direct Creator Channel via WhatsApp</span>
                 </div>
-                <a
-                  href={getWhatsAppUrl(feedbackText)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full sm:w-auto"
+                <Button
+                  type="submit"
+                  variant="gradient"
+                  size="md"
+                  icon={Send}
+                  className="shadow-sm shadow-indigo-500/20 w-full sm:w-auto"
                 >
-                  <Button
-                    type="submit"
-                    variant="gradient"
-                    size="md"
-                    icon={Send}
-                    className="shadow-sm shadow-indigo-500/20 w-full"
-                  >
-                    Send Note to Developer
-                  </Button>
-                </a>
+                  Send Note to Developer
+                </Button>
               </div>
             </form>
           )}
