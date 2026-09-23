@@ -334,11 +334,11 @@ export const DeveloperInfo = ({ isCompact = false }) => {
       />
 
       {/* Hero Developer Showcase Card */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-600/10 via-purple-600/10 to-surface border border-indigo-500/25 p-6 sm:p-8 card-shadow">
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#003459]/10 via-[#007EA7]/10 to-surface border border-[#007EA7]/25 p-6 sm:p-8 card-shadow">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5">
             <div className="relative shrink-0">
-              <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-3xl bg-gradient-to-tr from-indigo-600 via-purple-600 to-pink-500 p-0.5 shadow-lg shadow-indigo-500/25 flex items-center justify-center">
+              <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-3xl bg-gradient-to-tr from-[#003459] via-[#007EA7] to-[#00A8E8] p-0.5 shadow-lg shadow-[#007EA7]/25 flex items-center justify-center">
                 <div className="w-full h-full bg-surface rounded-[22px] flex items-center justify-center text-primary font-black text-2xl sm:text-3xl tracking-tight">
                   MS
                 </div>

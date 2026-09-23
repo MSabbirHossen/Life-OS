@@ -7,6 +7,7 @@ import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
 import api from '../utils/api';
+import { notifyUpdated, notifyError, showSuccessToast } from '../utils/alerts';
 import { Link } from 'react-router-dom';
 import {
   Settings as SettingsIcon,
@@ -158,10 +159,12 @@ export const Settings = () => {
         await api.put('/auth/profile', payload);
       }
 
+      notifyUpdated('Profile Settings');
       setSaveSuccess(true);
       setTimeout(() => setSaveSuccess(false), 3000);
     } catch (err) {
       console.error('Failed to update settings', err);
+      notifyError(err, 'Failed to update settings');
     } finally {
       setSaving(false);
     }
@@ -182,8 +185,10 @@ export const Settings = () => {
       document.body.appendChild(downloadAnchor);
       downloadAnchor.click();
       downloadAnchor.remove();
+      showSuccessToast('Full JSON backup downloaded successfully!', 'Backup Exported');
     } catch (err) {
       console.error('Failed to export data', err);
+      notifyError(err, 'Failed to export backup data');
     } finally {
       setExportLoading(false);
     }
