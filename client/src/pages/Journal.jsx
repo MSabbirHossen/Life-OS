@@ -207,7 +207,7 @@ export const Journal = ({ selectedDate }) => {
               icon={Sparkles}
               onClick={() => setIsGuidedModalOpen(true)}
             >
-              {t('reflection.guidedReflection', 'Guided Growth Popup')}
+              {t('reflection.guidedReflection', 'Guided Self-Reflection')}
             </Button>
             <Button variant="gradient" size="md" icon={Plus} onClick={openCreateModal}>
               {t('reflection.newEntry', 'New Journal Entry')}
