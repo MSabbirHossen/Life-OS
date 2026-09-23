@@ -28,38 +28,43 @@ export const Sidebar = ({ isCollapsed, setIsCollapsed, isMobileOpen, setIsMobile
 
   const navigationGroups = [
     {
-      title: t('categories.overview', 'Overview'),
+      title: t('categories.overview', 'Executive Dashboard'),
       items: [
         { name: t('nav.dashboard', 'Dashboard'), path: '/dashboard', icon: LayoutDashboard },
       ],
     },
     {
-      title: t('categories.habits', 'Track'),
+      title: t('categories.habits', 'Consistency & Routines'),
       items: [
-        { name: t('nav.reflection', 'Journal'), path: '/journal', icon: BookOpen },
-        { name: t('nav.focus', 'Time Tracker'), path: '/time-tracker', icon: Clock },
-        { name: 'Study Tracker', path: '/study', icon: GraduationCap },
-        { name: t('nav.fitness', 'Fitness'), path: '/fitness', icon: Dumbbell },
-        { name: t('nav.calories', 'Calories'), path: '/calories', icon: Utensils },
+        { name: t('nav.habits', 'Habits Tracker'), path: '/habits', icon: CheckSquare },
+        { name: t('nav.goals', 'Goals & Milestones'), path: '/goals', icon: Target },
+        { name: t('nav.focus', 'Focus & Time'), path: '/time-tracker', icon: Clock },
+        { name: t('nav.study', 'Study Tracker'), path: '/study', icon: GraduationCap },
+        { name: t('nav.reflection', 'Reflection & Journal'), path: '/journal', icon: BookOpen },
       ],
     },
     {
-      title: t('categories.spiritual', 'Life'),
+      title: t('categories.health', 'Health & Lifestyle'),
       items: [
-        { name: 'Finance', path: '/finance', icon: Wallet },
-        { name: t('nav.adhkar', 'Islamic & Deen'), path: '/islamic', icon: Compass },
+        { name: t('nav.fitness', 'Fitness & Gym'), path: '/fitness', icon: Dumbbell },
+        { name: t('nav.calories', 'Nutrition & Macros'), path: '/calories', icon: Utensils },
+        { name: t('nav.finance', 'Finance & Wealth'), path: '/finance', icon: Wallet },
+      ],
+    },
+    {
+      title: t('categories.spiritual', 'Spiritual Discipline'),
+      items: [
+        { name: t('nav.islamic', 'Islamic & Deen Hub'), path: '/islamic', icon: Compass },
         { name: t('nav.islamicFasting', 'Fasting (Sawm)'), path: '/islamic-fasting', icon: Moon },
-        { name: t('nav.qada', 'Qada Matrix'), path: '/qada-matrix', icon: Sparkles },
-        { name: t('nav.habits', 'Habits'), path: '/habits', icon: CheckSquare },
-        { name: 'Goals', path: '/goals', icon: Target },
+        { name: t('nav.qada', 'Salah & Qada Matrix'), path: '/qada-matrix', icon: Sparkles },
       ],
     },
     {
-      title: t('categories.analytics', 'System'),
+      title: t('categories.analytics', 'Analytics & System'),
       items: [
-        { name: t('nav.reports', 'Reports'), path: '/reports', icon: FileText },
+        { name: t('nav.reports', 'Analytics & Reports'), path: '/reports', icon: FileText },
         { name: t('nav.settings', 'Settings'), path: '/settings', icon: Settings },
-        { name: 'Developer', path: '/developer', icon: Code2 },
+        { name: t('nav.developer', 'Developer Info'), path: '/developer', icon: Code2 },
       ],
     },
   ];

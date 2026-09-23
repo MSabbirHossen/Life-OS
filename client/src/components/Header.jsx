@@ -82,8 +82,8 @@ export const Header = ({ onOpenMobileMenu, selectedDate, setSelectedDate }) => {
           <button
             onClick={isRTL ? handleNextDay : handlePrevDay}
             className="p-1 rounded-lg text-secondary hover:text-primary hover:bg-surface transition-colors cursor-pointer shrink-0"
-            title={t('common.actions', 'Previous Day')}
-            aria-label="Previous Day"
+            title={t('common.prevDay', 'Previous Day')}
+            aria-label={t('common.prevDay', 'Previous Day')}
           >
             {isRTL ? <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> : <ChevronLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" />}
           </button>
@@ -105,8 +105,8 @@ export const Header = ({ onOpenMobileMenu, selectedDate, setSelectedDate }) => {
           <button
             onClick={isRTL ? handlePrevDay : handleNextDay}
             className="p-1 rounded-lg text-secondary hover:text-primary hover:bg-surface transition-colors cursor-pointer shrink-0"
-            title={t('common.actions', 'Next Day')}
-            aria-label="Next Day"
+            title={t('common.nextDay', 'Next Day')}
+            aria-label={t('common.nextDay', 'Next Day')}
           >
             {isRTL ? <ChevronLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> : <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />}
           </button>
