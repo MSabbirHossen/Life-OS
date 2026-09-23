@@ -122,9 +122,9 @@ export const Reports = () => {
   return (
     <div className="space-y-6 sm:space-y-8 animate-fade-in">
       <PageHeader
-        category={t('categories.analytics')}
-        title={t('reports.title')}
-        description={t('reports.subtitle')}
+        category={t('categories.analytics', 'Analytics & Insights')}
+        title={t('reports.title', 'Analytics & Reports')}
+        description={t('reports.subtitle', 'Comprehensive analytical synthesis of habits, nutrition, workouts, and focus hours.')}
         action={
           <div className="flex items-center gap-2 sm:gap-2.5 flex-wrap">
             <Button

@@ -197,9 +197,9 @@ export const Settings = () => {
   return (
     <div className="space-y-6 sm:space-y-8 animate-fade-in max-w-4xl">
       <PageHeader
-        category={t('categories.system')}
-        title={t('settings.title')}
-        description={t('settings.subtitle')}
+        category={t('categories.system', 'System & Preferences')}
+        title={t('settings.title', 'System Preferences & Settings')}
+        description={t('settings.subtitle', 'Configure appearance, localization, units, data backups, and account settings.')}
       />
 
       {saveSuccess && (

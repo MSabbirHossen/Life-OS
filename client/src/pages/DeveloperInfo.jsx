@@ -298,9 +298,9 @@ export const DeveloperInfo = ({ isCompact = false }) => {
   return (
     <div className="space-y-6 sm:space-y-8 animate-fade-in max-w-6xl mx-auto">
       <PageHeader
-        category="Creator & Community"
-        title={t('developer.title')}
-        description={t('developer.subtitle')}
+        category={t('developer.category', 'Creator & Community')}
+        title={t('developer.title', 'Developer & Creator Portfolio')}
+        description={t('developer.subtitle', 'Architecture, engineering details, and portfolio connection.')}
         action={
           <div className="flex items-center gap-2 sm:gap-2.5 flex-wrap">
             <Button
